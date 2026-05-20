@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>即時開班查詢 — 橘子蘋果程式學苑</title>
+<meta name="description" content="即時查詢橘子蘋果程式學苑全台教室的開班時段。Python、Roblox、Minecraft、Scratch 課程，直接看週六週日上課時間，一鍵預約試聽。">
+<meta property="og:title" content="即時開班查詢 — 橘子蘋果程式學苑">
+<meta property="og:description" content="一頁看完全台教室的開班時段，直接預約試聽">
+<meta property="og:type" content="website">
+<style>
+/* =========================================================
+   橘子蘋果即時開班查詢 — 品牌規範 v2.0
+   主色：橘 #FFA300 / 蘋果紅 #FF5859 / 藍綠 #00C4B3
+   ========================================================= */
+:root {
+  color-scheme: light only;
+  --orange:     #FFA300;
+  --orange-dk:  #D48500;
+  --red:        #FF5859;
+  --red-dk:     #CC3344;
+  --teal:       #00C4B3;
+  --teal-dk:    #008F83;
+  --gray:       #646569;
+  --dark:       #2D2D2D;
+  --bg:         #F5F5F5;
+  --white:      #FFFFFF;
+  --shadow:     0 2px 8px rgba(45, 45, 45, 0.08);
+  --shadow-lg:  0 4px 16px rgba(45, 45, 45, 0.12);
+
+  --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-en: "Trebuchet MS", "Calibri", sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: var(--font-zh);
+  color: var(--dark);
+  background: var(--bg);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.header {
+  background: var(--white);
+  border-bottom: 4px solid var(--orange);
+  padding: 16px 20px;
+  position: sticky; top: 0; z-index: 10;
+  box-shadow: var(--shadow);
+}
+.header__inner {
+  max-width: 960px; margin: 0 auto;
+  display: flex; align-items: center; gap: 16px;
+}
+.header__logo { height: 30px; width: auto; flex-shrink: 0; }
+.header__title {
+  font-size: 18px; font-weight: 700; color: var(--dark);
+  border-left: 3px solid var(--orange); padding-left: 12px;
+}
+.header__title small {
+  display: block; font-size: 12px; color: var(--gray); font-weight: 400;
+  margin-top: 2px;
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--orange) 0%, #FFB733 100%);
+  color: var(--white);
+  padding: 32px 20px 36px;
+  position: relative; overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute; top: -40px; right: -40px;
+  width: 180px; height: 180px;
+  background: var(--teal); opacity: 0.18;
+  border-radius: 50%;
+}
+.hero__inner { max-width: 960px; margin: 0 auto; position: relative; z-index: 1; }
+.hero h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; color: var(--white); }
+.hero p { font-size: 14px; opacity: 0.92; color: var(--white); }
+
+.filters {
+  max-width: 960px; margin: -20px auto 0;
+  padding: 0 20px;
+  position: relative; z-index: 2;
+}
+.filters__card {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.btn-apply {
+  grid-column: 1 / -1;
+  background: var(--orange);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin-top: 4px;
+  font-family: var(--font-zh);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-apply:hover { background: var(--orange-dk); }
+.btn-apply:active { transform: scale(0.98); }
+.btn-apply::after { content: "→"; font-family: var(--font-en); }
+.filter-group label {
+  display: block;
+  font-size: 12px; font-weight: 700; color: var(--gray);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.filter-group select {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: var(--font-zh);
+  font-size: 15px;
+  color: var(--dark);
+  background: var(--bg);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color .15s;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%23646569' d='M6 8L0 0h12z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 10px;
+  padding-right: 36px;
+}
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--orange);
+  background-color: var(--white);
+}
+.filter-summary {
+  max-width: 960px; margin: 16px auto 0;
+  padding: 0 20px;
+  font-size: 13px; color: var(--gray);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.btn-reset {
+  background: none; border: none; cursor: pointer;
+  color: var(--orange); font-weight: 700; font-size: 13px;
+  font-family: var(--font-zh);
+}
+.btn-reset:hover { color: var(--orange-dk); }
+
+.results {
+  max-width: 960px; margin: 20px auto 40px;
+  padding: 0 20px;
+  display: grid; gap: 14px;
+}
+
+.card {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  border-left: 5px solid var(--orange);
+  transition: box-shadow .15s, transform .15s;
+}
+.card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+.card--online { border-left-color: var(--teal); }
+.card--minecraft { border-left-color: var(--red); }
+.card--scratch { border-left-color: var(--teal); }
+
+.card__main { min-width: 0; }
+.card__top {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin-bottom: 6px;
+}
+.tag {
+  display: inline-block;
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px; border-radius: 4px;
+  background: var(--bg); color: var(--gray);
+  letter-spacing: 0.3px;
+}
+.tag--course { background: var(--orange); color: var(--white); }
+.tag--online { background: var(--teal); color: var(--white); }
+.tag--level { background: #FFEFC9; color: var(--orange-dk); }
+
+.card__classroom {
+  font-size: 17px; font-weight: 700; color: var(--dark);
+}
+.card__time {
+  font-family: var(--font-en);
+  font-size: 18px; font-weight: 700;
+  color: var(--orange-dk);
+  margin: 6px 0 4px;
+}
+.card__address {
+  font-size: 13px; color: var(--gray);
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.card__address::before { content: "📍"; flex-shrink: 0; }
+
+.card__cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--orange); color: var(--white);
+  font-family: var(--font-zh);
+  font-weight: 700; font-size: 14px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s, transform .15s;
+  border: none; cursor: pointer;
+}
+.card__cta:hover { background: var(--orange-dk); transform: translateY(-1px); }
+.card__cta::after { content: "→"; font-family: var(--font-en); }
+
+.empty {
+  text-align: center; padding: 48px 20px;
+  background: var(--white); border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.empty__icon { font-size: 48px; margin-bottom: 12px; }
+.empty__title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.empty__desc { font-size: 14px; color: var(--gray); margin-bottom: 18px; }
+
+.bottom-cta {
+  max-width: 960px; margin: 0 auto 40px;
+  padding: 28px 20px;
+  background: var(--dark);
+  color: var(--white);
+  border-radius: 12px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.bottom-cta::before {
+  content: "";
+  position: absolute; bottom: -30px; left: -30px;
+  width: 100px; height: 100px;
+  background: var(--orange); opacity: 0.25;
+  border-radius: 50%;
+}
+.bottom-cta::after {
+  content: "";
+  position: absolute; top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  background: var(--teal); opacity: 0.2;
+  border-radius: 50%;
+}
+.bottom-cta h2 { font-size: 18px; margin-bottom: 6px; position: relative; z-index: 1; color: var(--white); }
+.bottom-cta p { font-size: 13px; opacity: 0.85; margin-bottom: 18px; position: relative; z-index: 1; }
+.bottom-cta__btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--orange); color: var(--white);
+  font-family: var(--font-zh);
+  font-weight: 700; font-size: 15px;
+  padding: 14px 28px;
+  border-radius: 8px;
+  text-decoration: none;
+  position: relative; z-index: 1;
+  transition: background .15s;
+}
+.bottom-cta__btn:hover { background: var(--orange-dk); }
+
+.footer {
+  text-align: center; font-size: 12px; color: var(--gray);
+  padding: 20px;
+  border-top: 1px solid #E5E5E5;
+}
+.footer a { color: var(--orange); text-decoration: none; }
+.footer .updated { display: inline-block; margin-left: 8px; font-family: var(--font-en); }
+
+@media (max-width: 640px) {
+  .header__title { font-size: 16px; }
+  .header__logo { height: 26px; }
+  .hero { padding: 24px 20px 36px; }
+  .hero h1 { font-size: 20px; }
+  .filters { margin-top: -20px; }
+  .filters__card { grid-template-columns: 1fr; gap: 10px; padding: 16px; }
+  .card { grid-template-columns: 1fr; gap: 12px; }
+  .card__cta { justify-content: center; width: 100%; }
+  .card__time { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <!-- 內嵌 SVG 品牌 logo（水平版） -->
+    <svg class="header__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 174.6 34.03" aria-label="橘子蘋果程式學苑">
+      <defs><style>.b1{fill:#ea6052;}.b2{fill:#00c4b3;}.b3{fill:#f4a11a;}.b4{fill:#ffa300;}.b5{fill:#ff5859;}</style></defs>
+      <path class="b4" d="m24,21c0-4.9,2.36-9.25,6.01-11.99-1.54-.65-3.23-1-5.01-1-7.17,0-13,5.83-13,13s5.83,13,13,13c1.77,0,3.46-.36,5.01-1-3.64-2.74-6.01-7.1-6.01-11.99Z"/>
+      <path class="b2" d="m31,5c0,.7.14,1.36.4,1.96.2.02.4.04.6.04,2.76,0,5-2.24,5-5,0-.7-.14-1.36-.4-1.96-.2-.02-.4-.04-.6-.04-2.76,0-5,2.24-5,5Z"/>
+      <path class="b5" d="m39,8c-7.17,0-13,5.83-13,13s5.83,13,13,13,13-5.83,13-13-5.83-13-13-13Zm-9.63,12.84c-.47-.35-.56-1.01-.21-1.48l3-4c.35-.47,1.01-.56,1.48-.21.47.35.56,1.01.21,1.48l-3,4c-.21.28-.53.42-.85.42-.22,0-.44-.07-.63-.21Zm5.48,1.81l-3,3.98c-.21.28-.53.42-.85.42-.22,0-.45-.07-.64-.21-.47-.35-.56-1.01-.21-1.48l3-3.98c.35-.47,1.02-.56,1.48-.21.47.35.56,1.02.21,1.48Z"/>
+      <path class="b3" d="m9.98,33.99c-.32,0-.64-.15-.84-.42L.21,21.63c-.28-.38-.28-.89,0-1.27l8.95-12.04c.35-.47,1.01-.56,1.47-.21.47.35.56,1.01.21,1.48,0,0-7.6,10.22-7.97,10.72-.36.48-.35.9-.03,1.32.39.52,7.98,10.67,7.98,10.67.35.47.26,1.13-.21,1.48-.19.14-.41.21-.63.21Z"/>
+      <path class="b1" d="m54.04,7.94c.32,0,.64.15.84.42l8.93,11.94c.28.38.28.89,0,1.27l-8.95,12.04c-.35.47-1.01.56-1.47.21s-.56-1.01-.21-1.48c0,0,7.6-10.22,7.97-10.72.36-.48.35-.9.03-1.32-.39-.52-7.98-10.67-7.98-10.67-.35-.47-.26-1.13.21-1.48.19-.14.41-.21.63-.21Z"/>
+      <path class="b3" d="m77.65,15.4h-6.54c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h6.54c.45,0,.82.37.82.82s-.37.82-.82.82Zm-3.22,18.61c-.45,0-.82-.37-.82-.82V8.76c0-.45.37-.82.82-.82s.82.37.82.82v24.43c0,.45-.37.82-.82.82Zm-4.35-7.61c-.19,0-.39-.07-.55-.21-.34-.3-.37-.82-.06-1.16.94-1.05,2.03-3.63,2.03-5.4,0-.45.37-.82.82-.82s.82.37.82.82c0,2.22-1.29,5.2-2.45,6.5-.16.18-.39.27-.61.27Zm23.03-9.53c-.45,0-.82-.37-.82-.82v-.65h-11.97c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h12.79c.45,0,.82.37.82.82v1.47c0,.45-.37.82-.82.82Zm-16.31,3.58c-.45,0-.82-.37-.82-.82s.37-.82.82-.82c6.01,0,6.3-4.1,6.31-4.27.03-.45.39-.8.86-.78.45.02.8.4.78.85,0,.06-.33,5.84-7.95,5.84Zm9.92-7.49c-.45,0-.82-.37-.82-.82s.37-.82.82-.82c1.56,0,2.46-.49,2.98-.98h-9.32c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h10.76c.25,0,.48.11.64.31.16.19.21.45.16.69-.03.13-.79,3.25-5.21,3.25Zm0,5.64c-.45,0-.82-.37-.82-.82v-3.2c0-.45.37-.82.82-.82s.82.37.82.82v3.2c0,.45-.37.82-.82.82Zm6.39,15.41c-.45,0-.82-.37-.82-.82v-11.96c0-.7-.51-.78-.73-.78h-10.42v12.74c0,.45-.37.82-.82.82s-.82-.37-.82-.82v-13.56c0-.45.37-.82.82-.82h11.24c.95,0,2.37.64,2.37,2.42v11.96c0,.45-.37.82-.82.82Z"/>
+      <path class="b3" d="m107.11,34.01c-.37,0-.7-.25-.79-.62-.11-.44.15-.88.59-1,.02,0,1.14-.4,1.14-2.72v-13.55c0-.44.34-.79.78-.82,5.36-.28,6.9-3.43,7.34-4.96h-15.57c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h16.55c.45,0,.82.37.82.82,0,1.41-1.43,6.63-8.28,7.35v12.8c0,3.66-2.28,4.29-2.38,4.31-.07.02-.14.02-.2.02Zm12.41-12.18h-21.3c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h21.3c.45,0,.82.37.82.82s-.37.82-.82.82Z"/>
+      <path class="b3" d="m86.72,33.27c-1.99,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6,3.6,1.62,3.6,3.6-1.62,3.6-3.6,3.6Zm0-5.56c-1.08,0-1.96.88-1.96,1.96s.88,1.96,1.96,1.96,1.96-.88,1.96-1.96-.88-1.96-1.96-1.96Z"/>
+      <path class="b1" d="m145.64,11.43h-19.19c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h19.19c.45,0,.82.37.82.82s-.37.82-.82.82Zm-14.3,13.79c-.45,0-.82-.37-.82-.82v-9.82c0-.45.37-.82.82-.82s.82.37.82.82v9.82c0,.45-.37.82-.82.82Zm2.99-3.39h-9.03c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h9.03c.45,0,.82.37.82.82s-.37.82-.82.82Zm12.03-6.44h-8.41c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h8.41c.45,0,.82.37.82.82s-.37.82-.82.82Zm-5.23,3.23c-.2,0-.4-.07-.56-.22-.33-.31-.34-.83-.03-1.16.63-.67,1.13-2.02,1.27-2.48.13-.43.59-.68,1.02-.55.43.13.68.59.55,1.02-.06.21-.64,2.06-1.65,3.13-.16.17-.38.26-.6.26Zm5.23,9.7h-8.65c-.45,0-.82-.37-.82-.82v-8.41c0-1.32.85-2.11,2.28-2.11h7.18c.45,0,.82.37.82.82v9.7c0,.45-.37.82-.82.82Zm-7.83-1.64h7.01v-8.06h-6.36c-.64,0-.64.19-.64.47v7.59Zm7.59-4.82h-3.53c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h3.53c.45,0,.82.37.82.82s-.37.82-.82.82Zm0,3.23h-3.53c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h3.53c.45,0,.82.37.82.82s-.37.82-.82.82Zm-5.05-8.13c-.45,0-.82-.37-.82-.82v-3.07c0-.45.37-.82.82-.82s.82.37.82.82v3.07c0,.45-.37.82-.82.82Zm-12.75,8.78c-.45,0-.82-.37-.82-.82v-3.13c0-.45.37-.82.82-.82s.82.37.82.82v3.13c0,.45-.37.82-.82.82Zm5.78-3.12h-2.76c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h2.76c.45,0,.82.37.82.82s-.37.82-.82.82Z"/>
+      <path class="b1" d="m166.22,15.39h-6.39c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h6.39c.45,0,.82.37.82.82s-.37.82-.82.82Zm-3.25,18.62c-.45,0-.82-.37-.81-.82l.12-23.66c0-.45.37-.81.82-.81s.82.37.81.82l-.12,23.66c0,.45-.37.81-.82.81Zm10.81-10.57h-21.52c-.45,0-.82-.37-.82-.82s.37-.82.82-.82h21.52c.45,0,.82.37.82.82s-.37.82-.82.82Zm-20.68,8.85c-.35,0-.68-.23-.78-.59-.13-.43.12-.89.55-1.02,6.3-1.87,9.43-8.35,9.46-8.41.19-.41.68-.58,1.09-.39.41.19.58.68.39,1.09-.14.29-3.48,7.21-10.48,9.28-.08.02-.16.03-.23.03Zm20.13,0c-.08,0-.16-.01-.24-.04-4.41-1.34-7.31-5.19-7.43-5.35-.27-.36-.19-.87.17-1.14.36-.27.88-.2,1.15.17.03.04,2.71,3.58,6.59,4.76.43.13.68.59.55,1.02-.11.35-.43.58-.78.58Zm-2.01-11.73h-13.91c-1.85,0-3.35-1.5-3.35-3.35v-7.38c0-.45.37-.82.82-.82h13.91c1.85,0,3.35,1.5,3.35,3.35v7.38c0,.45-.37.82-.82.82Zm-15.62-9.91v6.56c0,.94.77,1.71,1.71,1.71h13.1v-6.56c0-.94-.77-1.71-1.71-1.71h-13.1Z"/>
+      <path class="b3" d="m91.13,25.45h-1.92c-.91,0-1.52-.66-1.52-1.63v-4.19c0-.45.37-.82.82-.82s.82.37.82.82v4.18h1.8c.45,0,.82.37.82.82s-.37.82-.82.82Z"/>
+      <path class="b3" d="m80.32,25.45c-.45,0-.82-.37-.82-.82s.37-.82.82-.82c2.3,0,4.18-1.87,4.18-4.18,0-.45.37-.82.82-.82s.82.37.82.82c0,3.21-2.61,5.82-5.82,5.82Z"/>
+      <path class="b1" d="m125.3,27.95c-.45,0-.82-.37-.82-.82s.37-.82.82-.82c1.2,0,2.18-.92,2.18-2.04,0-.45.37-.82.82-.82s.82.37.82.82c0,2.03-1.71,3.68-3.81,3.68Zm12.41,6.06c-.45,0-.82-.37-.82-.82s.37-.82.82-.82c1.2,0,2.18-.91,2.18-2.04,0-.45.37-.82.82-.82s.82.37.82.82c0,2.03-1.71,3.68-3.81,3.68Zm-12.41-.17c-.45,0-.82-.37-.82-.82s.37-.82.82-.82c4.6,0,8.35-3.56,8.35-7.93,0-.45.37-.82.82-.82s.82.37.82.82c0,5.28-4.48,9.57-9.99,9.57Zm20.82.17c-.27,0-.54-.14-.7-.39l-1.76-2.86c-.24-.38-.12-.89.27-1.13.39-.24.89-.12,1.13.27l1.76,2.86c.24.38.12.89-.27,1.13-.13.08-.28.12-.43.12Z"/>
+    </svg>
+    <div class="header__title">
+      即時開班查詢
+      <small>查詢全台教室開班時段，直接預約試聽</small>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <h1>找到適合的時段，預約免費試聽</h1>
+    <p>選擇教室、課程，立即查看可預約的上課時段</p>
+  </div>
+</section>
+
+<section class="filters">
+  <div class="filters__card">
+    <div class="filter-group">
+      <label for="filter-classroom">教室</label>
+      <select id="filter-classroom"><option value="all">全部教室</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-course">課程</label>
+      <select id="filter-course"><option value="all">全部課程</option></select>
+    </div>
+    <button class="btn-apply" id="btn-apply" type="button" onclick="window.__oaApply && window.__oaApply()">查詢開班時段</button>
+  </div>
+</section>
+
+<div class="filter-summary">
+  <span id="result-count">載入中...</span>
+  <button class="btn-reset" id="btn-reset" type="button" onclick="window.__oaReset && window.__oaReset()">清除條件</button>
+</div>
+
+<section class="results" id="results"></section>
+
+<section class="bottom-cta">
+  <h2>找不到合適的時段？</h2>
+  <p>聯絡專員為你客製化安排上課時間與分校</p>
+  <a class="bottom-cta__btn" href="https://lin.ee/your-line-oa-link" target="_blank" rel="noopener">
+    LINE 聯絡專員 →
+  </a>
+</section>
+
+<footer class="footer">
+  橘子蘋果程式學苑 OrangeApple Programming Academy　|
+  <a href="https://orangeapple.co" target="_blank" rel="noopener">官網</a>
+  <span class="updated">資料更新：<span id="updated-at">—</span></span>
+</footer>
+
+<!-- ============================================================
+     資料區（教室主檔 + 課程 + 時段對照）
+     人工維護。新增/刪除教室在這裡改。
+     ============================================================ -->
+<script>
+window.OA_CLASSROOMS = {
+  classrooms: [
+    { id: "online",         name: "線上課程",       city: "線上",   district: "",     address: "全台與海外皆可上課", phone: "02-77098229", is_online: true },
+
+    { id: "guting",         name: "古亭教室",       city: "臺北市", district: "中正區", address: "中正區羅斯福路二段70號6樓之4",       phone: "02-77098229" },
+    { id: "minquan",        name: "民權教室",       city: "臺北市", district: "大同區", address: "大同區承德路二段46號3樓",            phone: "02-77098229" },
+    { id: "songshan",       name: "松山教室",       city: "臺北市", district: "松山區", address: "松山區南京東路五段251巷24弄33號1樓", phone: "02-77098229" },
+    { id: "beitou",         name: "北投教室",       city: "臺北市", district: "北投區", address: "北投區明德路213號1樓",               phone: "02-28239225" },
+    { id: "neihu_donghu",   name: "內湖東湖教室",   city: "臺北市", district: "內湖區", address: "內湖區東湖路7巷29號",                phone: "02-77098229" },
+    { id: "neihu_gangqian", name: "內湖港墘教室",   city: "臺北市", district: "內湖區", address: "內湖區內湖路二段54-4號",             phone: "02-77098229" },
+    { id: "tianmu",         name: "天母教室",       city: "臺北市", district: "士林區", address: "士林區天母西路41巷1弄3號",           phone: "02-77098229" },
+
+    { id: "jiangcui",       name: "江翠教室",       city: "新北市", district: "板橋區", address: "板橋區莊敬路60號2樓",                phone: "02-77098229" },
+    { id: "banqiao",        name: "板橋教室",       city: "新北市", district: "板橋區", address: "板橋區公園街20號2樓",                phone: "02-77098229" },
+    { id: "xinzhuang_moli", name: "新莊魔力教室",   city: "新北市", district: "新莊區", address: "新莊區中榮街152巷36號1樓",           phone: "02-89913547" },
+    { id: "xinzhuang",      name: "新莊教室",       city: "新北市", district: "新莊區", address: "新莊區昌平街75號",                   phone: "02-77098229" },
+    { id: "linkou",         name: "林口教室",       city: "新北市", district: "林口區", address: "林口區文化二路一段390號2樓",         phone: "02-77098229" },
+    { id: "xike",           name: "汐科教室",       city: "新北市", district: "汐止區", address: "汐止區大同路二段240號4樓",           phone: "02-26485599" },
+    { id: "xindian",        name: "新店教室",       city: "新北市", district: "新店區", address: "新店區中正路188號4樓",               phone: "02-77098229" },
+    { id: "yonghe",         name: "永和教室",       city: "新北市", district: "永和區", address: "永和區福和路165號8樓",               phone: "02-77098229" },
+    { id: "tucheng",        name: "土城教室",       city: "新北市", district: "土城區", address: "土城區學府路一段164巷11號",          phone: "02-77098229" },
+    { id: "sanxia",         name: "三峽教室",       city: "新北市", district: "三峽區", address: "三峽區大學路99號1樓",                phone: "02-77098229" },
+    { id: "shulin",         name: "樹林教室",       city: "新北市", district: "樹林區", address: "樹林區復興路271號",                  phone: "02-77098229" },
+    { id: "luzhou",         name: "蘆洲教室",       city: "新北市", district: "蘆洲區", address: "蘆洲區中山一路29號",                 phone: "02-77098229" },
+
+    { id: "keelung",        name: "基隆教室",       city: "基隆市", district: "仁愛區", address: "仁愛區仁二路119巷5號",               phone: "02-77098229" },
+
+    { id: "taoyuan",        name: "桃園教室",       city: "桃園市", district: "桃園區", address: "桃園區永順街117號4樓",               phone: "02-77098229" },
+    { id: "zhongli",        name: "中壢教室",       city: "桃園市", district: "中壢區", address: "中壢區華愛街59號",                   phone: "02-77098229" },
+    { id: "nankan",         name: "南崁教室",       city: "桃園市", district: "蘆竹區", address: "蘆竹區長壽三街40號",                 phone: "02-77098229" },
+    { id: "qingpu",         name: "青埔教室",       city: "桃園市", district: "大園區", address: "大園區致祥一街130號",                phone: "02-77098229" },
+
+    { id: "hsinchu_info",   name: "新竹資訊教室",   city: "新竹市", district: "東區",   address: "東區光復路二段481號10樓之1",         phone: "02-77098229" },
+    { id: "zhubei",         name: "竹北勝利教室",   city: "新竹縣", district: "竹北市", address: "竹北市勝利十二街310號3、4樓",         phone: "02-77098229" },
+
+    { id: "toufen",         name: "頭份教室",       city: "苗栗縣", district: "頭份市", address: "頭份市中央路499號",                  phone: "02-77098229" },
+
+    { id: "beitun",         name: "北屯教室",       city: "臺中市", district: "北屯區", address: "北屯區安順二街35號",                 phone: "02-77098229" },
+    { id: "xitun",          name: "西屯教室",       city: "臺中市", district: "西屯區", address: "西屯區福泰街98號",                   phone: "02-77098229" },
+    { id: "nantun",         name: "南屯教室",       city: "臺中市", district: "南屯區", address: "南屯區文心南三路372號",              phone: "02-77098229" },
+    { id: "nantun_camp",    name: "南屯營隊A教室",  city: "臺中市", district: "南屯區", address: "南屯區向心路62號2樓",                phone: "02-77098229" },
+    { id: "dali",           name: "大里教室",       city: "臺中市", district: "大里區", address: "大里區東榮路237號3樓",               phone: "02-77098229" },
+    { id: "wufeng",         name: "霧峰教室",       city: "臺中市", district: "霧峰區", address: "霧峰區中正路737號",                  phone: "0919535974" },
+
+    { id: "chiayi",         name: "嘉義市東區教室", city: "嘉義市", district: "東區",   address: "東區中山路73-1號5樓",                phone: "02-77098229#2035" },
+
+    { id: "tainan_dongning",name: "台南東寧西教室", city: "臺南市", district: "東區",   address: "東區東寧路西段24號",                 phone: "02-77098229" },
+    { id: "tainan_fuxing",  name: "台南復興教室",   city: "臺南市", district: "東區",   address: "東區裕文路175號",                    phone: "02-77098229" },
+    { id: "tainan_north",   name: "台南北區教室",   city: "臺南市", district: "北區",   address: "北區文賢一路138號",                  phone: "02-77098229" },
+    { id: "tainan_yongkang",name: "台南永康教室",   city: "臺南市", district: "永康區", address: "永康區東橋三路470號",                phone: "02-77098229" },
+    { id: "tainan_nanke",   name: "台南南科教室",   city: "臺南市", district: "善化區", address: "善化區興華路233號",                  phone: "02-77098229" },
+
+    { id: "kh_nanzi",       name: "高雄楠梓教室",   city: "高雄市", district: "楠梓區", address: "楠梓區清豐二路306巷13號1-3樓",       phone: "02-77098229" },
+    { id: "kh_zuoying",     name: "高雄左營教室",   city: "高雄市", district: "左營區", address: "左營區明誠二路212號",                phone: "02-77098229" },
+    { id: "kh_dongguang",   name: "高雄東光教室",   city: "高雄市", district: "三民區", address: "三民區黃興路226號5樓",               phone: "02-77098229" },
+    { id: "kh_wujia",       name: "高雄鳳山五甲教室",city: "高雄市", district: "鳳山區", address: "鳳山區福祥街76號",                   phone: "02-77098229" },
+    { id: "kh_wenshan",     name: "高雄鳳山文山教室",city: "高雄市", district: "鳳山區", address: "鳳山區文澄街56號1-3樓",              phone: "02-77098229" },
+
+    { id: "pingtung",       name: "屏東教室",       city: "屏東縣", district: "屏東市", address: "屏東市廣東路1516號",                 phone: "02-77098229" },
+
+    { id: "kl_sri_petaling",name: "Sri Petaling 分校", city: "Kuala Lumpur", district: "", address: "Bandar Baru Sri Petaling, 57000 KL", phone: "(03)27745388" }
+  ],
+  // 家長端可見的課程選項。corp 內部 course_id（如 elite、roblox）會透過 COURSE_INTERNAL_TO_DISPLAY 對應過來
+  // 注意：corp 的「菁英」課程實際上涵蓋 Scratch、Python、JavaScript 三種，學生可選一種學習
+  courses: [
+    { id: "scratch",          name: "Scratch",       description: "積木式程式語言（菁英課內含）" },
+    { id: "python",           name: "Python",        description: "業界主流語言（菁英課內含）" },
+    { id: "javascript",       name: "JavaScript",    description: "網頁與遊戲開發（菁英課內含）" },
+    { id: "creative_blocks",  name: "創意機械積木",   description: "動手做實體機械" },
+    { id: "minecraft",        name: "Minecraft",     description: "麥塊世界程式邏輯" },
+    { id: "roblox",           name: "Roblox",        description: "Lua 程式打造遊戲" }
+  ],
+  // 時段 1-3 實體常用、4 實體晚間、5 線上晚間（19:00-21:00）
+  time_slots: {
+    "1": "10:00 ~ 12:00",
+    "2": "13:30 ~ 15:30",
+    "3": "16:00 ~ 18:00",
+    "4": "18:30 ~ 20:30",
+    "5": "19:00 ~ 21:00"
+  }
+};
+</script>
+
+<!-- ============================================================
+     時段資料區 — 由 scraper/scrape.py 自動覆寫
+     編輯時保留 SCHEDULE_DATA_START / SCHEDULE_DATA_END 標記
+     ============================================================ -->
+<script>
+/* SCHEDULE_DATA_START */
+window.OA_SCHEDULE = {
+  updated_at: "2026-05-20",
+  source: "manual sample from screenshots",
+  schedules: [
+    { classroom_id: "guting",       course_id: "elite",     course_level: "中階,高階", day: "Sat", time_slot: 1 },
+    { classroom_id: "guting",       course_id: "elite",     course_level: "",          day: "Sat", time_slot: 2 },
+    { classroom_id: "guting",       course_id: "elite",     course_level: "",          day: "Sat", time_slot: 3 },
+    { classroom_id: "guting",       course_id: "elite",     course_level: "",          day: "Sat", time_slot: 4 },
+    { classroom_id: "guting",       course_id: "elite",     course_level: "中階",      day: "Sun", time_slot: 1 },
+    { classroom_id: "guting",       course_id: "elite",     course_level: "中階,高階", day: "Sun", time_slot: 2 },
+    { classroom_id: "guting",       course_id: "elite",     course_level: "初階,中階", day: "Sat", time_slot: 1 },
+    { classroom_id: "guting",       course_id: "elite",     course_level: "初階",      day: "Sat", time_slot: 2 },
+    { classroom_id: "guting",       course_id: "roblox",    course_level: "",          day: "Sat", time_slot: 3 },
+    { classroom_id: "guting",       course_id: "roblox",    course_level: "",          day: "Sun", time_slot: 2 },
+    { classroom_id: "guting",       course_id: "minecraft", course_level: "",          day: "Sat", time_slot: 1 },
+    { classroom_id: "guting",       course_id: "minecraft", course_level: "",          day: "Sat", time_slot: 2 },
+    { classroom_id: "guting",       course_id: "minecraft", course_level: "",          day: "Sat", time_slot: 3 },
+    { classroom_id: "guting",       course_id: "minecraft", course_level: "",          day: "Sun", time_slot: 1 },
+    { classroom_id: "guting",       course_id: "minecraft", course_level: "",          day: "Sun", time_slot: 2 },
+    { classroom_id: "guting",       course_id: "creative_blocks",   course_level: "",          day: "Sat", time_slot: 1 },
+    { classroom_id: "guting",       course_id: "creative_blocks",   course_level: "",          day: "Sat", time_slot: 2 },
+    { classroom_id: "guting",       course_id: "creative_blocks",   course_level: "",          day: "Sat", time_slot: 3 },
+    { classroom_id: "guting",       course_id: "creative_blocks",   course_level: "",          day: "Sun", time_slot: 1 },
+    { classroom_id: "guting",       course_id: "creative_blocks",   course_level: "",          day: "Sun", time_slot: 2 },
+    { classroom_id: "minquan",      course_id: "elite",     course_level: "",          day: "Sat", time_slot: 1 },
+    { classroom_id: "minquan",      course_id: "elite",     course_level: "",          day: "Sat", time_slot: 2 },
+    { classroom_id: "minquan",      course_id: "minecraft", course_level: "",          day: "Sat", time_slot: 1 },
+    { classroom_id: "songshan",     course_id: "creative_blocks",   course_level: "",          day: "Sat", time_slot: 2 },
+    { classroom_id: "online",       course_id: "roblox",    course_level: "",          day: "Sat", time_slot: 5 },
+    { classroom_id: "online",       course_id: "roblox",    course_level: "",          day: "Sun", time_slot: 5 },
+    { classroom_id: "online",       course_id: "elite",     course_level: "中階,高階", day: "Sat", time_slot: 5 },
+    { classroom_id: "online",       course_id: "elite",     course_level: "中階,高階", day: "Sun", time_slot: 5 },
+    { classroom_id: "online",       course_id: "elite",     course_level: "初階,中階", day: "Sun", time_slot: 5 },
+    { classroom_id: "hsinchu_info", course_id: "elite",     course_level: "",          day: "Sat", time_slot: 1 },
+    { classroom_id: "hsinchu_info", course_id: "elite",     course_level: "",          day: "Sat", time_slot: 2 },
+    { classroom_id: "hsinchu_info", course_id: "minecraft", course_level: "",          day: "Sat", time_slot: 2 }
+  ]
+};
+/* SCHEDULE_DATA_END */
+</script>
+
+<!-- ============================================================
+     主程式
+     ============================================================ -->
+<script>
+(function() {
+  "use strict";
+  const DAY_LABEL = { Sat: "週六", Sun: "週日", Mon: "週一", Tue: "週二", Wed: "週三", Thu: "週四", Fri: "週五" };
+  const BOOKING_URL = "https://lin.ee/your-line-oa-link";  // TODO: 改成正式 LINE OA 預約連結
+  const CITY_ORDER = ["臺北市", "新北市", "基隆市", "桃園市", "新竹市", "新竹縣", "苗栗縣", "臺中市", "嘉義市", "臺南市", "高雄市", "屏東縣", "Kuala Lumpur", "線上"];
+
+  // corp 內部 schedule course_id → 家長端要顯示的課程 id（一對多）
+  // 「菁英」這個時段實際涵蓋三種教學內容，學生選一種；其他課程都是獨立的一種對一種
+  // 數學、選手班不開放試聽 → 不列在這
+  const COURSE_INTERNAL_TO_DISPLAY = {
+    elite:           ["scratch", "python", "javascript"],
+    creative_blocks: ["creative_blocks"],
+    minecraft:       ["minecraft"],
+    roblox:          ["roblox"]
+  };
+
+  const classrooms = window.OA_CLASSROOMS.classrooms;
+  const courses    = window.OA_CLASSROOMS.courses;
+  const timeSlots  = window.OA_CLASSROOMS.time_slots;
+  const schedules  = window.OA_SCHEDULE.schedules;
+
+  const filter = { classroom: "all", course: "all" };
+
+  function $(id) { return document.getElementById(id); }
+  function roomById(id) { return classrooms.find(r => r.id === id) || { name: id, address: "", city: "" }; }
+  function courseById(id) { return courses.find(c => c.id === id) || { name: id }; }
+  function displayTagsOf(scheduleItem) { return COURSE_INTERNAL_TO_DISPLAY[scheduleItem.course_id] || []; }
+
+  function readUrlParams() {
+    const p = new URLSearchParams(window.location.search);
+    if (p.has("classroom")) filter.classroom = p.get("classroom");
+    if (p.has("course"))    filter.course = p.get("course");
+  }
+  function syncUrl() {
+    const p = new URLSearchParams();
+    for (const k of ["classroom", "course"]) {
+      if (filter[k] !== "all") p.set(k, filter[k]);
+    }
+    const q = p.toString();
+    window.history.replaceState(null, "", q ? "?" + q : window.location.pathname);
+  }
+
+  function buildFilters() {
+    const cities = CITY_ORDER.filter(c => classrooms.some(r => r.city === c));
+
+    // 教室下拉用 optgroup 按城市分組
+    let classroomHtml = '<option value="all">全部教室</option>';
+    cities.forEach(city => {
+      const rooms = classrooms.filter(r => r.city === city);
+      if (rooms.length === 0) return;
+      classroomHtml += `<optgroup label="${city}">`;
+      rooms.forEach(r => {
+        classroomHtml += `<option value="${r.id}">${r.name}</option>`;
+      });
+      classroomHtml += '</optgroup>';
+    });
+    $("filter-classroom").innerHTML = classroomHtml;
+    $("filter-classroom").value = filter.classroom;
+
+    $("filter-course").innerHTML = '<option value="all">全部課程</option>' +
+      courses.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+    $("filter-course").value = filter.course;
+  }
+
+  function applyFilters() {
+    return schedules.filter(s => {
+      const tags = displayTagsOf(s);
+      if (tags.length === 0) return false;  // 對應表沒列的內部課程（數學、選手班）一律不顯示
+
+      const r = roomById(s.classroom_id);
+      if (filter.classroom !== "all" && r.id !== filter.classroom) return false;
+      if (filter.course !== "all" && !tags.includes(filter.course)) return false;
+      return true;
+    });
+  }
+
+  function timeLabel(slot) { return timeSlots[slot] || `第 ${slot} 節`; }
+
+  // 卡片上要顯示的課程名稱：有過濾就只顯示過濾的那一個，沒過濾就顯示時段對應的所有家長端課程
+  function courseLabelOf(s) {
+    const tags = displayTagsOf(s);
+    if (filter.course !== "all" && tags.includes(filter.course)) {
+      const c = courseById(filter.course);
+      return c.name;
+    }
+    return tags.map(t => courseById(t).name).join(" / ");
+  }
+
+  function statusText(count) {
+    const parts = [];
+    if (filter.classroom !== "all") parts.push(roomById(filter.classroom).name);
+    if (filter.course !== "all")    parts.push(courseById(filter.course).name);
+    const prefix = parts.length > 0 ? `${parts.join("・")}・` : "";
+    return `${prefix}共 ${count} 個開班時段`;
+  }
+
+  function buildBookingLink(s) {
+    const r = roomById(s.classroom_id);
+    const c = courseById(s.course_id);
+    const msg = `我想預約試聽：\n${r.name} / ${c.name}\n${DAY_LABEL[s.day] || s.day} ${timeLabel(s.time_slot)}`;
+    return BOOKING_URL + "?text=" + encodeURIComponent(msg);
+  }
+
+  function render() {
+    const list = applyFilters();
+    $("result-count").textContent = statusText(list.length);
+
+    const wrap = $("results");
+    if (list.length === 0) {
+      wrap.innerHTML = `
+        <div class="empty">
+          <div class="empty__icon">🔍</div>
+          <div class="empty__title">目前沒有符合條件的時段</div>
+          <div class="empty__desc">試試調整篩選條件，或聯絡專員客製化安排</div>
+          <a class="card__cta" href="${BOOKING_URL}" target="_blank" rel="noopener">聯絡專員</a>
+        </div>`;
+      return;
+    }
+
+    list.sort((a, b) => {
+      const ra = roomById(a.classroom_id), rb = roomById(b.classroom_id);
+      if (ra.city !== rb.city) {
+        const ia = CITY_ORDER.indexOf(ra.city), ib = CITY_ORDER.indexOf(rb.city);
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      }
+      if (ra.name !== rb.name) return ra.name.localeCompare(rb.name, "zh-Hant");
+      if (a.day !== b.day) return a.day === "Sat" ? -1 : 1;
+      return a.time_slot - b.time_slot;
+    });
+
+    wrap.innerHTML = list.map(s => {
+      const r = roomById(s.classroom_id);
+      const day = DAY_LABEL[s.day] || s.day;
+      const mod = r.is_online ? "card--online" :
+                  s.course_id === "creative_blocks" ? "card--scratch" :
+                  s.course_id === "minecraft" ? "card--minecraft" : "";
+      const onlineTag = r.is_online ? `<span class="tag tag--online">線上</span>` : "";
+      const levelTag  = s.course_level ? `<span class="tag tag--level">${s.course_level}</span>` : "";
+      return `
+        <div class="card ${mod}">
+          <div class="card__main">
+            <div class="card__top">
+              <span class="tag tag--course">${courseLabelOf(s)}</span>
+              ${onlineTag}${levelTag}
+            </div>
+            <div class="card__classroom">${r.name}</div>
+            <div class="card__time">${day} ${timeLabel(s.time_slot)}</div>
+            ${r.address ? `<div class="card__address">${r.address}</div>` : ""}
+          </div>
+          <a class="card__cta" href="${buildBookingLink(s)}" target="_blank" rel="noopener">預約試聽</a>
+        </div>`;
+    }).join("");
+  }
+
+  // 從 DOM 讀回 filter state，按下「查詢」時呼叫
+  function applyFromDOM() {
+    filter.classroom = $("filter-classroom").value;
+    filter.course    = $("filter-course").value;
+    syncUrl();
+    render();
+  }
+
+  function resetFilters() {
+    filter.classroom = filter.course = "all";
+    buildFilters();
+    syncUrl();
+    render();
+  }
+
+  // 掛到 window 讓 HTML inline onclick 能直接呼叫（addEventListener 在某些預覽環境會被擋）
+  window.__oaApply = applyFromDOM;
+  window.__oaReset = resetFilters;
+
+  function init() {
+    if (window.OA_SCHEDULE && window.OA_SCHEDULE.updated_at) {
+      $("updated-at").textContent = window.OA_SCHEDULE.updated_at;
+    }
+    readUrlParams();
+    buildFilters();
+    // addEventListener 作為備援（正式部署到 Cloudflare 後就走這條路徑）
+    $("btn-apply").addEventListener("click", applyFromDOM);
+    $("btn-reset").addEventListener("click", resetFilters);
+    render();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>
