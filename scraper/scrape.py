@@ -1,192 +1,213 @@
 #!/usr/bin/env python3
 """
-橘子蘋果雙師班排程爬蟲
-====================
-登入 corp.orangeapple.co/courses/dt，抓取所有城市 × 週末/週間 的時段資料，
-解析後寫回 ../index.html 中 SCHEDULE_DATA_START / SCHEDULE_DATA_END 之間的區塊。
+橘子蘋果雙師班排程爬蟲（Playwright 版）
+=====================================
+登入 corp.orangeapple.co/courses/dt，抓取所有城市 × 週末/週間 的開班時段，
+把結果寫回 ../index.html 中 SCHEDULE_DATA_START / SCHEDULE_DATA_END 區塊。
 
 用法：
-    python3 scrape.py              # 正式跑，會更新 ../index.html
-    python3 scrape.py --dry-run    # 抓資料但不寫檔，印出筆數
-    python3 scrape.py --debug      # 顯示 Firefox 視窗（預設無頭）
+    python3 scrape.py              # 正式跑（無頭）
+    python3 scrape.py --dry-run    # 只抓不寫
+    python3 scrape.py --debug      # 顯示 Firefox 視窗
 
-帳密設定：
-    在同資料夾建立 .env 檔案（不要 commit）：
-        OA_USERNAME=your_email
-        OA_PASSWORD=your_password
-
-時段對照（與 index.html 內 time_slots 同步）：
-    1 = 10:00–12:00, 2 = 13:30–15:30, 3 = 16:00–18:00,
-    4 = 18:30–20:30 (實體晚間), 5 = 19:00–21:00 (線上晚間)
+設定：在同資料夾 .env 內填入
+    OA_EMAIL=your_email
+    OA_PASSWORD=your_password
 """
 
 import argparse
+import asyncio
 import json
 import os
 import re
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from playwright.async_api import async_playwright
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SCRIPT_DIR.parent
 INDEX_HTML = PROJECT_DIR / "index.html"
 load_dotenv(SCRIPT_DIR / ".env")
 
-LOGIN_URL = "https://corp.orangeapple.co/users/sign_in"
+SYSTEM_URL = "https://corp.orangeapple.co/"
 TARGET_URL = "https://corp.orangeapple.co/courses/dt"
 
-USERNAME = os.getenv("OA_USERNAME")
+EMAIL = os.getenv("OA_EMAIL")
 PASSWORD = os.getenv("OA_PASSWORD")
 
-CITIES = ["臺北市", "新北市", "基隆市", "桃園市", "新竹市", "新竹縣",
-          "苗栗縣", "臺中市", "嘉義市", "臺南市", "高雄市", "屏東縣",
-          "Kuala Lumpur"]
-SCHEDULE_TYPES = ["週末", "週間"]
-
-# ---------- 對應表（教室內部名 → classrooms id） ----------
-# 從 index.html 內的 OA_CLASSROOMS 取出 id/name，自動建表（簡單字串比對）
-def extract_classrooms_from_index():
-    html = INDEX_HTML.read_text(encoding="utf-8")
-    # 找出 window.OA_CLASSROOMS = {...} 的內容，用粗略 regex
-    rows = re.findall(r'\{\s*id:\s*"([^"]+)",\s*name:\s*"([^"]+)"', html)
-    return [{"id": rid, "name": name} for rid, name in rows]
-
-def normalize_classroom_id(internal_name, classrooms_idx):
-    if "線上" in internal_name or "遠距" in internal_name or "橘頭" in internal_name:
-        return "online"
-    head = re.split(r'[｜_]', internal_name, maxsplit=1)[0].strip()
-    for c in classrooms_idx:
-        if c["name"].startswith(head) or head in c["name"]:
-            return c["id"]
-        if c["name"].replace("教室", "") == head:
-            return c["id"]
-    return None
-
-# ---------- 課程類型對應 ----------
-# corp 內部課程名稱 → index.html 內 COURSE_INTERNAL_TO_DISPLAY 認得的 id
-# 注意：「菁英」對應的 elite 在前端會展開成 Scratch/Python/JavaScript 三種顯示
+# ─── 課程類型對應：corp 內部 → index.html 內 COURSE_INTERNAL_TO_DISPLAY 認得的 id ─
 COURSE_MAP = {
     "菁英":     "elite",
     "Roblox":   "roblox",
     "麥塊":     "minecraft",
     "Minecraft":"minecraft",
     "創意積木": "creative_blocks",
-    "Scratch":  "creative_blocks",  # 若 corp 有獨立列 Scratch 也歸類於此
+    "Scratch":  "creative_blocks",
     "數學":     "math",
     "選手班":   "competition",
 }
 def normalize_course(text):
     if not text:
         return None, ""
-    level_match = re.search(r'[(\(]([^)\)]+)[)\)]', text)
-    level = level_match.group(1).strip() if level_match else ""
+    m = re.search(r'[(\(]([^)\)]+)[)\)]', text)
+    level = m.group(1).strip() if m else ""
     base = re.sub(r'[(\(].*?[)\)]', '', text).strip()
-    for key, cid in COURSE_MAP.items():
-        if key in base:
+    for k, cid in COURSE_MAP.items():
+        if k in base:
             return cid, level
-    return base.lower(), level
+    return base.lower() or None, level
 
-# ---------- 瀏覽器 ----------
-def make_driver(debug=False):
-    opts = Options()
-    if not debug:
-        opts.add_argument("--headless")
-    opts.add_argument("--width=1920")
-    opts.add_argument("--height=1080")
-    return webdriver.Firefox(options=opts)
+# ─── 教室名稱對應：corp 內部「古亭｜本部5樓之3_A教室」→ index.html classroom id ─
+def load_classrooms_from_index():
+    html = INDEX_HTML.read_text(encoding="utf-8")
+    # 解析 OA_CLASSROOMS.classrooms 內每筆 id 與 name
+    return [{"id": rid, "name": name} for rid, name in
+            re.findall(r'\{\s*id:\s*"([^"]+)",\s*name:\s*"([^"]+)"', html)]
 
-def login(driver):
-    if not USERNAME or not PASSWORD:
-        sys.exit("錯誤：.env 缺少 OA_USERNAME / OA_PASSWORD")
-    driver.get(LOGIN_URL)
-    wait = WebDriverWait(driver, 15)
-    wait.until(EC.presence_of_element_located((By.NAME, "user[email]")))
-    driver.find_element(By.NAME, "user[email]").send_keys(USERNAME)
-    driver.find_element(By.NAME, "user[password]").send_keys(PASSWORD)
-    driver.find_element(By.NAME, "commit").click()
-    wait.until(lambda d: "sign_in" not in d.current_url)
-    print(f"[OK] 登入成功 → {driver.current_url}")
+def normalize_classroom_id(internal_name, idx):
+    """從『古亭｜本部5樓之3_A教室』推回 'guting' id"""
+    if any(k in internal_name for k in ("線上", "遠距", "橘頭")):
+        return "online"
+    head = re.split(r'[｜_]', internal_name, maxsplit=1)[0].strip()
+    head = head.replace("教室", "").strip()
+    for c in idx:
+        cname = c["name"].replace("教室", "").strip()
+        if cname == head or cname.startswith(head) or head.startswith(cname):
+            return c["id"]
+    # 模糊比對：拿 head 第一個字元在所有 name 中找
+    for c in idx:
+        if head and head[0] in c["name"]:
+            return c["id"]
+    return None
 
-# ---------- 解析 ----------
-def click_tab(driver, label):
-    elements = driver.find_elements(
-        By.XPATH,
-        f"//a[normalize-space()='{label}'] | //button[normalize-space()='{label}']"
-    )
-    if not elements:
-        print(f"[WARN] 找不到 tab：{label}")
-        return False
-    elements[0].click()
-    time.sleep(1.2)
-    return True
+# ─── 登入 + 抓資料 ─────────────────────────────────────────────────────────────
+async def login(page):
+    if not EMAIL or not PASSWORD:
+        sys.exit("ERROR：.env 缺少 OA_EMAIL / OA_PASSWORD")
+    await page.goto(SYSTEM_URL, wait_until="load")
+    await page.locator("input[type='email']").fill(EMAIL)
+    await page.locator("input[type='password']").fill(PASSWORD)
+    await page.locator("input[type='password']").press("Enter")
+    await page.wait_for_load_state("load")
+    print(f"[登入] OK → {page.url}")
 
-def parse_schedule_table(driver, city, schedule_type):
-    """解析當前頁面顯示的時段表。
-    預期結構：tbody > tr，每列開頭是教室名格，後面 10 個 cell 為 Sat 1-5 / Sun 1-5。
-    第一次跑請用 --debug 開視窗確認 DOM 結構。
+async def extract_all_schedules(page):
     """
-    rows = []
-    table_rows = driver.find_elements(By.CSS_SELECTOR, "table tbody tr")
-    for tr in table_rows:
-        tds = tr.find_elements(By.TAG_NAME, "td")
-        if len(tds) < 11:
-            continue
-        internal_name = ""
-        slot_cells = []
-        for td in tds:
-            text = td.text.strip()
-            if "教室" in text and not slot_cells and not internal_name:
-                internal_name = text
-            else:
-                slot_cells.append(td)
-        if not internal_name:
-            continue
-        slot_cells = slot_cells[-10:]
-        for idx, cell in enumerate(slot_cells):
-            content = cell.text.strip()
-            if not content or content == "-":
-                continue
-            day = "Sat" if idx < 5 else "Sun"
-            slot = (idx % 5) + 1
-            lines = [l.strip() for l in content.split("\n") if l.strip()]
-            course_text = lines[-1] if lines else ""
-            course_id, level = normalize_course(course_text)
-            rows.append({
-                "city": city,
-                "schedule_type": "weekend" if schedule_type == "週末" else "weekday",
-                "internal_name": internal_name,
-                "day": day,
-                "time_slot": slot,
-                "course_id": course_id,
-                "course_level": level,
-            })
-    return rows
+    一次抓取所有城市 × 週末/週間 的時段資料。
+    結構：每個城市對應一個 #city-N tab pane，內含 #weekend-N 和 #weekday-N，
+    各自有一個 table。
+    """
+    data = await page.evaluate("""
+    () => {
+      // 1) 找出城市 tab 連結 → {city_name: city-N id}
+      const cityMap = {};
+      document.querySelectorAll('a[data-toggle="tab"], a[role="tab"]').forEach(a => {
+        const href = (a.getAttribute('href') || '').replace('#', '');
+        const txt = (a.innerText || '').trim();
+        if (/^city-\\d+$/.test(href) && txt) {
+          cityMap[txt] = href;
+        }
+      });
 
-# ---------- 寫回 index.html ----------
+      // 2) 逐城市抓 weekend / weekday 表格
+      const result = [];
+      for (const [cityName, cityId] of Object.entries(cityMap)) {
+        if (cityName === '合計') continue;  // 跳過總和分頁
+        const cityPane = document.getElementById(cityId);
+        if (!cityPane) continue;
+        const cityNum = cityId.split('-')[1];
+
+        for (const stype of ['weekend', 'weekday']) {
+          const pane = document.getElementById(stype + '-' + cityNum);
+          if (!pane) continue;
+          const table = pane.querySelector('table');
+          if (!table) continue;
+
+          // 解析 table：找出每一列的教室名與 10 個時段格
+          const rows = Array.from(table.querySelectorAll('tbody tr'));
+          for (const tr of rows) {
+            const cells = Array.from(tr.children);
+            // 找含「教室」的 td 作為教室名
+            let roomName = '';
+            const slotCells = [];
+            for (const td of cells) {
+              const text = (td.innerText || '').trim();
+              if (!roomName && text.includes('教室') && !text.match(/\\d+\\s*\\/\\s*\\d+/)) {
+                roomName = text;
+              } else {
+                slotCells.push(td);
+              }
+            }
+            if (!roomName || slotCells.length < 10) continue;
+
+            // 取最後 10 格作為 Sat1-5 / Sun1-5（週末）或 Mon1-5 / ... 5天x5時段（週間）
+            const last10 = slotCells.slice(-10);
+            const last25 = slotCells.slice(-25);  // 週間表是 5天 × 5時段
+
+            if (stype === 'weekend') {
+              last10.forEach((cell, i) => {
+                const txt = (cell.innerText || '').trim();
+                if (!txt || txt === '-') return;
+                const day = i < 5 ? 'Sat' : 'Sun';
+                const slot = (i % 5) + 1;
+                // 最後一行通常是課程類型
+                const lines = txt.split('\\n').map(s => s.trim()).filter(Boolean);
+                const courseText = lines[lines.length - 1] || '';
+                result.push({
+                  city: cityName,
+                  stype: 'weekend',
+                  internal_name: roomName,
+                  day, slot,
+                  course_text: courseText,
+                  raw: txt
+                });
+              });
+            } else {
+              // weekday: 5 天 (Mon-Fri) × 5 時段
+              const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+              last25.forEach((cell, i) => {
+                const txt = (cell.innerText || '').trim();
+                if (!txt || txt === '-') return;
+                const dayIdx = Math.floor(i / 5);
+                const slot = (i % 5) + 1;
+                const lines = txt.split('\\n').map(s => s.trim()).filter(Boolean);
+                const courseText = lines[lines.length - 1] || '';
+                result.push({
+                  city: cityName,
+                  stype: 'weekday',
+                  internal_name: roomName,
+                  day: days[dayIdx],
+                  slot,
+                  course_text: courseText,
+                  raw: txt
+                });
+              });
+            }
+          }
+        }
+      }
+      return result;
+    }
+    """)
+    return data
+
+# ─── 寫回 index.html ───────────────────────────────────────────────────────────
 def to_js_block(schedules):
-    """把 schedules 列表轉成 index.html 內嵌格式的 JS 字串"""
     lines = []
     for s in schedules:
-        line = (
+        lines.append(
             f'    {{ classroom_id: {json.dumps(s["classroom_id"], ensure_ascii=False)}, '
-            f'course_id: {json.dumps(s.get("course_id") or "", ensure_ascii=False)}, '
+            f'course_id: {json.dumps(s["course_id"], ensure_ascii=False)}, '
             f'course_level: {json.dumps(s.get("course_level", ""), ensure_ascii=False)}, '
             f'day: {json.dumps(s["day"])}, '
             f'time_slot: {s["time_slot"]} }},'
         )
-        lines.append(line)
     body = "\n".join(lines).rstrip(",")
     return (
-        "\n/* SCHEDULE_DATA_START */\n"
+        "/* SCHEDULE_DATA_START */\n"
         "window.OA_SCHEDULE = {\n"
         f'  updated_at: "{datetime.now().strftime("%Y-%m-%d %H:%M")}",\n'
         '  source: "corp.orangeapple.co/courses/dt",\n'
@@ -194,76 +215,92 @@ def to_js_block(schedules):
         f"{body}\n"
         "  ]\n"
         "};\n"
-        "/* SCHEDULE_DATA_END */\n"
+        "/* SCHEDULE_DATA_END */"
     )
 
 def write_back_to_html(schedules):
     html = INDEX_HTML.read_text(encoding="utf-8")
-    pattern = re.compile(
-        r"/\* SCHEDULE_DATA_START \*/.*?/\* SCHEDULE_DATA_END \*/",
-        re.DOTALL
-    )
+    pattern = re.compile(r"/\* SCHEDULE_DATA_START \*/.*?/\* SCHEDULE_DATA_END \*/", re.DOTALL)
     if not pattern.search(html):
-        sys.exit("錯誤：index.html 找不到 SCHEDULE_DATA_START/END 標記")
-    new_block = to_js_block(schedules).strip()
-    new_html = pattern.sub(new_block, html)
+        sys.exit("ERROR：index.html 找不到 SCHEDULE_DATA_START/END 標記")
+    new_html = pattern.sub(to_js_block(schedules), html)
     INDEX_HTML.write_text(new_html, encoding="utf-8")
     print(f"[寫入] {INDEX_HTML}")
 
-# ---------- 主流程 ----------
-def main():
+# ─── 主流程 ──────────────────────────────────────────────────────────────────
+async def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dry-run", action="store_true", help="只抓不寫檔")
-    ap.add_argument("--debug", action="store_true", help="顯示 Firefox 視窗")
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--debug", action="store_true")
     args = ap.parse_args()
 
-    classrooms_idx = extract_classrooms_from_index()
-    if not classrooms_idx:
-        sys.exit("錯誤：無法從 index.html 解析教室清單，請確認檔案沒被破壞")
+    classrooms_idx = load_classrooms_from_index()
     print(f"[INFO] 從 index.html 取得 {len(classrooms_idx)} 個教室對應")
 
-    driver = make_driver(debug=args.debug)
-    all_schedules = []
-    try:
-        login(driver)
-        driver.get(TARGET_URL)
-        WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.TAG_NAME, "table"))
-        )
+    async with async_playwright() as pw:
+        browser = await pw.firefox.launch(headless=not args.debug)
+        ctx = await browser.new_context(viewport={"width": 1920, "height": 1080}, locale="zh-TW")
+        page = await ctx.new_page()
+        try:
+            await login(page)
+            print(f"[前往] {TARGET_URL}")
+            await page.goto(TARGET_URL, wait_until="load")
+            await page.wait_for_timeout(2500)
 
-        for city in CITIES:
-            if not click_tab(driver, city):
-                continue
-            print(f"\n=== {city} ===")
-            for sched_type in SCHEDULE_TYPES:
-                if not click_tab(driver, sched_type):
+            raw = await extract_all_schedules(page)
+            print(f"[抓到] 原始時段 {len(raw)} 筆")
+
+            # 規範化
+            normalized = []
+            unknown_rooms = set()
+            unknown_courses = set()
+            for r in raw:
+                cid = normalize_classroom_id(r["internal_name"], classrooms_idx)
+                if not cid:
+                    unknown_rooms.add(r["internal_name"])
                     continue
-                rows = parse_schedule_table(driver, city, sched_type)
-                for r in rows:
-                    cid = normalize_classroom_id(r["internal_name"], classrooms_idx)
-                    if not cid:
-                        print(f"  [WARN] 找不到教室對應：{r['internal_name']}")
-                        continue
-                    all_schedules.append({
-                        "classroom_id": cid,
-                        "course_id": r["course_id"],
-                        "course_level": r["course_level"],
-                        "day": r["day"],
-                        "time_slot": r["time_slot"],
-                    })
-                print(f"  {sched_type}: 抓到 {len(rows)} 筆")
+                course_id, level = normalize_course(r["course_text"])
+                if not course_id:
+                    unknown_courses.add(r["course_text"])
+                    continue
+                normalized.append({
+                    "classroom_id": cid,
+                    "course_id": course_id,
+                    "course_level": level,
+                    "day": r["day"],
+                    "time_slot": r["slot"],
+                })
 
-        print(f"\n[完成] 總共 {len(all_schedules)} 筆時段")
+            if unknown_rooms:
+                print(f"[WARN] 對應不到 classroom_id 的教室名 ({len(unknown_rooms)} 個)：")
+                for n in sorted(unknown_rooms)[:10]:
+                    print(f"        {n!r}")
+            if unknown_courses:
+                print(f"[WARN] 對應不到 course_id 的課程名 ({len(unknown_courses)} 個)：")
+                for n in sorted(unknown_courses)[:10]:
+                    print(f"        {n!r}")
 
-        if args.dry_run:
-            print("[DRY RUN] 不寫檔。前 3 筆預覽：")
-            for s in all_schedules[:3]:
-                print(f"  {s}")
-            return
+            # 去重（相同 classroom_id + course_id + course_level + day + slot）
+            seen = set()
+            deduped = []
+            for s in normalized:
+                key = (s["classroom_id"], s["course_id"], s["course_level"], s["day"], s["time_slot"])
+                if key in seen:
+                    continue
+                seen.add(key)
+                deduped.append(s)
 
-        write_back_to_html(all_schedules)
-    finally:
-        driver.quit()
+            print(f"[結果] 規範化後 {len(deduped)} 筆（去重後）")
+
+            if args.dry_run:
+                print("[DRY RUN] 不寫檔。前 5 筆預覽：")
+                for s in deduped[:5]:
+                    print(f"  {s}")
+                return
+
+            write_back_to_html(deduped)
+        finally:
+            await browser.close()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

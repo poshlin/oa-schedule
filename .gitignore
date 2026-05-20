@@ -18,3 +18,9 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# 爬蟲偵察產物
+scraper/recon_*.html
+scraper/recon_*.png
+scraper/debug_*.html
+scraper/debug_*.png
