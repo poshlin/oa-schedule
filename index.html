@@ -447,15 +447,16 @@ window.OA_CLASSROOMS = {
   ],
   // 家長端可見的課程選項。corp 內部 course_id（如 elite、roblox）會透過 COURSE_INTERNAL_TO_DISPLAY 對應過來
   // 注意：corp 的「菁英」課程實際上涵蓋 Scratch、Python、JavaScript 三種，學生可選一種學習
+  // availability: "both" = 線上實體皆有 / "online" = 僅線上 / "physical" = 僅實體
   courses: [
-    { id: "scratch",          name: "Scratch",       description: "積木式程式語言（菁英課內含）" },
-    { id: "python",           name: "Python",        description: "業界主流語言（菁英課內含）" },
-    { id: "javascript",       name: "JavaScript",    description: "網頁與遊戲開發（菁英課內含）" },
-    { id: "creative_blocks",  name: "創意機械積木",   description: "動手做實體機械" },
-    { id: "minecraft",        name: "Minecraft",     description: "麥塊世界程式邏輯" },
-    { id: "roblox",           name: "Roblox",        description: "Lua 程式打造遊戲" },
-    { id: "math",             name: "麥思數學",       description: "數學思維訓練（線上）" },
-    { id: "aibot",            name: "頑皮艾伯特",     description: "智能機器人程式（線上）" }
+    { id: "scratch",          name: "Scratch",       availability: "both",     description: "積木式程式語言（菁英課內含）" },
+    { id: "python",           name: "Python",        availability: "both",     description: "業界主流語言（菁英課內含）" },
+    { id: "javascript",       name: "JavaScript",    availability: "both",     description: "網頁與遊戲開發（菁英課內含）" },
+    { id: "minecraft",        name: "Minecraft",     availability: "both",     description: "麥塊世界程式邏輯" },
+    { id: "roblox",           name: "Roblox",        availability: "both",     description: "Lua 程式打造遊戲" },
+    { id: "math",             name: "麥思數學",       availability: "online",   description: "數學思維訓練（線上）" },
+    { id: "aibot",            name: "頑皮艾伯特",     availability: "online",   description: "智能機器人程式（線上）" },
+    { id: "creative_blocks",  name: "創意機械積木",   availability: "physical", description: "動手做實體機械" }
   ],
   // 時段 1-3 實體常用、4 實體晚間、5 線上晚間（19:00-21:00）
   time_slots: {
@@ -914,8 +915,18 @@ window.OA_SCHEDULE = {
     $("filter-classroom").innerHTML = classroomHtml;
     $("filter-classroom").value = filter.classroom;
 
-    $("filter-course").innerHTML = '<option value="all">全部課程</option>' +
-      courses.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+    // 課程下拉按 availability 分組：線上實體 → 線上 → 實體
+    const GROUP_LABELS = { both: "線上實體皆有", online: "僅線上", physical: "僅實體" };
+    const GROUP_ORDER = ["both", "online", "physical"];
+    let courseHtml = '<option value="all">全部課程</option>';
+    GROUP_ORDER.forEach(g => {
+      const items = courses.filter(c => (c.availability || "both") === g);
+      if (items.length === 0) return;
+      courseHtml += `<optgroup label="${GROUP_LABELS[g]}">`;
+      items.forEach(c => { courseHtml += `<option value="${c.id}">${c.name}</option>`; });
+      courseHtml += '</optgroup>';
+    });
+    $("filter-course").innerHTML = courseHtml;
     $("filter-course").value = filter.course;
   }
 
