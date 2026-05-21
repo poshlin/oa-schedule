@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """
-橘子蘋果雙師班排程爬蟲（Playwright 版）
+橘子蘋果開班排程爬蟲（Playwright 版）
 =====================================
-登入 corp.orangeapple.co/courses/dt，抓取所有城市 × 週末/週間 的開班時段，
-把結果寫回 ../index.html 中 SCHEDULE_DATA_START / SCHEDULE_DATA_END 區塊。
+兩個資料源：
+  1. /courses/dt                 — 實體班（雙師班總覽，按城市分頁）
+  2. /courses/dt/admission_status — 線上班（按星期分頁，含麥思、艾伯特等）
+
+把抓到的時段寫回 ../index.html 的 SCHEDULE_DATA_START/END 區塊。
 
 用法：
     python3 scrape.py              # 正式跑（無頭）
     python3 scrape.py --dry-run    # 只抓不寫
     python3 scrape.py --debug      # 顯示 Firefox 視窗
-
-設定：在同資料夾 .env 內填入
-    OA_EMAIL=your_email
-    OA_PASSWORD=your_password
 """
 
 import argparse
@@ -33,12 +32,13 @@ INDEX_HTML = PROJECT_DIR / "index.html"
 load_dotenv(SCRIPT_DIR / ".env")
 
 SYSTEM_URL = "https://corp.orangeapple.co/"
-TARGET_URL = "https://corp.orangeapple.co/courses/dt"
+DT_URL = "https://corp.orangeapple.co/courses/dt"
+ADMISSION_URL = "https://corp.orangeapple.co/courses/dt/admission_status"
 
 EMAIL = os.getenv("OA_EMAIL")
 PASSWORD = os.getenv("OA_PASSWORD")
 
-# ─── 課程類型對應：corp 內部 → index.html 內 COURSE_INTERNAL_TO_DISPLAY 認得的 id ─
+# ─── 實體班課程對應（/courses/dt 用） ─────────────────────────────────────────
 COURSE_MAP = {
     "菁英":     "elite",
     "Roblox":   "roblox",
@@ -48,8 +48,9 @@ COURSE_MAP = {
     "Scratch":  "creative_blocks",
     "數學":     "math",
     "選手班":   "competition",
+    "艾伯特":   "aibot",
 }
-def normalize_course(text):
+def normalize_course_text(text):
     if not text:
         return None, ""
     m = re.search(r'[(\(]([^)\)]+)[)\)]', text)
@@ -60,15 +61,26 @@ def normalize_course(text):
             return cid, level
     return base.lower() or None, level
 
-# ─── 教室名稱對應：corp 內部「古亭｜本部5樓之3_A教室」→ index.html classroom id ─
+# ─── 線上班 tr class 對應（admission_status 用） ─────────────────────────────
+ONLINE_COURSE_CLASS_MAP = {
+    "course_aibot":   "aibot",
+    "course_dt":      "elite",
+    "course_math":    "math",
+    "course_mc":      "minecraft",
+    "course_roblox":  "roblox",
+    # course_topic = 選手班，不對家長開放試聽，跳過
+}
+# week-N → 英文星期
+WEEK_TO_DAY = {"week-1":"Mon", "week-2":"Tue", "week-3":"Wed",
+               "week-4":"Thu", "week-5":"Fri", "week-6":"Sat", "week-0":"Sun"}
+
+# ─── 教室名稱對應 ─────────────────────────────────────────────────────────────
 def load_classrooms_from_index():
     html = INDEX_HTML.read_text(encoding="utf-8")
-    # 解析 OA_CLASSROOMS.classrooms 內每筆 id 與 name
     return [{"id": rid, "name": name} for rid, name in
             re.findall(r'\{\s*id:\s*"([^"]+)",\s*name:\s*"([^"]+)"', html)]
 
 def normalize_classroom_id(internal_name, idx):
-    """從『古亭｜本部5樓之3_A教室』推回 'guting' id"""
     if any(k in internal_name for k in ("線上", "遠距", "橘頭")):
         return "online"
     head = re.split(r'[｜_]', internal_name, maxsplit=1)[0].strip()
@@ -77,13 +89,12 @@ def normalize_classroom_id(internal_name, idx):
         cname = c["name"].replace("教室", "").strip()
         if cname == head or cname.startswith(head) or head.startswith(cname):
             return c["id"]
-    # 模糊比對：拿 head 第一個字元在所有 name 中找
     for c in idx:
         if head and head[0] in c["name"]:
             return c["id"]
     return None
 
-# ─── 登入 + 抓資料 ─────────────────────────────────────────────────────────────
+# ─── 登入 ────────────────────────────────────────────────────────────────────
 async def login(page):
     if not EMAIL or not PASSWORD:
         sys.exit("ERROR：.env 缺少 OA_EMAIL / OA_PASSWORD")
@@ -94,43 +105,34 @@ async def login(page):
     await page.wait_for_load_state("load")
     print(f"[登入] OK → {page.url}")
 
-async def extract_all_schedules(page):
-    """
-    一次抓取所有城市 × 週末/週間 的時段資料。
-    結構：每個城市對應一個 #city-N tab pane，內含 #weekend-N 和 #weekday-N，
-    各自有一個 table。
-    """
+# ─── 實體：/courses/dt ────────────────────────────────────────────────────────
+async def scrape_physical(page):
+    print(f"[實體] {DT_URL}")
+    await page.goto(DT_URL, wait_until="load")
+    await page.wait_for_timeout(2500)
+
     data = await page.evaluate("""
     () => {
-      // 1) 找出城市 tab 連結 → {city_name: city-N id}
       const cityMap = {};
       document.querySelectorAll('a[data-toggle="tab"], a[role="tab"]').forEach(a => {
         const href = (a.getAttribute('href') || '').replace('#', '');
         const txt = (a.innerText || '').trim();
-        if (/^city-\\d+$/.test(href) && txt) {
-          cityMap[txt] = href;
-        }
+        if (/^city-\\d+$/.test(href) && txt) cityMap[txt] = href;
       });
 
-      // 2) 逐城市抓 weekend / weekday 表格
       const result = [];
       for (const [cityName, cityId] of Object.entries(cityMap)) {
-        if (cityName === '合計') continue;  // 跳過總和分頁
-        const cityPane = document.getElementById(cityId);
-        if (!cityPane) continue;
+        if (cityName === '合計') continue;
         const cityNum = cityId.split('-')[1];
-
         for (const stype of ['weekend', 'weekday']) {
           const pane = document.getElementById(stype + '-' + cityNum);
           if (!pane) continue;
           const table = pane.querySelector('table');
           if (!table) continue;
 
-          // 解析 table：找出每一列的教室名與 10 個時段格
           const rows = Array.from(table.querySelectorAll('tbody tr'));
           for (const tr of rows) {
             const cells = Array.from(tr.children);
-            // 找含「教室」的 td 作為教室名
             let roomName = '';
             const slotCells = [];
             for (const td of cells) {
@@ -141,32 +143,25 @@ async def extract_all_schedules(page):
                 slotCells.push(td);
               }
             }
-            if (!roomName || slotCells.length < 10) continue;
+            if (!roomName) continue;
 
-            // 取最後 10 格作為 Sat1-5 / Sun1-5（週末）或 Mon1-5 / ... 5天x5時段（週間）
-            const last10 = slotCells.slice(-10);
-            const last25 = slotCells.slice(-25);  // 週間表是 5天 × 5時段
-
-            if (stype === 'weekend') {
+            if (stype === 'weekend' && slotCells.length >= 10) {
+              const last10 = slotCells.slice(-10);
               last10.forEach((cell, i) => {
                 const txt = (cell.innerText || '').trim();
                 if (!txt || txt === '-') return;
                 const day = i < 5 ? 'Sat' : 'Sun';
                 const slot = (i % 5) + 1;
-                // 最後一行通常是課程類型
                 const lines = txt.split('\\n').map(s => s.trim()).filter(Boolean);
                 const courseText = lines[lines.length - 1] || '';
                 result.push({
-                  city: cityName,
-                  stype: 'weekend',
-                  internal_name: roomName,
-                  day, slot,
-                  course_text: courseText,
-                  raw: txt
+                  city: cityName, stype: 'weekend',
+                  internal_name: roomName, day, slot,
+                  course_text: courseText
                 });
               });
-            } else {
-              // weekday: 5 天 (Mon-Fri) × 5 時段
+            } else if (stype === 'weekday' && slotCells.length >= 25) {
+              const last25 = slotCells.slice(-25);
               const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
               last25.forEach((cell, i) => {
                 const txt = (cell.innerText || '').trim();
@@ -176,13 +171,9 @@ async def extract_all_schedules(page):
                 const lines = txt.split('\\n').map(s => s.trim()).filter(Boolean);
                 const courseText = lines[lines.length - 1] || '';
                 result.push({
-                  city: cityName,
-                  stype: 'weekday',
-                  internal_name: roomName,
-                  day: days[dayIdx],
-                  slot,
-                  course_text: courseText,
-                  raw: txt
+                  city: cityName, stype: 'weekday',
+                  internal_name: roomName, day: days[dayIdx], slot,
+                  course_text: courseText
                 });
               });
             }
@@ -192,25 +183,78 @@ async def extract_all_schedules(page):
       return result;
     }
     """)
+    print(f"    抓到 {len(data)} 筆原始資料")
     return data
 
-# ─── 寫回 index.html ───────────────────────────────────────────────────────────
+# ─── 線上：/courses/dt/admission_status ──────────────────────────────────────
+async def scrape_online(page):
+    print(f"[線上] {ADMISSION_URL}")
+    await page.goto(ADMISSION_URL, wait_until="load")
+    await page.wait_for_timeout(2500)
+
+    data = await page.evaluate("""
+    () => {
+      const result = [];
+      const panes = document.querySelectorAll('div[id^="week-"]');
+      for (const pane of panes) {
+        const weekId = pane.id;  // week-1 / week-2 / ... / week-0
+        const table = pane.querySelector('table');
+        if (!table) continue;
+        const rows = table.querySelectorAll('tr.course');
+        for (const tr of rows) {
+          // 課程類別從 tr.classList 找 course_xxx
+          let courseClass = '';
+          for (const c of tr.classList) {
+            if (c.startsWith('course_')) { courseClass = c; break; }
+          }
+          if (!courseClass) continue;
+
+          // 第一格 <a> 內 text 含有：教室名 + 課程- 週X 第 N 時段 (HH:MM ~ HH:MM)
+          const firstA = tr.querySelector('td a');
+          if (!firstA) continue;
+          const txt = (firstA.innerText || '').trim();
+
+          // 抓時段範圍
+          const timeMatch = txt.match(/(\\d{1,2}:\\d{2}\\s*~\\s*\\d{1,2}:\\d{2})/);
+          if (!timeMatch) continue;
+          const timeLabel = timeMatch[1].replace(/\\s+/g, ' ');
+
+          result.push({
+            week_id: weekId,
+            course_class: courseClass,
+            time_label: timeLabel,
+            raw_text: txt
+          });
+        }
+      }
+      return result;
+    }
+    """)
+    print(f"    抓到 {len(data)} 筆原始資料")
+    return data
+
+# ─── 寫回 index.html ─────────────────────────────────────────────────────────
 def to_js_block(schedules):
     lines = []
     for s in schedules:
-        lines.append(
-            f'    {{ classroom_id: {json.dumps(s["classroom_id"], ensure_ascii=False)}, '
-            f'course_id: {json.dumps(s["course_id"], ensure_ascii=False)}, '
-            f'course_level: {json.dumps(s.get("course_level", ""), ensure_ascii=False)}, '
-            f'day: {json.dumps(s["day"])}, '
-            f'time_slot: {s["time_slot"]} }},'
-        )
+        # 線上有 time_label，實體有 time_slot
+        parts = [
+            f'classroom_id: {json.dumps(s["classroom_id"], ensure_ascii=False)}',
+            f'course_id: {json.dumps(s["course_id"], ensure_ascii=False)}',
+            f'course_level: {json.dumps(s.get("course_level", ""), ensure_ascii=False)}',
+            f'day: {json.dumps(s["day"])}',
+        ]
+        if "time_label" in s:
+            parts.append(f'time_label: {json.dumps(s["time_label"])}')
+        else:
+            parts.append(f'time_slot: {s["time_slot"]}')
+        lines.append("    { " + ", ".join(parts) + " },")
     body = "\n".join(lines).rstrip(",")
     return (
         "/* SCHEDULE_DATA_START */\n"
         "window.OA_SCHEDULE = {\n"
         f'  updated_at: "{datetime.now().strftime("%Y-%m-%d %H:%M")}",\n'
-        '  source: "corp.orangeapple.co/courses/dt",\n'
+        '  source: "corp.orangeapple.co/courses/dt + /admission_status",\n'
         "  schedules: [\n"
         f"{body}\n"
         "  ]\n"
@@ -223,8 +267,7 @@ def write_back_to_html(schedules):
     pattern = re.compile(r"/\* SCHEDULE_DATA_START \*/.*?/\* SCHEDULE_DATA_END \*/", re.DOTALL)
     if not pattern.search(html):
         sys.exit("ERROR：index.html 找不到 SCHEDULE_DATA_START/END 標記")
-    new_html = pattern.sub(to_js_block(schedules), html)
-    INDEX_HTML.write_text(new_html, encoding="utf-8")
+    INDEX_HTML.write_text(pattern.sub(to_js_block(schedules), html), encoding="utf-8")
     print(f"[寫入] {INDEX_HTML}")
 
 # ─── 主流程 ──────────────────────────────────────────────────────────────────
@@ -243,58 +286,71 @@ async def main():
         page = await ctx.new_page()
         try:
             await login(page)
-            print(f"[前往] {TARGET_URL}")
-            await page.goto(TARGET_URL, wait_until="load")
-            await page.wait_for_timeout(2500)
 
-            raw = await extract_all_schedules(page)
-            print(f"[抓到] 原始時段 {len(raw)} 筆")
-
-            # 規範化
-            normalized = []
+            # ── 1) 實體 ─────────────────────────────────────────
+            raw_physical = await scrape_physical(page)
+            physical_normalized = []
             unknown_rooms = set()
-            unknown_courses = set()
-            for r in raw:
+            for r in raw_physical:
                 cid = normalize_classroom_id(r["internal_name"], classrooms_idx)
                 if not cid:
                     unknown_rooms.add(r["internal_name"])
                     continue
-                course_id, level = normalize_course(r["course_text"])
-                if not course_id:
-                    unknown_courses.add(r["course_text"])
+                if cid == "online":
+                    # /courses/dt 內的線上資料不準，跳過——改用 admission_status
                     continue
-                normalized.append({
+                course_id, level = normalize_course_text(r["course_text"])
+                if not course_id:
+                    continue
+                physical_normalized.append({
                     "classroom_id": cid,
                     "course_id": course_id,
                     "course_level": level,
                     "day": r["day"],
                     "time_slot": r["slot"],
                 })
-
+            print(f"    實體規範化後 {len(physical_normalized)} 筆")
             if unknown_rooms:
-                print(f"[WARN] 對應不到 classroom_id 的教室名 ({len(unknown_rooms)} 個)：")
-                for n in sorted(unknown_rooms)[:10]:
-                    print(f"        {n!r}")
-            if unknown_courses:
-                print(f"[WARN] 對應不到 course_id 的課程名 ({len(unknown_courses)} 個)：")
-                for n in sorted(unknown_courses)[:10]:
-                    print(f"        {n!r}")
+                print(f"    [WARN] 對應不到的實體教室 ({len(unknown_rooms)}): {sorted(unknown_rooms)[:5]}")
 
-            # 去重（相同 classroom_id + course_id + course_level + day + slot）
+            # ── 2) 線上 ─────────────────────────────────────────
+            raw_online = await scrape_online(page)
+            online_normalized = []
+            unknown_classes = set()
+            for r in raw_online:
+                course_id = ONLINE_COURSE_CLASS_MAP.get(r["course_class"])
+                if not course_id:
+                    unknown_classes.add(r["course_class"])
+                    continue
+                day = WEEK_TO_DAY.get(r["week_id"])
+                if not day:
+                    continue
+                online_normalized.append({
+                    "classroom_id": "online",
+                    "course_id": course_id,
+                    "course_level": "",
+                    "day": day,
+                    "time_label": r["time_label"],
+                })
+            print(f"    線上規範化後 {len(online_normalized)} 筆")
+            if unknown_classes:
+                print(f"    [INFO] 跳過的線上課程類型 ({len(unknown_classes)}): {sorted(unknown_classes)}")
+
+            # ── 3) 合併 + 去重 ──────────────────────────────────
+            all_schedules = physical_normalized + online_normalized
             seen = set()
             deduped = []
-            for s in normalized:
-                key = (s["classroom_id"], s["course_id"], s["course_level"], s["day"], s["time_slot"])
-                if key in seen:
-                    continue
+            for s in all_schedules:
+                key = (s["classroom_id"], s["course_id"], s.get("course_level", ""),
+                       s["day"], s.get("time_slot"), s.get("time_label"))
+                if key in seen: continue
                 seen.add(key)
                 deduped.append(s)
-
-            print(f"[結果] 規範化後 {len(deduped)} 筆（去重後）")
+            print(f"\n[結果] 總計 {len(deduped)} 筆（實體 {len(physical_normalized)} + 線上 {len(online_normalized)} 去重）")
 
             if args.dry_run:
-                print("[DRY RUN] 不寫檔。前 5 筆預覽：")
-                for s in deduped[:5]:
+                print("[DRY RUN] 前 5 筆線上預覽：")
+                for s in online_normalized[:5]:
                     print(f"  {s}")
                 return
 

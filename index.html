@@ -453,7 +453,9 @@ window.OA_CLASSROOMS = {
     { id: "javascript",       name: "JavaScript",    description: "網頁與遊戲開發（菁英課內含）" },
     { id: "creative_blocks",  name: "創意機械積木",   description: "動手做實體機械" },
     { id: "minecraft",        name: "Minecraft",     description: "麥塊世界程式邏輯" },
-    { id: "roblox",           name: "Roblox",        description: "Lua 程式打造遊戲" }
+    { id: "roblox",           name: "Roblox",        description: "Lua 程式打造遊戲" },
+    { id: "math",             name: "麥思數學",       description: "數學思維訓練（線上）" },
+    { id: "aibot",            name: "頑皮艾伯特",     description: "智能機器人程式（線上）" }
   ],
   // 時段 1-3 實體常用、4 實體晚間、5 線上晚間（19:00-21:00）
   time_slots: {
@@ -473,8 +475,8 @@ window.OA_CLASSROOMS = {
 <script>
 /* SCHEDULE_DATA_START */
 window.OA_SCHEDULE = {
-  updated_at: "2026-05-20 20:38",
-  source: "corp.orangeapple.co/courses/dt",
+  updated_at: "2026-05-21 14:37",
+  source: "corp.orangeapple.co/courses/dt + /admission_status",
   schedules: [
     { classroom_id: "guting", course_id: "elite", course_level: "中階,高階", day: "Sat", time_slot: 1 },
     { classroom_id: "guting", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
@@ -497,25 +499,15 @@ window.OA_SCHEDULE = {
     { classroom_id: "guting", course_id: "creative_blocks", course_level: "", day: "Sat", time_slot: 3 },
     { classroom_id: "guting", course_id: "creative_blocks", course_level: "", day: "Sun", time_slot: 1 },
     { classroom_id: "guting", course_id: "creative_blocks", course_level: "", day: "Sun", time_slot: 2 },
-    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sat", time_slot: 1 },
-    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sat", time_slot: 2 },
-    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sun", time_slot: 1 },
-    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sun", time_slot: 2 },
     { classroom_id: "minquan", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "minquan", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "minquan", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
-    { classroom_id: "online", course_id: "elite", course_level: "中階,高階", day: "Sat", time_slot: 3 },
-    { classroom_id: "online", course_id: "elite", course_level: "中階,高階", day: "Sun", time_slot: 1 },
-    { classroom_id: "online", course_id: "elite", course_level: "初階,中階", day: "Sun", time_slot: 3 },
     { classroom_id: "songshan", course_id: "creative_blocks", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "songshan", course_id: "creative_blocks", course_level: "", day: "Sun", time_slot: 1 },
     { classroom_id: "songshan", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "songshan", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "songshan", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "songshan", course_id: "elite", course_level: "", day: "Sun", time_slot: 1 },
-    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
-    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sun", time_slot: 1 },
-    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sun", time_slot: 2 },
     { classroom_id: "beitou", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "beitou", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "tianmu", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
@@ -541,24 +533,6 @@ window.OA_SCHEDULE = {
     { classroom_id: "neihu_gangqian", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "neihu_gangqian", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "neihu_gangqian", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
-    { classroom_id: "guting", course_id: "古亭｜本部5樓之3_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "guting", course_id: "elite", course_level: "", day: "Tue", time_slot: 5 },
-    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Mon", time_slot: 3 },
-    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Tue", time_slot: 2 },
-    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Wed", time_slot: 1 },
-    { classroom_id: "minquan", course_id: "民權｜芝麻街美語_c1教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "online", course_id: "橘蘋線上", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "online", course_id: "elite", course_level: "中階,高階", day: "Wed", time_slot: 1 },
-    { classroom_id: "songshan", course_id: "松山｜芝麻街美語_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Mon", time_slot: 3 },
-    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Tue", time_slot: 2 },
-    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Tue", time_slot: 4 },
-    { classroom_id: "beitou", course_id: "北投_英國皇家_b教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "tianmu", course_id: "天母｜英國皇家_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "neihu_donghu", course_id: "內湖東湖｜金品_201教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "neihu_gangqian", course_id: "內湖港墘｜全宥文理_a教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "banqiao", course_id: "elite", course_level: "中階,高階", day: "Sat", time_slot: 1 },
     { classroom_id: "banqiao", course_id: "creative_blocks", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "banqiao", course_id: "creative_blocks", course_level: "", day: "Sat", time_slot: 3 },
@@ -654,23 +628,10 @@ window.OA_SCHEDULE = {
     { classroom_id: "luzhou", course_id: "elite", course_level: "", day: "Sat", time_slot: 3 },
     { classroom_id: "luzhou", course_id: "elite", course_level: "", day: "Sun", time_slot: 1 },
     { classroom_id: "luzhou", course_id: "elite", course_level: "", day: "Sun", time_slot: 2 },
-    { classroom_id: "banqiao", course_id: "板橋旗艦｜a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "banqiao", course_id: "elite", course_level: "", day: "Tue", time_slot: 4 },
-    { classroom_id: "jiangcui", course_id: "江翠｜芝麻街美語 a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "xinzhuang_moli", course_id: "新莊｜建中外語 203教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "linkou", course_id: "林口｜倍思學院_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "xike", course_id: "汐科_子藝經_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "xindian", course_id: "elite", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "yonghe", course_id: "永和｜欣和文理 a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "tucheng", course_id: "土城｜凱思美語_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "sanxia", course_id: "三峽｜黃老師數理_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "shulin", course_id: "樹林_非凡文理_103教室（sk）", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "luzhou", course_id: "蘆洲｜樂獅英語101教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "keelung", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "keelung", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "keelung", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "keelung", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 2 },
-    { classroom_id: "keelung", course_id: "基隆｜吉的堡_a教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "taoyuan", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "taoyuan", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "taoyuan", course_id: "elite", course_level: "", day: "Sat", time_slot: 3 },
@@ -692,14 +653,9 @@ window.OA_SCHEDULE = {
     { classroom_id: "nankan", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "nankan", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "nankan", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 2 },
-    { classroom_id: "taoyuan", course_id: "桃園藝文特區_直營教室_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "qingpu", course_id: "青埔_莫力美國學校_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "zhongli", course_id: "中壢_奧斯汀美語_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "nankan", course_id: "南崁_宏育文理_a教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "hsinchu_info", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "hsinchu_info", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "hsinchu_info", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 2 },
-    { classroom_id: "hsinchu_info", course_id: "新竹_資訊教室_a教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "zhubei", course_id: "creative_blocks", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "zhubei", course_id: "creative_blocks", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "zhubei", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
@@ -710,11 +666,8 @@ window.OA_SCHEDULE = {
     { classroom_id: "zhubei", course_id: "elite", course_level: "", day: "Sun", time_slot: 2 },
     { classroom_id: "zhubei", course_id: "minecraft", course_level: "", day: "Sun", time_slot: 1 },
     { classroom_id: "zhubei", course_id: "minecraft", course_level: "", day: "Sun", time_slot: 2 },
-    { classroom_id: "zhubei", course_id: "竹北勝利教室_3樓a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "zhubei", course_id: "elite", course_level: "", day: "Tue", time_slot: 5 },
     { classroom_id: "toufen", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "toufen", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
-    { classroom_id: "toufen", course_id: "頭份_鹿鳴文理_a教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "beitun", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "beitun", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "beitun", course_id: "elite", course_level: "", day: "Sat", time_slot: 3 },
@@ -744,12 +697,6 @@ window.OA_SCHEDULE = {
     { classroom_id: "dali", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "wufeng", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "tainan_dongning", course_id: "minecraft", course_level: "Joy", day: "Sat", time_slot: 1 },
-    { classroom_id: "beitun", course_id: "台中_北屯直營_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "beitun", course_id: "elite", course_level: "", day: "Wed", time_slot: 1 },
-    { classroom_id: "xitun", course_id: "西屯_悠墨大學堂_a1教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "nantun", course_id: "台中_南屯放學趣_101教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "dali", course_id: "大里_夏甄_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "wufeng", course_id: "台中_伊凡特_a教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "chiayi", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "chiayi", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "chiayi", course_id: "elite", course_level: "", day: "Sun", time_slot: 1 },
@@ -760,7 +707,6 @@ window.OA_SCHEDULE = {
     { classroom_id: "chiayi", course_id: "creative_blocks", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "chiayi", course_id: "creative_blocks", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "chiayi", course_id: "creative_blocks", course_level: "", day: "Sun", time_slot: 2 },
-    { classroom_id: "chiayi", course_id: "嘉義東區 直營 a教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "tainan_fuxing", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "tainan_fuxing", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "tainan_fuxing", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
@@ -795,13 +741,6 @@ window.OA_SCHEDULE = {
     { classroom_id: "tainan_nanke", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "tainan_nanke", course_id: "elite", course_level: "", day: "Sun", time_slot: 1 },
     { classroom_id: "tainan_nanke", course_id: "minecraft", course_level: "", day: "Sun", time_slot: 2 },
-    { classroom_id: "tainan_fuxing", course_id: "台南復興_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "tainan_dongning", course_id: "台南東寧西_直營備用教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "tainan_dongning", course_id: "0 / 29 / 12艾伯特試聽", course_level: "", day: "Wed", time_slot: 1 },
-    { classroom_id: "tainan_north", course_id: "台南北區_非凡文理_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "tainan_yongkang", course_id: "台南永康_高頓文理_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "tainan_nanke", course_id: "台南南科 空中美語 a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "tainan_nanke", course_id: "elite", course_level: "", day: "Wed", time_slot: 1 },
     { classroom_id: "kh_nanzi", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "kh_nanzi", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "kh_nanzi", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
@@ -837,16 +776,75 @@ window.OA_SCHEDULE = {
     { classroom_id: "kh_wenshan", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "kh_wenshan", course_id: "roblox", course_level: "", day: "Sun", time_slot: 1 },
     { classroom_id: "kh_wenshan", course_id: "roblox", course_level: "", day: "Sat", time_slot: 2 },
-    { classroom_id: "kh_nanzi", course_id: "高雄楠梓_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "kh_zuoying", course_id: "高雄左營_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "kh_dongguang", course_id: "高雄東光a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "kh_wujia", course_id: "高雄鳳山五甲_a教室", course_level: "", day: "Mon", time_slot: 1 },
-    { classroom_id: "kh_wenshan", course_id: "高雄鳳山文山教室_a教室", course_level: "", day: "Mon", time_slot: 1 },
     { classroom_id: "pingtung", course_id: "elite", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "pingtung", course_id: "elite", course_level: "", day: "Sat", time_slot: 2 },
     { classroom_id: "pingtung", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 1 },
     { classroom_id: "pingtung", course_id: "minecraft", course_level: "", day: "Sat", time_slot: 2 },
-    { classroom_id: "pingtung", course_id: "屏東_a教室", course_level: "", day: "Mon", time_slot: 1 }
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Mon", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Mon", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Mon", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Mon", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Mon", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Mon", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Mon", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Tue", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Tue", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Tue", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Tue", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Tue", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Tue", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Tue", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Wed", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Wed", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Wed", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Wed", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Wed", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Wed", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Wed", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Thu", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Thu", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Thu", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Thu", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Thu", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Thu", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Thu", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Fri", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Fri", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Fri", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Fri", time_label: "19:00 ~ 19:50" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Fri", time_label: "20:00 ~ 20:50" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Fri", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Fri", time_label: "19:00 ~ 21:00" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Sat", time_label: "10:00 ~ 10:50" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Sat", time_label: "11:00 ~ 11:50" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sat", time_label: "10:00 ~ 12:00" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Sat", time_label: "10:00 ~ 10:50" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Sat", time_label: "10:00 ~ 12:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sat", time_label: "10:00 ~ 12:00" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Sat", time_label: "13:30 ~ 14:20" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Sat", time_label: "14:30 ~ 15:20" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sat", time_label: "13:30 ~ 15:30" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Sat", time_label: "13:30 ~ 15:30" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sat", time_label: "13:30 ~ 15:30" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sat", time_label: "16:00 ~ 18:00" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Sat", time_label: "15:30 ~ 16:20" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Sat", time_label: "16:00 ~ 18:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sat", time_label: "16:00 ~ 18:00" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Sun", time_label: "10:00 ~ 10:50" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Sun", time_label: "11:00 ~ 11:50" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sun", time_label: "10:00 ~ 12:00" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Sun", time_label: "10:00 ~ 10:50" },
+    { classroom_id: "online", course_id: "math", course_level: "", day: "Sun", time_label: "11:00 ~ 11:50" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Sun", time_label: "10:00 ~ 12:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sun", time_label: "10:00 ~ 12:00" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Sun", time_label: "13:30 ~ 14:20" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sun", time_label: "13:30 ~ 15:30" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Sun", time_label: "13:30 ~ 15:30" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sun", time_label: "13:30 ~ 15:30" },
+    { classroom_id: "online", course_id: "aibot", course_level: "", day: "Sun", time_label: "15:30 ~ 16:20" },
+    { classroom_id: "online", course_id: "minecraft", course_level: "", day: "Sun", time_label: "16:00 ~ 18:00" },
+    { classroom_id: "online", course_id: "elite", course_level: "", day: "Sun", time_label: "16:00 ~ 18:00" },
+    { classroom_id: "online", course_id: "roblox", course_level: "", day: "Sun", time_label: "16:00 ~ 18:00" }
   ]
 };
 /* SCHEDULE_DATA_END */
@@ -868,7 +866,9 @@ window.OA_SCHEDULE = {
     elite:           ["scratch", "python", "javascript"],
     creative_blocks: ["creative_blocks"],
     minecraft:       ["minecraft"],
-    roblox:          ["roblox"]
+    roblox:          ["roblox"],
+    math:            ["math"],   // 麥思數學（線上）
+    aibot:           ["aibot"]   // 頑皮艾伯特（線上）
   };
 
   const classrooms = window.OA_CLASSROOMS.classrooms;
@@ -933,12 +933,13 @@ window.OA_SCHEDULE = {
 
     const groups = new Map();
     filtered.forEach(s => {
-      const key = `${s.classroom_id}|${s.day}|${s.time_slot}`;
+      const tk = timeKeyOf(s);
+      const key = `${s.classroom_id}|${s.day}|${tk}`;
       if (!groups.has(key)) {
         groups.set(key, {
           classroom_id: s.classroom_id,
           day: s.day,
-          time_slot: s.time_slot,
+          time_key: tk,
           course_tags: new Set()
         });
       }
@@ -948,12 +949,16 @@ window.OA_SCHEDULE = {
     return Array.from(groups.values()).map(g => ({
       classroom_id: g.classroom_id,
       day: g.day,
-      time_slot: g.time_slot,
+      time_key: g.time_key,
       course_tags: Array.from(g.course_tags)
     }));
   }
 
-  function timeLabel(slot) { return timeSlots[slot] || `第 ${slot} 節`; }
+  // 取得時段字串：線上用 time_label（例如「19:00 ~ 19:50」），實體用 time_slot 對照表
+  function timeKeyOf(s) {
+    if (s.time_label) return s.time_label;
+    return timeSlots[s.time_slot] || `第 ${s.time_slot} 節`;
+  }
 
   function statusText(count) {
     const parts = [];
@@ -987,7 +992,7 @@ window.OA_SCHEDULE = {
       return;
     }
 
-    const DAY_ORDER = { Sat: 1, Sun: 2, Mon: 3, Tue: 4, Wed: 5, Thu: 6, Fri: 7 };
+    const DAY_ORDER = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
     list.sort((a, b) => {
       const ra = roomById(a.classroom_id), rb = roomById(b.classroom_id);
       if (ra.city !== rb.city) {
@@ -996,7 +1001,7 @@ window.OA_SCHEDULE = {
       }
       if (ra.name !== rb.name) return ra.name.localeCompare(rb.name, "zh-Hant");
       if (a.day !== b.day) return (DAY_ORDER[a.day] || 99) - (DAY_ORDER[b.day] || 99);
-      return a.time_slot - b.time_slot;
+      return a.time_key.localeCompare(b.time_key);
     });
 
     wrap.innerHTML = list.map(g => {
@@ -1013,7 +1018,7 @@ window.OA_SCHEDULE = {
         <div class="card ${mod}">
           <div class="card__main">
             <div class="card__classroom">${r.name}${onlineTag ? " " + onlineTag : ""}</div>
-            <div class="card__time">${day} ${timeLabel(g.time_slot)}</div>
+            <div class="card__time">${day} ${g.time_key}</div>
             <div class="card__top">${courseTags}</div>
             ${addressHtml}
           </div>
