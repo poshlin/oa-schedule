@@ -201,13 +201,46 @@ async def scrape_physical(page):
           const table = pane.querySelector('table');
           if (!table) continue;
 
+          // 從 thead 動態讀每個 column 對應的 (day, slot)
+          // 週末表 thead：Sat. (colspan=5) Sun. (colspan=5) + 第二列 1 2 3 4 5 1 2 3 4 5
+          // 週間表 thead：Mon. Tues. Weds. Thurs. Fri. (各 colspan=N) + 第二列時段號
+          function parseHeadColumns(table) {
+            const thead = table.querySelector('thead');
+            if (!thead) return null;
+            const rows = thead.querySelectorAll('tr');
+            if (rows.length < 2) return null;
+            const dayPerCol = [];
+            Array.from(rows[0].children).forEach(th => {
+              const text = (th.innerText || '').trim();
+              const span = parseInt(th.getAttribute('colspan') || '1', 10);
+              for (let i = 0; i < span; i++) dayPerCol.push(text);
+            });
+            const slotPerCol = Array.from(rows[1].children).map(th => (th.innerText || '').trim());
+            const mapDay = txt => {
+              if (/Sat/i.test(txt)) return 'Sat';
+              if (/Sun/i.test(txt)) return 'Sun';
+              if (/Mon/i.test(txt)) return 'Mon';
+              if (/Tue/i.test(txt)) return 'Tue';
+              if (/Wed/i.test(txt)) return 'Wed';
+              if (/Thu/i.test(txt)) return 'Thu';
+              if (/Fri/i.test(txt)) return 'Fri';
+              return null;
+            };
+            return dayPerCol.map((d, i) => ({
+              day: mapDay(d),
+              slot: parseInt(slotPerCol[i], 10)
+            })).filter(c => c.day && !isNaN(c.slot));
+          }
+
+          const colMap = parseHeadColumns(table);
+          if (!colMap || colMap.length === 0) continue;
+          const numSlots = colMap.length;
+
           const rows = Array.from(table.querySelectorAll('tbody tr'));
           const expanded = expandRowspan(rows);
 
           for (const row of expanded) {
-            if (row.length < 12) continue;
-            // row[0] = 群組名（板橋教室 / 新莊魔力 ...）
-            // row[1] = 具體教室名（板橋旗艦｜A教室 / 魔力文理補習班 ...）
+            if (row.length < 2 + numSlots) continue;
             const groupName = row[0] || '';
             const roomName  = row[1] || '';
             const internalName = (groupName && groupName !== roomName)
@@ -215,37 +248,19 @@ async def scrape_physical(page):
               : roomName;
             if (!internalName) continue;
 
-            if (stype === 'weekend') {
-              const slots = row.slice(-10);
-              slots.forEach((txt, i) => {
-                if (!txt || txt === '-') return;
-                const day = i < 5 ? 'Sat' : 'Sun';
-                const slot = (i % 5) + 1;
-                const lines = txt.split('\\n').map(s => s.trim()).filter(Boolean);
-                const courseText = lines[lines.length - 1] || '';
-                result.push({
-                  city: cityName, stype: 'weekend',
-                  internal_name: internalName, day, slot,
-                  course_text: courseText
-                });
+            const slots = row.slice(-numSlots);
+            slots.forEach((txt, i) => {
+              if (!txt || txt === '-') return;
+              const info = colMap[i];
+              const lines = txt.split('\\n').map(s => s.trim()).filter(Boolean);
+              const courseText = lines[lines.length - 1] || '';
+              result.push({
+                city: cityName, stype,
+                internal_name: internalName,
+                day: info.day, slot: info.slot,
+                course_text: courseText
               });
-            } else if (stype === 'weekday') {
-              if (row.length < 27) continue;
-              const slots = row.slice(-25);
-              const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-              slots.forEach((txt, i) => {
-                if (!txt || txt === '-') return;
-                const dayIdx = Math.floor(i / 5);
-                const slot = (i % 5) + 1;
-                const lines = txt.split('\\n').map(s => s.trim()).filter(Boolean);
-                const courseText = lines[lines.length - 1] || '';
-                result.push({
-                  city: cityName, stype: 'weekday',
-                  internal_name: internalName, day: days[dayIdx], slot,
-                  course_text: courseText
-                });
-              });
-            }
+            });
           }
         }
       }
