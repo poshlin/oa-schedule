@@ -201,33 +201,44 @@ html, body {
 
 .card__classroom {
   font-size: 17px; font-weight: 700; color: var(--dark);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .card__time {
   font-family: var(--font-en);
   font-size: 18px; font-weight: 700;
   color: var(--orange-dk);
-  margin: 6px 0 4px;
+  margin: 6px 0 10px;
 }
 .card__address {
   font-size: 13px; color: var(--gray);
-  display: flex; align-items: flex-start; gap: 6px;
+  display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--gray);
+  padding-bottom: 1px;
+  transition: color .15s, border-color .15s;
+  margin-top: 4px;
 }
-.card__address::before { content: "📍"; flex-shrink: 0; }
+.card__address:hover { color: var(--orange-dk); border-bottom-color: var(--orange-dk); }
+.card__address::before { content: "📍"; flex-shrink: 0; text-decoration: none; }
+.card__map-icon { font-size: 11px; opacity: 0.7; margin-left: 2px; }
 
 .card__cta {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
   background: var(--orange); color: var(--white);
   font-family: var(--font-zh);
-  font-weight: 700; font-size: 14px;
+  font-weight: 700;
   padding: 12px 18px;
   border-radius: 8px;
   text-decoration: none;
   white-space: nowrap;
   transition: background .15s, transform .15s;
   border: none; cursor: pointer;
+  min-width: 160px;
+  gap: 2px;
 }
 .card__cta:hover { background: var(--orange-dk); transform: translateY(-1px); }
-.card__cta::after { content: "→"; font-family: var(--font-en); }
+.card__cta-main { font-size: 15px; }
+.card__cta-phone { font-size: 12px; font-family: var(--font-en); opacity: 0.92; font-weight: 500; }
 
 .empty {
   text-align: center; padding: 48px 20px;
@@ -354,10 +365,10 @@ html, body {
 <section class="results" id="results"></section>
 
 <section class="bottom-cta">
-  <h2>找不到合適的時段？</h2>
-  <p>聯絡專員為你客製化安排上課時間與分校</p>
-  <a class="bottom-cta__btn" href="https://lin.ee/your-line-oa-link" target="_blank" rel="noopener">
-    LINE 聯絡專員 →
+  <h2>確定好想了解的時段了嗎？</h2>
+  <p>致電預約體驗課，由專員為你詳細說明課程內容與安排</p>
+  <a class="bottom-cta__btn" href="tel:0277098229">
+    📞 立即致電 02-7709-8229
   </a>
 </section>
 
@@ -848,7 +859,6 @@ window.OA_SCHEDULE = {
 (function() {
   "use strict";
   const DAY_LABEL = { Sat: "週六", Sun: "週日", Mon: "週一", Tue: "週二", Wed: "週三", Thu: "週四", Fri: "週五" };
-  const BOOKING_URL = "https://lin.ee/your-line-oa-link";  // TODO: 改成正式 LINE OA 預約連結
   const CITY_ORDER = ["臺北市", "新北市", "基隆市", "桃園市", "新竹市", "新竹縣", "苗栗縣", "臺中市", "嘉義市", "臺南市", "高雄市", "屏東縣", "Kuala Lumpur", "線上"];
 
   // corp 內部 schedule course_id → 家長端要顯示的課程 id（一對多）
@@ -909,47 +919,60 @@ window.OA_SCHEDULE = {
     $("filter-course").value = filter.course;
   }
 
-  function applyFilters() {
-    return schedules.filter(s => {
+  // 先過濾再合併：相同 (classroom_id, day, time_slot) 的多筆 → 一張卡片，課程標籤聚合去重
+  function applyFiltersAndGroup() {
+    const filtered = schedules.filter(s => {
       const tags = displayTagsOf(s);
-      if (tags.length === 0) return false;  // 對應表沒列的內部課程（數學、選手班）一律不顯示
+      if (tags.length === 0) return false;  // 對應表沒列的內部課程（數學、選手班、解析失敗）一律不顯示
 
       const r = roomById(s.classroom_id);
       if (filter.classroom !== "all" && r.id !== filter.classroom) return false;
       if (filter.course !== "all" && !tags.includes(filter.course)) return false;
       return true;
     });
+
+    const groups = new Map();
+    filtered.forEach(s => {
+      const key = `${s.classroom_id}|${s.day}|${s.time_slot}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          classroom_id: s.classroom_id,
+          day: s.day,
+          time_slot: s.time_slot,
+          course_tags: new Set()
+        });
+      }
+      displayTagsOf(s).forEach(t => groups.get(key).course_tags.add(t));
+    });
+
+    return Array.from(groups.values()).map(g => ({
+      classroom_id: g.classroom_id,
+      day: g.day,
+      time_slot: g.time_slot,
+      course_tags: Array.from(g.course_tags)
+    }));
   }
 
   function timeLabel(slot) { return timeSlots[slot] || `第 ${slot} 節`; }
-
-  // 卡片上要顯示的課程名稱：有過濾就只顯示過濾的那一個，沒過濾就顯示時段對應的所有家長端課程
-  function courseLabelOf(s) {
-    const tags = displayTagsOf(s);
-    if (filter.course !== "all" && tags.includes(filter.course)) {
-      const c = courseById(filter.course);
-      return c.name;
-    }
-    return tags.map(t => courseById(t).name).join(" / ");
-  }
 
   function statusText(count) {
     const parts = [];
     if (filter.classroom !== "all") parts.push(roomById(filter.classroom).name);
     if (filter.course !== "all")    parts.push(courseById(filter.course).name);
     const prefix = parts.length > 0 ? `${parts.join("・")}・` : "";
-    return `${prefix}共 ${count} 個開班時段`;
+    return `${prefix}共 ${count} 個時段`;
   }
 
-  function buildBookingLink(s) {
-    const r = roomById(s.classroom_id);
-    const c = courseById(s.course_id);
-    const msg = `我想預約試聽：\n${r.name} / ${c.name}\n${DAY_LABEL[s.day] || s.day} ${timeLabel(s.time_slot)}`;
-    return BOOKING_URL + "?text=" + encodeURIComponent(msg);
+  // Google Maps 搜尋連結（手機點開 maps app、桌機開瀏覽器版）
+  function mapsUrl(address) {
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(address);
   }
+  // 統一總機
+  const TEL = "0277098229";
+  const TEL_DISPLAY = "02-7709-8229";
 
   function render() {
-    const list = applyFilters();
+    const list = applyFiltersAndGroup();
     $("result-count").textContent = statusText(list.length);
 
     const wrap = $("results");
@@ -958,12 +981,13 @@ window.OA_SCHEDULE = {
         <div class="empty">
           <div class="empty__icon">🔍</div>
           <div class="empty__title">目前沒有符合條件的時段</div>
-          <div class="empty__desc">試試調整篩選條件，或聯絡專員客製化安排</div>
-          <a class="card__cta" href="${BOOKING_URL}" target="_blank" rel="noopener">聯絡專員</a>
+          <div class="empty__desc">試試調整篩選條件，或來電專員為你客製化安排</div>
+          <a class="card__cta" href="tel:${TEL}">📞 立即致電 ${TEL_DISPLAY}</a>
         </div>`;
       return;
     }
 
+    const DAY_ORDER = { Sat: 1, Sun: 2, Mon: 3, Tue: 4, Wed: 5, Thu: 6, Fri: 7 };
     list.sort((a, b) => {
       const ra = roomById(a.classroom_id), rb = roomById(b.classroom_id);
       if (ra.city !== rb.city) {
@@ -971,30 +995,32 @@ window.OA_SCHEDULE = {
         return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
       }
       if (ra.name !== rb.name) return ra.name.localeCompare(rb.name, "zh-Hant");
-      if (a.day !== b.day) return a.day === "Sat" ? -1 : 1;
+      if (a.day !== b.day) return (DAY_ORDER[a.day] || 99) - (DAY_ORDER[b.day] || 99);
       return a.time_slot - b.time_slot;
     });
 
-    wrap.innerHTML = list.map(s => {
-      const r = roomById(s.classroom_id);
-      const day = DAY_LABEL[s.day] || s.day;
-      const mod = r.is_online ? "card--online" :
-                  s.course_id === "creative_blocks" ? "card--scratch" :
-                  s.course_id === "minecraft" ? "card--minecraft" : "";
+    wrap.innerHTML = list.map(g => {
+      const r = roomById(g.classroom_id);
+      const day = DAY_LABEL[g.day] || g.day;
+      const mod = r.is_online ? "card--online" : "";
       const onlineTag = r.is_online ? `<span class="tag tag--online">線上</span>` : "";
-      const levelTag  = s.course_level ? `<span class="tag tag--level">${s.course_level}</span>` : "";
+      // 依照 courses 主檔的順序列出標籤（穩定排序）
+      const tagOrder = courses.map(c => c.id);
+      const sortedTags = g.course_tags.slice().sort((a, b) => tagOrder.indexOf(a) - tagOrder.indexOf(b));
+      const courseTags = sortedTags.map(t => `<span class="tag tag--course">${courseById(t).name}</span>`).join("");
+      const addressHtml = r.address ? `<a class="card__address" href="${mapsUrl(r.address)}" target="_blank" rel="noopener">${r.address}<span class="card__map-icon">🗺</span></a>` : "";
       return `
         <div class="card ${mod}">
           <div class="card__main">
-            <div class="card__top">
-              <span class="tag tag--course">${courseLabelOf(s)}</span>
-              ${onlineTag}${levelTag}
-            </div>
-            <div class="card__classroom">${r.name}</div>
-            <div class="card__time">${day} ${timeLabel(s.time_slot)}</div>
-            ${r.address ? `<div class="card__address">${r.address}</div>` : ""}
+            <div class="card__classroom">${r.name}${onlineTag ? " " + onlineTag : ""}</div>
+            <div class="card__time">${day} ${timeLabel(g.time_slot)}</div>
+            <div class="card__top">${courseTags}</div>
+            ${addressHtml}
           </div>
-          <a class="card__cta" href="${buildBookingLink(s)}" target="_blank" rel="noopener">預約試聽</a>
+          <a class="card__cta" href="tel:${TEL}">
+            <span class="card__cta-main">📞 立即致電預約體驗</span>
+            <span class="card__cta-phone">${TEL_DISPLAY}</span>
+          </a>
         </div>`;
     }).join("");
   }
