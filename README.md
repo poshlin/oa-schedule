@@ -32,8 +32,9 @@ oa-schedule/
 |------|------|------|------|
 | **index.html**（家長查詢頁） | 對外，給家長從 LINE 點連結 | `/` | 公開 |
 | **closest.html**（電銷工具） | 內部，電銷接電話時用 | `/closest.html` | `noindex,nofollow` |
+| **rules.html**（業務規則索引） | 內部，業務 / 課務 / 教學組長共用 | `/rules.html` | `noindex,nofollow` |
 
-closest.html 不從首頁連結，URL 自己保存。
+closest.html 與 rules.html 不從首頁連結，URL 自己保存。
 
 > **為什麼塞一個檔？** 預覽工具、LINE 內建瀏覽器、各種怪環境都能正常顯示，不會因為載不到外部 CSS/JS 而失敗。檔案才 40KB 上下，CDN 一個 round-trip 就到家。
 
