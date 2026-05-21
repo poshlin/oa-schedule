@@ -93,13 +93,11 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 .stat-time::before { content: "🚗 "; font-family: var(--font-zh); }
 
 .card__actions { display: flex; flex-direction: column; gap: 8px; }
-.btn-maps, .btn-tel { display: inline-flex; align-items: center; justify-content: center;
+.btn-maps { display: inline-flex; align-items: center; justify-content: center;
   padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 700;
-  font-size: 13px; font-family: var(--font-zh); white-space: nowrap; transition: background .15s; }
-.btn-maps { background: var(--teal); color: var(--white); }
+  font-size: 13px; font-family: var(--font-zh); white-space: nowrap; transition: background .15s;
+  background: var(--teal); color: var(--white); }
 .btn-maps:hover { background: var(--teal-dk); }
-.btn-tel { background: var(--bg); color: var(--dark); font-family: var(--font-en); font-size: 14px; }
-.btn-tel:hover { background: #E5E5E5; }
 
 /* 推銷話術區塊 */
 .pitch-box { max-width: 960px; margin: 0 auto 24px; padding: 24px 28px;
@@ -127,7 +125,7 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
   .filters__card { grid-template-columns: 1fr; }
   .card { grid-template-columns: 1fr; }
   .card__actions { flex-direction: row; }
-  .btn-maps, .btn-tel { flex: 1; }
+  .btn-maps { flex: 1; }
 }
 </style>
 </head>
