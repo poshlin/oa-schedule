@@ -76,22 +76,57 @@ WEEK_TO_DAY = {"week-1":"Mon", "week-2":"Tue", "week-3":"Wed",
 
 # ─── 教室名稱對應 ─────────────────────────────────────────────────────────────
 def load_classrooms_from_index():
+    """只抓 OA_CLASSROOMS.classrooms 內的物件，用 city: 欄位辨識，避免誤抓 courses"""
     html = INDEX_HTML.read_text(encoding="utf-8")
     return [{"id": rid, "name": name} for rid, name in
-            re.findall(r'\{\s*id:\s*"([^"]+)",\s*name:\s*"([^"]+)"', html)]
+            re.findall(r'\{\s*id:\s*"([^"]+)",\s*name:\s*"([^"]+)"[^}]*city:', html)]
+
+def _norm_room(s):
+    """剝掉「教室／市／縣」噪音字元，讓「嘉義市東區」與「嘉義東區」可對上"""
+    return s.replace("教室", "").replace("市", "").replace("縣", "").strip()
 
 def normalize_classroom_id(internal_name, idx):
+    """corp 內部教室名 → classrooms.json 內 id
+
+    對應規則（每個 part 依序試）：
+      1) 完全相符（避免「新莊」對到「新莊魔力」）
+      2) head.startswith(cname) 取最長（e.g. 板橋旗艦 → 板橋）
+      3) cname.startswith(head) 且唯一候選
+
+    處理的命名格式：
+      a) 古亭｜本部5樓之3_A教室          （head=古亭）
+      b) 新莊｜建中外語 203教室          （head=新莊 → 新莊教室）
+      c) 新莊魔力｜魔力文理補習班        （head=新莊魔力 → 新莊魔力教室）
+      d) 板橋旗艦｜A教室                （head=板橋旗艦 → 板橋）
+      e) 台中_北屯直營_B教室             （第一段「台中」沒對到，第二段「北屯直營」→ 北屯）
+      f) 嘉義東區 直營B教室              （normalize 後 = 嘉義東區 = 嘉義市東區）
+      g) 基隆教室                       （head=基隆 → 基隆教室 完全相符）
+    """
     if any(k in internal_name for k in ("線上", "遠距", "橘頭")):
         return "online"
-    head = re.split(r'[｜_]', internal_name, maxsplit=1)[0].strip()
-    head = head.replace("教室", "").strip()
-    for c in idx:
-        cname = c["name"].replace("教室", "").strip()
-        if cname == head or cname.startswith(head) or head.startswith(cname):
-            return c["id"]
-    for c in idx:
-        if head and head[0] in c["name"]:
-            return c["id"]
+
+    parts = [_norm_room(p) for p in re.split(r'[｜_ ]', internal_name)]
+    parts = [p for p in parts if p]
+    cnames = [(c, _norm_room(c["name"])) for c in idx]
+
+    for head in parts:
+        # 1) 完全相符
+        for c, cname in cnames:
+            if cname == head:
+                return c["id"]
+        # 2) head.startswith(cname) — 取最長
+        best_id, best_len = None, 0
+        for c, cname in cnames:
+            if cname and head.startswith(cname) and len(cname) > best_len:
+                best_id, best_len = c["id"], len(cname)
+        if best_id:
+            return best_id
+
+    # 3) cname.startswith(head) 且唯一
+    for head in parts:
+        candidates = [c["id"] for c, cname in cnames if cname.startswith(head)]
+        if len(candidates) == 1:
+            return candidates[0]
     return None
 
 # ─── 登入 ────────────────────────────────────────────────────────────────────
@@ -120,6 +155,33 @@ async def scrape_physical(page):
         if (/^city-\\d+$/.test(href) && txt) cityMap[txt] = href;
       });
 
+      // 展開 rowspan：把每一列攤平成 N 個 cell（包含從上方 rowspan 繼承的）
+      function expandRowspan(rows) {
+        const spanMem = {};  // col -> { text, remaining }
+        return rows.map(tr => {
+          const tds = Array.from(tr.children);
+          const out = [];
+          let cellIdx = 0, colIdx = 0;
+          while (cellIdx < tds.length || (spanMem[colIdx] && spanMem[colIdx].remaining > 0)) {
+            if (spanMem[colIdx] && spanMem[colIdx].remaining > 0) {
+              out.push(spanMem[colIdx].text);
+              spanMem[colIdx].remaining--;
+              if (spanMem[colIdx].remaining === 0) delete spanMem[colIdx];
+              colIdx++;
+              continue;
+            }
+            if (cellIdx >= tds.length) break;
+            const td = tds[cellIdx];
+            const span = parseInt(td.getAttribute('rowspan') || '1', 10);
+            const text = (td.innerText || '').trim();
+            out.push(text);
+            if (span > 1) spanMem[colIdx] = { text, remaining: span - 1 };
+            cellIdx++; colIdx++;
+          }
+          return out;
+        });
+      }
+
       const result = [];
       for (const [cityName, cityId] of Object.entries(cityMap)) {
         if (cityName === '合計') continue;
@@ -131,24 +193,22 @@ async def scrape_physical(page):
           if (!table) continue;
 
           const rows = Array.from(table.querySelectorAll('tbody tr'));
-          for (const tr of rows) {
-            const cells = Array.from(tr.children);
-            let roomName = '';
-            const slotCells = [];
-            for (const td of cells) {
-              const text = (td.innerText || '').trim();
-              if (!roomName && text.includes('教室') && !text.match(/\\d+\\s*\\/\\s*\\d+/)) {
-                roomName = text;
-              } else {
-                slotCells.push(td);
-              }
-            }
-            if (!roomName) continue;
+          const expanded = expandRowspan(rows);
 
-            if (stype === 'weekend' && slotCells.length >= 10) {
-              const last10 = slotCells.slice(-10);
-              last10.forEach((cell, i) => {
-                const txt = (cell.innerText || '').trim();
+          for (const row of expanded) {
+            if (row.length < 12) continue;
+            // row[0] = 群組名（板橋教室 / 新莊魔力 ...）
+            // row[1] = 具體教室名（板橋旗艦｜A教室 / 魔力文理補習班 ...）
+            const groupName = row[0] || '';
+            const roomName  = row[1] || '';
+            const internalName = (groupName && groupName !== roomName)
+              ? `${groupName}_${roomName}`
+              : roomName;
+            if (!internalName) continue;
+
+            if (stype === 'weekend') {
+              const slots = row.slice(-10);
+              slots.forEach((txt, i) => {
                 if (!txt || txt === '-') return;
                 const day = i < 5 ? 'Sat' : 'Sun';
                 const slot = (i % 5) + 1;
@@ -156,15 +216,15 @@ async def scrape_physical(page):
                 const courseText = lines[lines.length - 1] || '';
                 result.push({
                   city: cityName, stype: 'weekend',
-                  internal_name: roomName, day, slot,
+                  internal_name: internalName, day, slot,
                   course_text: courseText
                 });
               });
-            } else if (stype === 'weekday' && slotCells.length >= 25) {
-              const last25 = slotCells.slice(-25);
+            } else if (stype === 'weekday') {
+              if (row.length < 27) continue;
+              const slots = row.slice(-25);
               const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-              last25.forEach((cell, i) => {
-                const txt = (cell.innerText || '').trim();
+              slots.forEach((txt, i) => {
                 if (!txt || txt === '-') return;
                 const dayIdx = Math.floor(i / 5);
                 const slot = (i % 5) + 1;
@@ -172,7 +232,7 @@ async def scrape_physical(page):
                 const courseText = lines[lines.length - 1] || '';
                 result.push({
                   city: cityName, stype: 'weekday',
-                  internal_name: roomName, day: days[dayIdx], slot,
+                  internal_name: internalName, day: days[dayIdx], slot,
                   course_text: courseText
                 });
               });
@@ -312,6 +372,14 @@ async def main():
             print(f"    實體規範化後 {len(physical_normalized)} 筆")
             if unknown_rooms:
                 print(f"    [WARN] 對應不到的實體教室 ({len(unknown_rooms)}): {sorted(unknown_rooms)[:5]}")
+            # 對應結果統計（每個 classroom_id 拿到幾筆，方便檢查有沒有遺漏）
+            from collections import Counter
+            counts = Counter(s["classroom_id"] for s in physical_normalized)
+            print(f"    對應結果（前 10 名）: {counts.most_common(10)}")
+            zero = [c["id"] for c in classrooms_idx
+                    if c["id"] not in counts and c["id"] != "online"]
+            if zero:
+                print(f"    [INFO] 沒對應到任何時段的教室 id: {zero}")
 
             # ── 2) 線上 ─────────────────────────────────────────
             raw_online = await scrape_online(page)
