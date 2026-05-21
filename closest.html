@@ -198,7 +198,6 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
   "use strict";
 
   const FAR_THRESHOLD_MIN = 30;
-  const TEL_DEFAULT = "02-7709-8229";
 
   // Haversine 距離（公里）
   function haversine(lat1, lon1, lat2, lon2) {
@@ -291,7 +290,6 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
       const rankBadge = isFirst
         ? '<span class="rank-badge">⭐ 最近的教室</span>'
         : `<span class="rank-badge rank-badge--other">第 ${i+1} 近</span>`;
-      const phone = c.phone || TEL_DEFAULT;
       return `
         <div class="card ${cardCls}">
           <div class="card__main">
@@ -305,7 +303,6 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
           </div>
           <div class="card__actions">
             <a class="btn-maps" href="${mapsUrl}" target="_blank" rel="noopener">📍 開 Google Maps</a>
-            <a class="btn-tel" href="tel:${phone.replace(/[^0-9]/g,'')}">${phone}</a>
           </div>
         </div>`;
     }).join("");
