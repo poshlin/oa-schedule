@@ -187,14 +187,19 @@ def geocode(query, cache):
         return None
 
 def load_classrooms_from_index():
-    """從 index.html 抓 OA_CLASSROOMS.classrooms 的 id / name / city / district / address"""
+    """從 index.html 抓 OA_CLASSROOMS.classrooms，跳過 hidden: true 的教室"""
     html = INDEX_HTML.read_text(encoding="utf-8")
+    # 多抓一個 group：物件 } 之前的剩餘內容（用來檢查 hidden）
     pattern = re.compile(
-        r'\{\s*id:\s*"([^"]+)",\s*name:\s*"([^"]+)",\s*city:\s*"([^"]+)",\s*district:\s*"([^"]*)",\s*address:\s*"([^"]+)"',
+        r'\{\s*id:\s*"([^"]+)",\s*name:\s*"([^"]+)",\s*city:\s*"([^"]+)",\s*district:\s*"([^"]*)",\s*address:\s*"([^"]+)"([^}]*)\}',
         re.DOTALL,
     )
     out = []
     for m in pattern.finditer(html):
+        rest = m.group(6)
+        if "hidden:" in rest and "true" in rest.split("hidden:", 1)[1][:20]:
+            print(f"  [SKIP] {m.group(2)} (hidden=true)")
+            continue
         out.append({
             "id": m.group(1), "name": m.group(2), "city": m.group(3),
             "district": m.group(4), "address": m.group(5),

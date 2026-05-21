@@ -301,16 +301,6 @@ window.OA_GEO = {
       "_imprecise": true
     },
     {
-      "id": "nantun_camp",
-      "name": "南屯營隊A教室",
-      "city": "臺中市",
-      "district": "南屯區",
-      "address": "南屯區向心路62號2樓",
-      "lat": 24.1346307,
-      "lon": 120.644374,
-      "_imprecise": true
-    },
-    {
       "id": "dali",
       "name": "大里教室",
       "city": "臺中市",
