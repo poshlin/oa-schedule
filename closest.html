@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>電銷查詢｜離家最近教室 — 橘子蘋果</title>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-dk: #D48500;
+  --red: #FF5859;    --red-dk: #CC3344;
+  --teal: #00C4B3;   --teal-dk: #008F83;
+  --gray: #646569;   --dark: #2D2D2D;
+  --bg: #F5F5F5;     --white: #FFFFFF;
+  --shadow: 0 2px 8px rgba(45,45,45,.08);
+  --shadow-lg: 0 4px 16px rgba(45,45,45,.12);
+  --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-en: "Trebuchet MS", "Calibri", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: var(--font-zh); color: var(--dark); background: var(--bg); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+
+.header { background: var(--white); border-bottom: 4px solid var(--red); padding: 16px 20px; position: sticky; top: 0; z-index: 10; box-shadow: var(--shadow); }
+.header__inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+.header__logo { height: 30px; }
+.header__title { font-size: 18px; font-weight: 700; border-left: 3px solid var(--red); padding-left: 12px; }
+.header__title small { display: block; font-size: 12px; color: var(--gray); font-weight: 400; margin-top: 2px; }
+.staff-badge { background: var(--red); color: var(--white); font-size: 11px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; font-weight: 700; letter-spacing: 0.5px; }
+
+.hero { background: linear-gradient(135deg, var(--red) 0%, #FF7A7A 100%); color: var(--white); padding: 32px 20px 36px; position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: var(--teal); opacity: .18; border-radius: 50%; }
+.hero__inner { max-width: 960px; margin: 0 auto; position: relative; z-index: 1; }
+.hero h1 { font-size: 22px; margin-bottom: 6px; color: var(--white); }
+.hero p { font-size: 14px; opacity: .92; }
+
+.filters { max-width: 960px; margin: -20px auto 0; padding: 0 20px; position: relative; z-index: 2; }
+.filters__card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.filter-group label { display: block; font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 6px; letter-spacing: .5px; }
+.filter-group select {
+  width: 100%; padding: 12px 14px;
+  font-family: var(--font-zh); font-size: 16px; color: var(--dark);
+  background: var(--bg); border: 2px solid transparent; border-radius: 8px; cursor: pointer;
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%23646569' d='M6 8L0 0h12z'/></svg>");
+  background-repeat: no-repeat; background-position: right 14px center; background-size: 10px;
+  padding-right: 36px;
+}
+.filter-group select:focus { outline: none; border-color: var(--red); background-color: var(--white); }
+.filter-group select:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-apply {
+  grid-column: 1 / -1;
+  background: var(--red); color: var(--white); border: none; border-radius: 8px;
+  padding: 14px 20px; margin-top: 4px;
+  font-family: var(--font-zh); font-weight: 700; font-size: 16px;
+  cursor: pointer; transition: background .15s, transform .1s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-apply:hover { background: var(--red-dk); }
+.btn-apply:active { transform: scale(.98); }
+.btn-apply::after { content: "→"; font-family: var(--font-en); }
+
+.filter-summary { max-width: 960px; margin: 16px auto 0; padding: 0 20px;
+  font-size: 14px; color: var(--gray);
+  display: flex; justify-content: space-between; align-items: center; }
+.btn-reset { background: none; border: none; cursor: pointer; color: var(--red);
+  font-weight: 700; font-size: 13px; font-family: var(--font-zh); }
+.btn-reset:hover { color: var(--red-dk); }
+
+.results { max-width: 960px; margin: 20px auto 24px; padding: 0 20px; display: grid; gap: 12px; }
+
+/* 最近教室卡片（推薦版） */
+.card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); padding: 18px 20px;
+  display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center;
+  border-left: 5px solid var(--gray); transition: box-shadow .15s; }
+.card--top { border-left-color: var(--orange); box-shadow: var(--shadow-lg); padding: 22px 24px; }
+.card--top .card__name { font-size: 22px; }
+.card--top .card__stats { font-size: 18px; }
+.card--far { border-left-color: var(--red); }
+
+.rank-badge { display: inline-block; font-size: 12px; font-weight: 700;
+  background: var(--orange); color: var(--white); padding: 3px 10px; border-radius: 4px;
+  margin-bottom: 8px; }
+.rank-badge--other { background: var(--bg); color: var(--gray); }
+
+.card__name { font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.card__addr { font-size: 13px; color: var(--gray); margin-bottom: 8px; }
+.card__stats { display: flex; align-items: center; gap: 16px; font-family: var(--font-en); font-weight: 700; font-size: 16px; }
+.stat-distance { color: var(--dark); }
+.stat-time { color: var(--teal-dk); }
+.stat-time--far { color: var(--red-dk); }
+.stat-time::before { content: "🚗 "; font-family: var(--font-zh); }
+
+.card__actions { display: flex; flex-direction: column; gap: 8px; }
+.btn-maps, .btn-tel { display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 700;
+  font-size: 13px; font-family: var(--font-zh); white-space: nowrap; transition: background .15s; }
+.btn-maps { background: var(--teal); color: var(--white); }
+.btn-maps:hover { background: var(--teal-dk); }
+.btn-tel { background: var(--bg); color: var(--dark); font-family: var(--font-en); font-size: 14px; }
+.btn-tel:hover { background: #E5E5E5; }
+
+/* 推銷話術區塊 */
+.pitch-box { max-width: 960px; margin: 0 auto 24px; padding: 24px 28px;
+  background: linear-gradient(135deg, #FFF7E0 0%, #FFE9A8 100%);
+  border: 2px solid var(--orange); border-radius: 12px; position: relative; }
+.pitch-box h2 { font-size: 16px; color: var(--orange-dk); margin-bottom: 12px; font-weight: 700; }
+.pitch-script { font-size: 16px; line-height: 1.75; color: var(--dark);
+  padding: 16px 20px; background: var(--white); border-radius: 8px; border-left: 4px solid var(--orange);
+  margin-bottom: 14px; }
+.pitch-script strong { color: var(--red-dk); font-weight: 700; }
+.pitch-link { display: inline-flex; align-items: center; gap: 6px;
+  background: var(--orange); color: var(--white); padding: 12px 20px; border-radius: 8px;
+  text-decoration: none; font-weight: 700; font-size: 14px; }
+.pitch-link:hover { background: var(--orange-dk); }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--gray); font-size: 15px; }
+
+.footer { text-align: center; font-size: 12px; color: var(--gray); padding: 20px;
+  border-top: 1px solid #E5E5E5; }
+.footer a { color: var(--orange); text-decoration: none; }
+
+@media (max-width: 640px) {
+  .header__title { font-size: 16px; }
+  .hero h1 { font-size: 18px; }
+  .filters__card { grid-template-columns: 1fr; }
+  .card { grid-template-columns: 1fr; }
+  .card__actions { flex-direction: row; }
+  .btn-maps, .btn-tel { flex: 1; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <svg class="header__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 174.6 34.03" aria-label="橘子蘋果">
+      <path fill="#ffa300" d="m24,21c0-4.9,2.36-9.25,6.01-11.99-1.54-.65-3.23-1-5.01-1-7.17,0-13,5.83-13,13s5.83,13,13,13c1.77,0,3.46-.36,5.01-1-3.64-2.74-6.01-7.1-6.01-11.99Z"/>
+      <path fill="#00c4b3" d="m31,5c0,.7.14,1.36.4,1.96.2.02.4.04.6.04,2.76,0,5-2.24,5-5,0-.7-.14-1.36-.4-1.96-.2-.02-.4-.04-.6-.04-2.76,0-5,2.24-5,5Z"/>
+      <path fill="#ff5859" d="m39,8c-7.17,0-13,5.83-13,13s5.83,13,13,13,13-5.83,13-13-5.83-13-13-13Z"/>
+    </svg>
+    <div class="header__title">
+      電銷查詢｜離家最近教室
+      <span class="staff-badge">內部工具</span>
+      <small>輸入家長住址（縣市 + 區），快速看排名與車程估算</small>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <h1>家長問「最近的教室在哪」？</h1>
+    <p>選縣市與區，1 秒看排名。車程超過 30 分鐘自動跳推銷話術。</p>
+  </div>
+</section>
+
+<section class="filters">
+  <div class="filters__card">
+    <div class="filter-group">
+      <label for="filter-city">縣市</label>
+      <select id="filter-city"><option value="">請選擇縣市</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-district">區/鄉/鎮</label>
+      <select id="filter-district" disabled><option value="">請先選縣市</option></select>
+    </div>
+    <button class="btn-apply" id="btn-apply" type="button" onclick="window.__oaFind && window.__oaFind()">找最近教室</button>
+  </div>
+</section>
+
+<div class="filter-summary">
+  <span id="result-status">尚未查詢</span>
+  <button class="btn-reset" id="btn-reset" type="button" onclick="window.__oaReset && window.__oaReset()">清除</button>
+</div>
+
+<section class="results" id="results">
+  <div class="empty">
+    👆 上方選擇縣市與區後點「找最近教室」
+  </div>
+</section>
+
+<section class="pitch-box" id="pitch-box" style="display: none;">
+  <h2>📞 線上課程推薦話術（給電銷照唸）</h2>
+  <div class="pitch-script" id="pitch-script"></div>
+  <a class="pitch-link" href="index.html" target="_blank">查看線上開班時段 →</a>
+</section>
+
+<footer class="footer">
+  橘子蘋果程式學苑 OrangeApple Programming Academy ｜
+  <a href="index.html">家長查詢頁</a> ｜
+  資料更新：<span id="updated-at">—</span>
+</footer>
+
+<script src="closest_data.js"></script>
+<script>
+(function() {
+  "use strict";
+
+  const FAR_THRESHOLD_MIN = 30;
+  const TEL_DEFAULT = "02-7709-8229";
+
+  // Haversine 距離（公里）
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) ** 2;
+    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  // 估算車程：直線距離 × 1.4（彎路）÷ 24 km/h（市區平均車速）× 60 ≈ 距離 × 3.5
+  // 改成 ×2.5（市區+郊區混合假設），實測比較合理
+  function estimateMinutes(distKm) {
+    return Math.max(1, Math.round(distKm * 2.5));
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  const geo = (window.OA_GEO && window.OA_GEO.classrooms) ? window.OA_GEO :
+              { classrooms: [], districts: [], updated_at: "" };
+
+  if (geo.updated_at) $("updated-at").textContent = geo.updated_at;
+
+  // 預定的縣市排序（北→南→離島）
+  const CITY_ORDER = [
+    "臺北市", "新北市", "基隆市", "桃園市", "新竹市", "新竹縣", "苗栗縣",
+    "臺中市", "彰化縣", "南投縣", "雲林縣", "嘉義市", "嘉義縣",
+    "臺南市", "高雄市", "屏東縣",
+    "宜蘭縣", "花蓮縣", "臺東縣",
+    "澎湖縣", "金門縣", "連江縣"
+  ];
+
+  function buildCityFilter() {
+    const citiesInData = new Set(geo.districts.map(d => d.city));
+    const cities = CITY_ORDER.filter(c => citiesInData.has(c));
+    $("filter-city").innerHTML = '<option value="">請選擇縣市</option>' +
+      cities.map(c => `<option value="${c}">${c}</option>`).join("");
+  }
+
+  function refreshDistricts() {
+    const city = $("filter-city").value;
+    const sel = $("filter-district");
+    if (!city) {
+      sel.innerHTML = '<option value="">請先選縣市</option>';
+      sel.disabled = true;
+      return;
+    }
+    const dists = geo.districts.filter(d => d.city === city);
+    sel.innerHTML = '<option value="">請選擇區/鄉/鎮</option>' +
+      dists.map(d => `<option value="${d.district}">${d.district}</option>`).join("");
+    sel.disabled = false;
+  }
+
+  function findClosest() {
+    const city = $("filter-city").value;
+    const district = $("filter-district").value;
+    if (!city) { $("result-status").textContent = "⚠️ 請先選擇縣市"; return; }
+    if (!district) { $("result-status").textContent = "⚠️ 請選擇區/鄉/鎮"; return; }
+
+    const home = geo.districts.find(d => d.city === city && d.district === district);
+    if (!home) { $("result-status").textContent = "⚠️ 找不到該區的座標資料"; return; }
+
+    const candidates = geo.classrooms
+      .filter(c => c.lat && c.lon)
+      .map(c => {
+        const distKm = haversine(home.lat, home.lon, c.lat, c.lon);
+        return { ...c, distance_km: distKm, minutes: estimateMinutes(distKm) };
+      })
+      .sort((a, b) => a.distance_km - b.distance_km)
+      .slice(0, 5);
+
+    renderResults(home, candidates);
+    renderPitch(home, candidates[0]);
+  }
+
+  function renderResults(home, top5) {
+    $("result-status").textContent = `家長住址：${home.city} ${home.district} ・ 顯示最近 ${top5.length} 間教室`;
+
+    if (top5.length === 0) {
+      $("results").innerHTML = '<div class="empty">⚠️ 沒有可用的教室資料</div>';
+      return;
+    }
+
+    $("results").innerHTML = top5.map((c, i) => {
+      const isFirst = i === 0;
+      const isFar = c.minutes > FAR_THRESHOLD_MIN;
+      const cardCls = (isFirst ? 'card--top ' : '') + (isFar ? 'card--far' : '');
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(home.city + home.district)}&destination=${encodeURIComponent(c.city + c.address)}`;
+      const rankBadge = isFirst
+        ? '<span class="rank-badge">⭐ 最近的教室</span>'
+        : `<span class="rank-badge rank-badge--other">第 ${i+1} 近</span>`;
+      const phone = c.phone || TEL_DEFAULT;
+      return `
+        <div class="card ${cardCls}">
+          <div class="card__main">
+            ${rankBadge}
+            <div class="card__name">${c.name}</div>
+            <div class="card__addr">${c.city}${c.address}</div>
+            <div class="card__stats">
+              <span class="stat-distance">${c.distance_km.toFixed(1)} km</span>
+              <span class="stat-time ${isFar ? 'stat-time--far' : ''}">約 ${c.minutes} 分鐘</span>
+            </div>
+          </div>
+          <div class="card__actions">
+            <a class="btn-maps" href="${mapsUrl}" target="_blank" rel="noopener">📍 開 Google Maps</a>
+            <a class="btn-tel" href="tel:${phone.replace(/[^0-9]/g,'')}">${phone}</a>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderPitch(home, nearest) {
+    const pitchBox = $("pitch-box");
+    if (!nearest || nearest.minutes <= FAR_THRESHOLD_MIN) {
+      pitchBox.style.display = "none";
+      return;
+    }
+    const script = `
+      「○○媽媽 / 爸爸，看起來離您家最近的是 <strong>${nearest.name}</strong>，
+      開車單程大概要 <strong>${nearest.minutes} 分鐘</strong>。
+      <br><br>
+      考慮到孩子每週固定往返，這個距離長期下來會有點辛苦。
+      <br><br>
+      我們其實也有開<strong>線上課程</strong>——老師都是業界資深、跟實體班同步教材，
+      孩子在家就能上課，您可以省下接送時間。
+      要不要我幫您介紹一下線上班目前的時段？」
+    `;
+    $("pitch-script").innerHTML = script;
+    pitchBox.style.display = "block";
+    // 滾動到話術區
+    setTimeout(() => pitchBox.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+  }
+
+  function reset() {
+    $("filter-city").value = "";
+    $("filter-district").innerHTML = '<option value="">請先選縣市</option>';
+    $("filter-district").disabled = true;
+    $("result-status").textContent = "尚未查詢";
+    $("results").innerHTML = '<div class="empty">👆 上方選擇縣市與區後點「找最近教室」</div>';
+    $("pitch-box").style.display = "none";
+  }
+
+  // 縣市改變時自動刷新區下拉（保留也可手動點查詢，但這樣比較順）
+  $("filter-city").addEventListener("change", refreshDistricts);
+  $("filter-city").addEventListener("input", refreshDistricts);
+
+  // 掛到 window 給 onclick 用
+  window.__oaFind = findClosest;
+  window.__oaReset = reset;
+
+  if (geo.districts.length === 0) {
+    $("result-status").textContent = "⚠️ 找不到 closest_data.js — 請先跑 scraper/prepare_geo.py";
+  } else {
+    buildCityFilter();
+  }
+})();
+</script>
+
+</body>
+</html>

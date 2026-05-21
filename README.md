@@ -8,20 +8,32 @@
 
 ---
 
-## 檔案結構（極簡）
+## 檔案結構
 
 ```
 oa-schedule/
-├── index.html          # ★ 唯一的網頁檔（自帶 CSS、JS、logo、教室主檔）
-├── assets/             # 備用 logo PNG（內嵌 SVG 已包在 index.html 裡，這資料夾可以不放上 web）
+├── index.html          # ★ 家長查詢頁（公開，自帶 CSS / JS / logo / 教室主檔）
+├── closest.html        # ☆ 電銷查詢工具（內部用：離家最近教室 + 推銷話術）
+├── closest_data.js     # closest.html 用的 lat/lon 資料（由 prepare_geo.py 產生）
+├── assets/
 ├── scraper/
-│   ├── scrape.py       # Selenium 爬蟲 — 會把抓到的時段寫回 index.html
+│   ├── scrape.py       # Playwright 爬蟲（從 corp 抓開班時段寫回 index.html）
+│   ├── prepare_geo.py  # 一次性：geocode 教室地址 + 全台縣市區，產生 closest_data.js
 │   ├── requirements.txt
 │   ├── .env.example
 │   └── .env            # 實際帳密（git 不追蹤）
 ├── .gitignore
 └── README.md
 ```
+
+## 兩個頁面的差別
+
+| 頁面 | 對象 | 路徑 | 索引 |
+|------|------|------|------|
+| **index.html**（家長查詢頁） | 對外，給家長從 LINE 點連結 | `/` | 公開 |
+| **closest.html**（電銷工具） | 內部，電銷接電話時用 | `/closest.html` | `noindex,nofollow` |
+
+closest.html 不從首頁連結，URL 自己保存。
 
 > **為什麼塞一個檔？** 預覽工具、LINE 內建瀏覽器、各種怪環境都能正常顯示，不會因為載不到外部 CSS/JS 而失敗。檔案才 40KB 上下，CDN 一個 round-trip 就到家。
 
@@ -189,6 +201,36 @@ launchctl load ~/Library/LaunchAgents/co.orangeapple.schedule-scraper.plist
 - **時段對照**：`time_slots` 區塊
 
 > 時段 4（18:30–20:30）主要實體晚間用、時段 5（19:00–21:00）給線上晚間。改了之後前端會自動套用。
+
+---
+
+## 電銷查詢工具（closest.html）
+
+### 用途
+家長打電話來問「離我家最近的教室」時，電銷在 1 秒內可以查到最近 5 間教室、距離 / 估算車程，超過 30 分鐘自動跳推銷話術導向線上課程。
+
+### 距離與時間怎麼算
+- **距離**：Haversine 公式算直線距離（公里）
+- **車程估算**：直線距離 × 2.5 ≈ 分鐘（內建「彎路修正 ×1.4 + 平均車速 24 km/h」）
+- **準確度**：±30%，足以分辨「5 分 vs 50 分」。若要精準，每張結果卡都有「📍 開 Google Maps」按鈕
+
+### 更新地理資料
+所有教室與全台 ~370 個區的座標都預先 geocode 好放在 `closest_data.js`。**只有以下情況需要重跑**：
+
+- 新增教室
+- 教室地址變動
+- 想擴充覆蓋的行政區
+
+```bash
+cd scraper
+python3 prepare_geo.py            # 重新 geocode 所有資料
+```
+（執行需要 8-10 分鐘，因為 OpenStreetMap Nominatim API 限速 1 req/sec）
+
+### 修改 30 分鐘閾值 / 推銷話術
+打開 `closest.html` 改：
+- 第 ~ 行 `const FAR_THRESHOLD_MIN = 30;` — 改成想要的分鐘數
+- `function renderPitch` 內的 `script` 變數 — 改成想要的話術內容
 
 ---
 
