@@ -82,8 +82,17 @@ def load_classrooms_from_index():
             re.findall(r'\{\s*id:\s*"([^"]+)",\s*name:\s*"([^"]+)"[^}]*city:', html)]
 
 def _norm_room(s):
-    """剝掉「教室／市／縣」噪音字元，讓「嘉義市東區」與「嘉義東區」可對上"""
-    return s.replace("教室", "").replace("市", "").replace("縣", "").strip()
+    """剝掉噪音字元 + 常見城市前綴，讓 cname「東區教室」與 corp 的「嘉義東區」對得上
+
+    - 「教室／市／縣」一律剝掉
+    - 「嘉義／台南／臺南／高雄」這類城市名作為前綴時也剝掉
+      （台中/台北/新北/新竹/桃園 不剝，因為他們的教室名本身就常用該前綴）
+    """
+    s = s.replace("教室", "").replace("市", "").replace("縣", "").strip()
+    for p in ["嘉義", "台南", "臺南", "高雄"]:
+        if s.startswith(p) and len(s) > len(p):
+            return s[len(p):]
+    return s
 
 def normalize_classroom_id(internal_name, idx):
     """corp 內部教室名 → classrooms.json 內 id
