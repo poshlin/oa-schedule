@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>新人課程顧問訓練 — 橘子蘋果</title>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-dk: #D48500; --orange-lt: #FFF4DD;
+  --red: #FF5859;    --red-dk: #CC3344;    --red-lt: #FFEBEB;
+  --teal: #00C4B3;   --teal-dk: #008F83;   --teal-lt: #DFFAF6;
+  --green: #4CAF50;  --green-lt: #E8F5E9;
+  --yellow: #FFC107; --yellow-lt: #FFF8E1;
+  --gray: #646569;   --dark: #2D2D2D;
+  --bg: #F5F5F5;     --white: #FFFFFF;
+  --border: #E5E5E5;
+  --shadow: 0 1px 3px rgba(45,45,45,.06);
+  --shadow-md: 0 2px 8px rgba(45,45,45,.08);
+  --shadow-lg: 0 4px 16px rgba(45,45,45,.12);
+  --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-en: "Trebuchet MS", "Calibri", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: var(--font-zh); color: var(--dark); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+/* Header */
+.header { background: var(--white); border-bottom: 4px solid var(--orange); padding: 16px 20px; position: sticky; top: 0; z-index: 30; box-shadow: var(--shadow); }
+.header__inner { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+.header__logo { height: 30px; }
+.header__title { font-size: 18px; font-weight: 700; border-left: 3px solid var(--orange); padding-left: 12px; }
+.header__title small { display: block; font-size: 12px; color: var(--gray); font-weight: 400; margin-top: 2px; }
+.staff-badge { background: var(--orange); color: var(--white); font-size: 11px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; font-weight: 700; letter-spacing: 0.5px; }
+
+/* Hero */
+.hero { background: linear-gradient(135deg, var(--orange) 0%, #FFB733 100%); color: var(--white); padding: 28px 20px 32px; position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: var(--teal); opacity: .18; border-radius: 50%; }
+.hero__inner { max-width: 1120px; margin: 0 auto; position: relative; z-index: 1; }
+.hero h1 { font-size: 22px; margin-bottom: 6px; color: var(--white); }
+.hero p { font-size: 14px; opacity: .92; }
+.hero__legend { display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap; font-size: 12px; }
+.hero__legend span { display: inline-flex; align-items: center; gap: 5px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot--green { background: var(--green); }
+.dot--yellow { background: var(--yellow); }
+.dot--red { background: var(--red); }
+
+/* Progress stats */
+.stats { max-width: 1120px; margin: -14px auto 0; padding: 0 20px; position: relative; z-index: 5; }
+.stats__card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 16px 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat { text-align: center; }
+.stat__num { font-family: var(--font-en); font-size: 26px; font-weight: 700; color: var(--orange-dk); }
+.stat__label { font-size: 12px; color: var(--gray); margin-top: 2px; }
+.stat__bar { width: 100%; height: 6px; background: var(--bg); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.stat__bar-fill { height: 100%; background: var(--orange); transition: width .3s; }
+
+/* Quick-jump chip list */
+.quick-jump { max-width: 1120px; margin: 14px auto 0; padding: 0 20px; }
+.quick-jump__inner { background: var(--white); border-radius: 8px; padding: 10px 12px; box-shadow: var(--shadow); display: flex; gap: 6px; overflow-x: auto; align-items: center; scrollbar-width: thin; }
+.quick-jump__label { font-size: 12px; color: var(--gray); font-weight: 700; white-space: nowrap; padding: 0 4px; }
+.chip { padding: 5px 12px; border-radius: 16px; background: var(--bg); color: var(--dark); font-size: 12px; cursor: pointer; white-space: nowrap; border: 1px solid transparent; transition: all .15s; text-decoration: none; }
+.chip:hover { background: var(--orange-lt); border-color: var(--orange); color: var(--orange-dk); }
+
+/* Controls */
+.controls { max-width: 1120px; margin: 14px auto 0; padding: 0 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { padding: 8px 14px; border-radius: 6px; border: 2px solid var(--border); background: var(--white); color: var(--dark); font-family: var(--font-zh); font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; }
+.btn:hover { border-color: var(--orange); color: var(--orange-dk); }
+.btn--primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
+.btn--primary:hover { background: var(--orange-dk); border-color: var(--orange-dk); color: var(--white); }
+.search-mini { flex: 1; min-width: 200px; padding: 8px 14px; font-size: 14px; font-family: var(--font-zh); border: 2px solid var(--border); border-radius: 6px; background: var(--white); }
+.search-mini:focus { outline: none; border-color: var(--orange); }
+
+/* Chapters */
+.chapters { max-width: 1120px; margin: 16px auto 32px; padding: 0 20px; }
+.chapter { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 12px; overflow: hidden; border-left: 5px solid var(--gray); transition: border-color .15s; }
+.chapter--green { border-left-color: var(--green); }
+.chapter--yellow { border-left-color: var(--yellow); }
+.chapter--red { border-left-color: var(--red); }
+.chapter__header { padding: 14px 18px; cursor: pointer; display: flex; align-items: center; gap: 12px; user-select: none; transition: background .12s; }
+.chapter__header:hover { background: rgba(255,163,0,.05); }
+.chapter__caret { width: 18px; transition: transform .2s; color: var(--gray); }
+.chapter.collapsed .chapter__caret { transform: rotate(-90deg); }
+.chapter__num { font-family: var(--font-en); font-size: 13px; color: var(--gray); background: var(--bg); padding: 3px 9px; border-radius: 4px; font-weight: 700; }
+.chapter__title { flex: 1; min-width: 0; }
+.chapter__title-text { font-size: 16px; font-weight: 700; color: var(--dark); }
+.chapter__title-meta { font-size: 11px; color: var(--gray); margin-top: 2px; }
+.chapter__progress { font-family: var(--font-en); font-size: 12px; color: var(--gray); white-space: nowrap; }
+.chapter__health { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.chapter__health--green { background: var(--green); }
+.chapter__health--yellow { background: var(--yellow); }
+.chapter__health--red { background: var(--red); }
+
+.chapter__body { padding: 0 20px 18px 44px; display: grid; gap: 14px; border-top: 1px solid var(--border); padding-top: 16px; }
+.chapter.collapsed .chapter__body { display: none; }
+
+.section { padding: 0; }
+.section__label { font-size: 11px; font-weight: 700; color: var(--gray); letter-spacing: .8px; text-transform: uppercase; margin-bottom: 6px; }
+.section__content { font-size: 13.5px; color: var(--dark); }
+.section__content ul { margin-left: 18px; }
+.section__content li { margin-bottom: 4px; }
+
+/* Resources (links) */
+.res-list { display: grid; gap: 6px; }
+.res-link { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg); border-radius: 6px; text-decoration: none; color: var(--dark); font-size: 13px; transition: all .12s; border: 1px solid transparent; }
+.res-link:hover { background: var(--orange-lt); border-color: var(--orange); color: var(--orange-dk); }
+.res-link__icon { font-size: 14px; }
+.res-link__title { font-weight: 700; flex: 1; }
+.res-link__type { font-size: 10px; color: var(--gray); background: var(--white); padding: 2px 6px; border-radius: 3px; font-family: var(--font-en); }
+.res-link--placeholder { background: #FAFAFA; color: var(--gray); cursor: not-allowed; font-style: italic; }
+.res-link--placeholder:hover { background: #FAFAFA; border-color: transparent; color: var(--gray); }
+
+/* Checklist */
+.checklist { display: grid; gap: 4px; }
+.checklist__item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: background .12s; }
+.checklist__item:hover { background: var(--bg); }
+.checklist__item input { margin-top: 3px; cursor: pointer; accent-color: var(--orange); }
+.checklist__item.done { color: var(--gray); }
+.checklist__item.done .checklist__item-text { text-decoration: line-through; }
+.checklist__item-text { font-size: 13px; line-height: 1.55; }
+
+/* Test type badge */
+.test-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.test-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+.test-badge--form { background: var(--teal-lt); color: var(--teal-dk); }
+.test-badge--oral { background: var(--red-lt); color: var(--red-dk); }
+.test-badge--demo { background: var(--orange-lt); color: var(--orange-dk); }
+.test-badge--checklist { background: var(--bg); color: var(--gray); }
+
+/* Gap placeholder */
+.gap { background: #FFFAE0; border: 1px dashed var(--yellow); border-radius: 6px; padding: 10px 14px; font-size: 12.5px; color: var(--dark); }
+.gap__label { font-weight: 700; color: #B98400; margin-right: 4px; }
+
+/* 主管最近說明 slot */
+.notice { background: var(--teal-lt); border: 1px solid var(--teal); border-radius: 6px; padding: 10px 14px; font-size: 13px; }
+.notice__label { font-weight: 700; color: var(--teal-dk); margin-bottom: 4px; }
+.notice--empty { background: #FAFAFA; border: 1px dashed var(--border); color: var(--gray); font-style: italic; }
+
+/* Footer of chapter (owner + action buttons) */
+.chapter__footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--gray); padding-top: 6px; border-top: 1px dashed var(--border); }
+.chapter__meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.chapter__owner { font-weight: 700; color: var(--dark); }
+.btn-report { background: var(--white); border: 1px solid var(--border); color: var(--gray); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; text-decoration: none; transition: all .12s; margin-left: auto; }
+.btn-report:hover { border-color: var(--red); color: var(--red-dk); background: var(--red-lt); }
+.btn-mentor { background: var(--white); border: 1px solid var(--border); color: var(--orange-dk); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; text-decoration: none; transition: all .12s; }
+.btn-mentor:hover { border-color: var(--orange); background: var(--orange-lt); }
+
+/* Bottom tools */
+.bottom-tools { max-width: 1120px; margin: 0 auto 28px; padding: 0 20px; }
+.bottom-tools__card { background: var(--dark); color: var(--white); border-radius: 12px; padding: 20px 24px; }
+.bottom-tools h2 { font-size: 16px; margin-bottom: 12px; color: var(--white); }
+.bottom-tools__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.tool-link { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255,255,255,.08); border-radius: 6px; text-decoration: none; color: var(--white); font-size: 13px; transition: background .12s; }
+.tool-link:hover { background: rgba(255,255,255,.15); }
+
+/* Footer */
+.footer { text-align: center; font-size: 12px; color: var(--gray); padding: 20px; border-top: 1px solid var(--border); }
+.footer a { color: var(--orange); text-decoration: none; }
+
+@media (max-width: 720px) {
+  .header__title { font-size: 16px; }
+  .hero h1 { font-size: 18px; }
+  .stats__card { grid-template-columns: repeat(2, 1fr); }
+  .chapter__body { padding-left: 18px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <svg class="header__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 174.6 34.03" aria-label="橘子蘋果">
+      <path fill="#ffa300" d="m24,21c0-4.9,2.36-9.25,6.01-11.99-1.54-.65-3.23-1-5.01-1-7.17,0-13,5.83-13,13s5.83,13,13,13c1.77,0,3.46-.36,5.01-1-3.64-2.74-6.01-7.1-6.01-11.99Z"/>
+      <path fill="#00c4b3" d="m31,5c0,.7.14,1.36.4,1.96.2.02.4.04.6.04,2.76,0,5-2.24,5-5,0-.7-.14-1.36-.4-1.96-.2-.02-.4-.04-.6-.04-2.76,0-5,2.24-5,5Z"/>
+      <path fill="#ff5859" d="m39,8c-7.17,0-13,5.83-13,13s5.83,13,13,13,13-5.83,13-13-5.83-13-13-13Z"/>
+    </svg>
+    <div class="header__title">
+      新人課程顧問訓練
+      <span class="staff-badge">內部</span>
+      <small>17 章節 ・ 索引 + 進度 + 缺口提示 + 健康度監測</small>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <h1>歡迎加入線上事業部 👋</h1>
+    <p>這份頁面是訓練「目錄」與「進度追蹤」。每章節有手冊連結、必看資源、自我 checklist、與測驗類型。遇到不清楚或內容過時，點 ⚠️ 回報，會幫助這份系統越用越完善。</p>
+    <div class="hero__legend">
+      <span><span class="dot dot--green"></span>3 月內審過</span>
+      <span><span class="dot dot--yellow"></span>3-6 月未審</span>
+      <span><span class="dot dot--red"></span>逾 6 月未審 / 已知過期</span>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stats__card">
+    <div class="stat">
+      <div class="stat__num" id="stat-progress">0%</div>
+      <div class="stat__label">我的進度</div>
+      <div class="stat__bar"><div class="stat__bar-fill" id="stat-bar"></div></div>
+    </div>
+    <div class="stat">
+      <div class="stat__num" id="stat-done">0</div>
+      <div class="stat__label">完成任務 / <span id="stat-total">0</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat__num" id="stat-time">0</div>
+      <div class="stat__label">預估剩餘時數</div>
+    </div>
+    <div class="stat">
+      <div class="stat__num" id="stat-health">17</div>
+      <div class="stat__label">健康章節 / 17</div>
+    </div>
+  </div>
+</section>
+
+<section class="quick-jump">
+  <div class="quick-jump__inner">
+    <span class="quick-jump__label">快速跳轉</span>
+    <div id="chip-list" style="display: flex; gap: 6px;"></div>
+  </div>
+</section>
+
+<section class="controls">
+  <input type="search" id="search" class="search-mini" placeholder="搜尋（Corp / 邀約 / 反對問題 / 麥思 / ITS ...）">
+  <button class="btn" id="btn-expand-all" type="button">全部展開</button>
+  <button class="btn" id="btn-reset" type="button">重設進度</button>
+</section>
+
+<section class="chapters" id="chapters"></section>
+
+<section class="bottom-tools">
+  <div class="bottom-tools__card">
+    <h2>🛠 快速工具 / 相關頁面</h2>
+    <div class="bottom-tools__grid">
+      <a class="tool-link" href="rules.html" target="_blank">📚 業務規則索引</a>
+      <a class="tool-link" href="closest.html" target="_blank">📍 電銷查詢工具</a>
+      <a class="tool-link" href="index.html" target="_blank">📅 開班時段查詢</a>
+      <a class="tool-link" href="https://corp.orangeapple.co/" target="_blank">🔐 Corp 系統登入</a>
+      <a class="tool-link" href="https://docs.google.com/forms/d/e/1FAIpQLSc3iBaqAofo1jMHqNAi5vleGL2-rMuvpgopiLlxlh8abyQAig/viewform" target="_blank">📝 犯錯率回報</a>
+      <a class="tool-link" href="#" id="link-report" target="_blank">⚠️ 訓練頁問題回報</a>
+      <a class="tool-link" href="#" id="link-sheet" target="_blank">📋 師徒簽核 Master Sheet</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  橘子蘋果程式學苑 ｜
+  <a href="index.html">家長查詢</a> ｜
+  <a href="rules.html">規則索引</a> ｜
+  <a href="closest.html">電銷工具</a> ｜
+  v1.0 ・ 2026
+</footer>
+
+<script>
+// ───── 資料模型 ─────
+// test_type: form (Google Form 知識測驗) / oral (Mentor 口試) / demo (實作示範) / checklist (純自學)
+// health: 自動算（last_review 距今天 < 90d 綠 / 90-180 黃 / > 180 紅）
+// gaps: 新人反饋指出的缺口 → 顯示為黃色 placeholder block
+
+// 訓練頁問題回報 Form URL（替換成你建好的 Form URL）
+const REPORT_FORM_URL = "https://docs.google.com/forms/d/e/REPLACE_WITH_YOUR_FORM_ID/viewform";
+// 師徒簽核 Master Sheet URL（替換成你建好的 Sheet URL）
+const MENTOR_SHEET_URL = "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit";
+
+const TODAY = new Date("2026-05-23");
+const STORAGE_KEY = "oa_training_v1";
+
+const CHAPTERS = [
+  // ────────────────────────────────────────────────
+  {
+    id: "ch01", no: 1, title: "認識線上事業部",
+    time: 15, owner: "Posh", last_review: "2026-05-23",
+    objectives: ["認識主管群、課程顧問、課務專員、電銷專員的職務分工"],
+    resources: [
+      { type: "doc", title: "主管 / 同仁介紹（含個人簡介）", url: null, note: "目前在訓練手冊內，後續可獨立成卡片" }
+    ],
+    checklist: [
+      "認識總監 Posh 林保旭",
+      "認識課務主管 Eric 林家元",
+      "認識 4 位 senior 課程顧問（Vina / Voight / Peter / Caesar）",
+      "認識 4 位課務專員（Yoann / Iron / Lynn / Luna）",
+      "認識電銷組長 Catherine 趙柔瑄與專員（Howz / Mina）"
+    ],
+    test_type: "checklist",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch02", no: 2, title: "課程顧問職責 / 合約 / 獎金",
+    time: 30, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "理解課程顧問職務說明書內容",
+      "理解 2026 獎金抽成計算方式",
+      "明確區分受訓期 vs 試用期的不同規則"
+    ],
+    resources: [
+      { type: "doc", title: "線上《課程顧問》職務說明書", url: null },
+      { type: "doc", title: "[蘋果芽] 2026 年線上課程顧問獎金制度", url: null }
+    ],
+    checklist: [
+      "讀完職務說明書",
+      "讀完獎金制度文件",
+      "了解試用期業績計算方式（含跨月計算規則）",
+      "了解試用期 vs 受訓期獎金差異"
+    ],
+    test_type: "form",
+    gaps: [
+      { label: "缺口 #1", text: "獎金制度詳細書面化標準（新人反饋：規則需更一致）" },
+      { label: "缺口 #2", text: "試用期通過業績計算方式 / 條件規範詳細說明（新人反饋：考核標準混亂）" },
+      { label: "缺口 #3", text: "試用期獎金計算模式 — 受訓期 vs 試用期差異" }
+    ],
+    notice: ""  // 「主管最近說明」內容；目前空白等 Posh 釐清業績目標方向後填入
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch03", no: 3, title: "線上事業部規範 / 跨部門溝通 / Chat 使用",
+    time: 30, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "了解部門會議時間（每日 13:00、月會 13:30）",
+      "了解跨部門溝通禮儀（透過群組 + 部門主管反映）",
+      "了解 Chat 使用原則（休假日期、24h 內回覆、體驗課前 1h 公告）"
+    ],
+    resources: [],
+    checklist: [
+      "了解部門會議時間與調整規則",
+      "了解跨部門溝通正確窗口",
+      "Chat 狀態列已寫上本月休假日期（格式：1月休 3.4.9.12.15.17.22.23.30）",
+      "每日下班前回完當日 Chat 訊息",
+      "體驗課最遲於 1 小時前 PO 課程資訊到群組",
+      "每天確認業務★課務、業務★教學群組訊息"
+    ],
+    test_type: "checklist",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch04", no: 4, title: "課程體系（各項產品）",
+    time: 120, owner: "教學主管 + Posh", last_review: "2026-05-23",
+    objectives: [
+      "熟悉橘子蘋果全部課程體系（Scratch / Python / JavaScript / Minecraft / Roblox / 麥思 / 艾伯特 / 創意機械積木）",
+      "了解各課程適合的年齡層與學習階段",
+      "理解學費級距與升階邏輯"
+    ],
+    resources: [
+      { type: "pdf", title: "[全體] 課程體系及學費.pdf", url: "https://drive.google.com/file/d/1YVABFEDdgRlZ_2BrDk_GQQZDfXiA1ZKh/view" }
+    ],
+    checklist: [
+      "讀完課程體系及學費 PDF",
+      "能背出各課程適合年級與週數",
+      "理解每個課程的階段（初階 / 中階 / 高階 / 進階等）"
+    ],
+    test_type: "form",
+    gaps: [
+      { label: "缺口 #4", text: "跳級與調課方式詳細說明（跳級標準流程、調課權限分工）" },
+      { label: "缺口 #5", text: "特例可申請的條件條列指引" },
+      { label: "缺口 #6", text: "證照班 vs 常態班的教學差異與銷售重點" },
+      { label: "缺口 #7", text: "課程移轉 / 退費制度（含實際案例 + 完整作業流程）" }
+    ]
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch05", no: 5, title: "駭客課程 — ITS / APCS",
+    time: 30, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "理解 ITS 證照系統（Python 滿分 1000、過考 700）",
+      "理解 APCS 對名校資工系升學的重要性",
+      "能對家長解釋兩者的差異與選擇邏輯"
+    ],
+    resources: [
+      { type: "pdf", title: "ITS 品牌介紹 2021_V1.pdf", url: "https://drive.google.com/file/d/1HPOAVWpj0a0METhysouldp6zcJvNt12R/view" },
+      { type: "doc", title: "線上 ITS Python 全球認證班課程概要", url: "https://docs.google.com/document/d/1-BEnR0eiADQwD9GqzPQ4jIUmMMF_7P1pjdSvxqJLXWY/edit" },
+      { type: "web", title: "ITS 全球認證班（官網）", url: "https://orangeapple.co/courses/its" },
+      { type: "web", title: "ITS Python 證照解析", url: "https://orangeapple.co/articles/its-python-cert" },
+      { type: "web", title: "ITS JavaScript 證照解析", url: "https://orangeapple.co/articles/its-js-cert" },
+      { type: "web", title: "ITS 運算思維證照解析", url: "https://orangeapple.co/articles/its-ct-cert" },
+      { type: "doc", title: "APCS Python 初階課程概要", url: "https://docs.google.com/document/d/1_C8o39TUByrpMXPvGj8eY5nYCYllSydCcpdki0DsKkg/edit" },
+      { type: "doc", title: "APCS Python 進階課程概要", url: "https://docs.google.com/document/d/1N5RpKz-fzZEFP482pFbdSqIVrKIwn_a5TBBoQvXNO6E/edit" },
+      { type: "web", title: "APCS 程式升學檢定班（官網）", url: "https://orangeapple.co/courses/apcs" },
+      { type: "web", title: "2025 APCS 攻略 + 改制重點", url: "https://orangeapple.co/articles/apcs-exam-guide" }
+    ],
+    checklist: [
+      "讀完 ITS 品牌介紹",
+      "理解 ITS Python 過考門檻（700/1000）",
+      "讀完 APCS 初階 + 進階課程概要",
+      "理解 APCS 對升學的價值（資工系加分）",
+      "能對家長對比 ITS vs APCS 差異"
+    ],
+    test_type: "form",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch06", no: 6, title: "課程實作（親自上一遍）",
+    time: 300, owner: "教學主管", last_review: "2026-05-23",
+    objectives: [
+      "親自體驗 5 個主力課程的第一堂，感受教學流程與互動方式",
+      "理解學生角度的學習體驗"
+    ],
+    resources: [
+      { type: "web", title: "叩叮學苑（艾伯特、麥思）", url: "https://koding.school/", note: "帳號：2021oask3" },
+      { type: "web", title: "麥思登入", url: "https://math.orangeapple.co/auth/login", note: "帳號：2021oask3" },
+      { type: "web", title: "Minecraft 教育版下載", url: null, note: "帳號 2021oask@orangeapple.co / 密碼 OAoask2023OA" }
+    ],
+    checklist: [
+      "完成 頑皮艾伯特 第 1 課（起步走）",
+      "完成 麥思數學 第 1 課（麥思的誕生）",
+      "完成 Minecraft 麥塊程式班（初階）第 1 課（認識麥塊）",
+      "完成 Scratch 實戰班 3.0 第 1 課（擊落冰雹）",
+      "完成 Python 程式開發班 第 1 課（跳躍吧，小鳥）"
+    ],
+    test_type: "demo",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch07", no: 7, title: "Corp 系統熟悉與操作",
+    time: 60, owner: "課務主管 + Posh", last_review: "2026-05-23",
+    objectives: [
+      "完整操作 Corp 系統（找學生、查課程、管理體驗、紅點 / 綠點備註）",
+      "理解多階段報名、業績拆算、AnyDesk 設定",
+      "理解 OMNI 申請流程"
+    ],
+    resources: [
+      { type: "web", title: "Corp 系統", url: "https://corp.orangeapple.co/", note: "由人資設定權限" },
+      { type: "doc", title: "課程顧問_Corp 使用教學與注意事項", url: "https://docs.google.com/document/d/1V6ZOflQYfuncu7rraembHQCsVqFa6kP3DS7ZTbgN4FU/edit" }
+    ],
+    checklist: [
+      "已由人資設好 Corp 帳號權限",
+      "讀完 Corp 使用教學文件",
+      "能在 Corp 找到一位學生的所有歷史記錄",
+      "能完成一次完整的報名 / 體驗預約操作",
+      "理解紅點、綠點備註的使用情境"
+    ],
+    test_type: "demo",
+    gaps: [
+      { label: "缺口 #12", text: "Corp 實際操作示範影片 — 調課、業績拆算、多階段報名、AnyDesk 數字設定（建議錄製）" },
+      { label: "缺口 #13", text: "OMNI 申請完整流程說明（含申請資訊條件、走完流程）" },
+      { label: "缺口 #14", text: "「課程負責人」vs「學生負責人」職權差異說明" }
+    ]
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch08", no: 8, title: "Evox 外撥系統",
+    time: 30, owner: "總務 + Posh", last_review: "2026-05-23",
+    objectives: [
+      "完成 Evox 認證流程（手機 + 電腦版）",
+      "能正確使用 Evox 進行外撥邀約"
+    ],
+    resources: [
+      { type: "web", title: "Evox 系統", url: null, note: "向總務申請帳號權限與認證" },
+      { type: "doc", title: "0916_EVOX 電腦+手機 App 使用說明", url: "https://docs.google.com/spreadsheets/d/1bBZDWK1IwVPaX8GnzLS0eN3NmM1dUz3qIh7siOOT7pg/edit" }
+    ],
+    checklist: [
+      "已向總務申請 Evox 帳號",
+      "完成手機版認證",
+      "完成電腦版認證",
+      "能撥出一通測試電話"
+    ],
+    test_type: "demo",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch09", no: 9, title: "說明會流程與實作",
+    time: 300, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "熟練各課程說明會 SOP（麥思、艾伯特、麥塊、菁英）",
+      "能流暢執行從開場到收尾的完整說明會"
+    ],
+    resources: [
+      { type: "doc", title: "課程顧問_說明會流程與注意事項", url: null },
+      { type: "folder", title: "說明會簡報（資料夾）", url: "https://drive.google.com/drive/folders/1R-xVNhLnUPA1Y1-mQrmuY-mItnRYVfkb" },
+      { type: "ppt", title: "說明會簡報 A", url: "https://docs.google.com/presentation/d/1inmc6RGXEf_rJNkB4rddG_LnIAEElIF93Iyf4kWB5Pc/edit" },
+      { type: "ppt", title: "Scratch 說明會簡報", url: "https://docs.google.com/presentation/d/1pb5k7rcM-FKacwzpH_ZdUpE1uMsNEykfZz7nzy3DPZY/edit" },
+      { type: "ppt", title: "說明會簡報 C", url: "https://docs.google.com/presentation/d/15TZZ7YAz9Gy3wCpEO3ehg6Vi_ITUmmOGObYTwOECg1Q/edit" },
+      { type: "ppt", title: "說明會簡報 D", url: "https://docs.google.com/presentation/d/1Cv-utsA4ar1CWA_5DTHqi1xTJbUSB7IGRQRUk0AYMuU/edit" }
+    ],
+    checklist: [
+      "讀完說明會流程文件",
+      "看完每個課程的說明會簡報",
+      "至少跟著 senior 旁聽 3 場說明會",
+      "至少自己跑過一次完整說明會（mentor 觀察）"
+    ],
+    test_type: "oral",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch10", no: 10, title: "邀約流程與實作",
+    time: 60, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "熟練電話邀約 SOP（含 EVOX 操作 + Corp 邀約錄入）",
+      "能應對家長常見的拒絕話術"
+    ],
+    resources: [
+      { type: "doc", title: "課程顧問_邀約流程與注意事項", url: "https://docs.google.com/document/d/1LN-jVDkb6blr2vNojy6jEBoDGRL1D-kdUH3Nr3vUPn4/edit" }
+    ],
+    checklist: [
+      "讀完邀約流程文件",
+      "熟練電話開場 30 秒",
+      "能在 Corp 完整錄入一次邀約紀錄",
+      "至少完成 5 通練習電話（mentor 評估）"
+    ],
+    test_type: "oral",
+    gaps: [
+      { label: "缺口 #9", text: "電話邀約文字模板（不同情境的 script）" },
+      { label: "缺口 #10", text: "Corp「體驗生統計」操作詳細說明" },
+      { label: "缺口 #11", text: "完整邀約錄入流程（從接到名單到撥電話到登錄）" }
+    ]
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch11", no: 11, title: "反對問題處理（含實作）",
+    time: 120, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "熟記常見家長反對問題的「優先解法」",
+      "能用對話方式自然表達",
+      "理解不同情境的應對邏輯"
+    ],
+    resources: [
+      { type: "doc", title: "反對問題處理集錦", url: null },
+      { type: "form", title: "反對問題練習（回覆表單）", url: null }
+    ],
+    checklist: [
+      "讀完反對問題處理集錦",
+      "默背 20 題以上常見反對問題",
+      "完成練習回覆表單（mentor 批改）",
+      "至少跟 senior 對話 role-play 3 次"
+    ],
+    test_type: "oral",
+    gaps: [
+      { label: "缺口 #8", text: "反對問題的「優先解法」標準答案（避免不同前輩給不同建議導致新人吸收後變四不像）" }
+    ]
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch12", no: 12, title: "新生成交流程",
+    time: 180, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "熟練各課程新生成交流程（麥思、艾伯特、麥塊、菁英）",
+      "理解成交當下的關鍵動作（合約、付款、Corp 登錄）"
+    ],
+    resources: [
+      { type: "doc", title: "課程顧問_新生成交流程與注意事項", url: null }
+    ],
+    checklist: [
+      "讀完新生成交流程文件",
+      "能正確報出每堂課的學費與優惠規則",
+      "能完成 Corp 上的成交登錄全程"
+    ],
+    test_type: "demo",
+    gaps: [
+      { label: "缺口 #16", text: "爭議業績情境說明（含 A 課程資深成交 + B 課程新進成交範例），避免新人權益受損" }
+    ]
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch13", no: 13, title: "說明會示範 Demo",
+    time: 360, owner: "全體 senior + Posh", last_review: "2026-05-23",
+    objectives: [
+      "跟著 top sales 學習，先複製、後內化、最後形成自己風格",
+      "理解每位 senior 的口條與節奏特色"
+    ],
+    resources: [
+      { type: "sheet", title: "2026 業績列表", url: "https://docs.google.com/spreadsheets/d/1T6xbyV-a-9uf5_MveucDbQq3n10pBVsch_mtD_QuwEo/edit" }
+    ],
+    checklist: [
+      "至少跟 3 位 senior 看過完整說明會",
+      "選定 1 位作為主要模仿對象，照抄話術練習到通順",
+      "能對 mentor 一字不漏的演練一次"
+    ],
+    test_type: "oral",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch14", no: 14, title: "教學部專門訓練（程式教育）",
+    time: 60, owner: "教學部", last_review: "2026-05-23",
+    objectives: [
+      "從教學端理解學生學習邏輯",
+      "能用教學語言對家長解釋課程內容"
+    ],
+    resources: [
+      { type: "doc", title: "教學部訓練文件 A", url: "https://drive.google.com/file/d/1_Oq7Hb_RL8Mob4enEjKILOWJZv_zRhNM/view" },
+      { type: "ppt", title: "教學部簡報", url: "https://docs.google.com/presentation/d/1AomIJbpUPbQmtyXwIe5z99BXBHy_s2khq9wUp3iQAz0/edit" }
+    ],
+    checklist: [
+      "讀完教學部提供的訓練文件",
+      "看完教學部簡報"
+    ],
+    test_type: "checklist",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch15", no: 15, title: "師徒制配套（跟單 / debrief / 提問指引）",
+    time: 30, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "理解師徒制的最大價值在哪（隱性知識 + 客戶判斷）",
+      "知道什麼問題應該問師父、什麼應該自己查",
+      "養成每日 debrief 習慣"
+    ],
+    resources: [
+      { type: "doc", title: "跟單觀察清單模板（待建）", url: null },
+      { type: "doc", title: "每日 debrief 範本（待建）", url: null }
+    ],
+    checklist: [
+      "與師父約定每日 / 每週 1 對 1 時間",
+      "每次跟單後填寫『觀察日誌』",
+      "建立『問師父 vs 自己查』分類清單"
+    ],
+    test_type: "checklist",
+    gaps: []
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch16", no: 16, title: "工作資源整合包（一次給齊）",
+    time: 30, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "新人入職第一天就拿到所有日常工作所需的連結",
+      "避免「走一步算一步」零散查找的時間浪費"
+    ],
+    resources: [
+      { type: "web", title: "派師系統（待補連結）", url: null },
+      { type: "web", title: "實體教室列表", url: "closest.html" },
+      { type: "web", title: "開班時間查詢", url: "index.html" },
+      { type: "sheet", title: "2026 業績列表", url: "https://docs.google.com/spreadsheets/d/1T6xbyV-a-9uf5_MveucDbQq3n10pBVsch_mtD_QuwEo/edit" },
+      { type: "web", title: "體驗生 LINE 群組（待補連結）", url: null },
+      { type: "form", title: "犯錯率回報", url: "https://docs.google.com/forms/d/e/1FAIpQLSc3iBaqAofo1jMHqNAi5vleGL2-rMuvpgopiLlxlh8abyQAig/viewform" }
+    ],
+    checklist: [
+      "把所有資源連結 bookmark",
+      "了解每個資源在什麼情境會用到"
+    ],
+    test_type: "checklist",
+    gaps: [
+      { label: "缺口 #15", text: "工作資源整合包應在入職第一天就交付，並配合教育訓練階段逐一說明（新人反饋：避免零散提供）" }
+    ]
+  },
+  // ────────────────────────────────────────────────
+  {
+    id: "ch17", no: 17, title: "業務規則速查 + LINE 管理",
+    time: 60, owner: "Posh", last_review: "2026-05-23",
+    objectives: [
+      "理解所有業績規則（追蹤權、公池、30% 分潤、MGM）",
+      "理解 LINE@ 命名規範與管理責任"
+    ],
+    resources: [
+      { type: "web", title: "業務規則索引（rules.html）", url: "rules.html" }
+    ],
+    checklist: [
+      "讀完 rules.html 所有業績相關規則（紅色）",
+      "讀完 LINE 值日生規則",
+      "理解體驗生 vs 正式生 LINE 管理差異",
+      "完成業務規則應用題測驗"
+    ],
+    test_type: "form",
+    gaps: [
+      { label: "缺口 #16", text: "借班級業績、正式生責任、爭議業績規範（會議紀錄已部分覆蓋，但需更明確）" },
+      { label: "缺口 #17", text: "體驗生 vs 正式生 LINE 管理責任 + 課程負責人 vs 學生負責人差異" }
+    ]
+  }
+];
+
+// ───── 健康度判斷 ─────
+function healthOf(lastReview) {
+  const days = Math.floor((TODAY - new Date(lastReview)) / (1000*60*60*24));
+  if (days < 90) return "green";
+  if (days < 180) return "yellow";
+  return "red";
+}
+
+const TEST_LABELS = {
+  form: { icon: "📝", text: "Google Form 測驗", cls: "form" },
+  oral: { icon: "🗣", text: "Mentor 口試", cls: "oral" },
+  demo: { icon: "🖱", text: "實作示範", cls: "demo" },
+  checklist: { icon: "✅", text: "Checklist 自主", cls: "checklist" }
+};
+
+// ───── 進度儲存（localStorage） ─────
+function loadProgress() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"checked":{},"expanded":{}}');
+  } catch { return { checked: {}, expanded: {} }; }
+}
+function saveProgress(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+const state = loadProgress();
+
+function key(chId, idx) { return `${chId}|${idx}`; }
+function isDone(chId, idx) { return !!state.checked[key(chId, idx)]; }
+function toggleDone(chId, idx) {
+  const k = key(chId, idx);
+  if (state.checked[k]) delete state.checked[k];
+  else state.checked[k] = new Date().toISOString();
+  saveProgress(state);
+}
+
+// ───── 渲染 ─────
+function $(id) { return document.getElementById(id); }
+
+function renderResource(r) {
+  const icon = { doc: "📄", pdf: "📕", ppt: "📊", web: "🔗", sheet: "📊", folder: "📁", form: "📝" }[r.type] || "🔗";
+  if (!r.url) {
+    return `<div class="res-link res-link--placeholder">
+      <span class="res-link__icon">${icon}</span>
+      <span class="res-link__title">${r.title}</span>
+      <span class="res-link__type">連結待補${r.note ? "・" + r.note : ""}</span>
+    </div>`;
+  }
+  return `<a class="res-link" href="${r.url}" target="_blank" rel="noopener">
+    <span class="res-link__icon">${icon}</span>
+    <span class="res-link__title">${r.title}</span>
+    <span class="res-link__type">${r.type.toUpperCase()}${r.note ? " ・ " + r.note : ""}</span>
+  </a>`;
+}
+
+function renderChapter(c) {
+  const health = healthOf(c.last_review);
+  const cls = "chapter chapter--" + health + (state.expanded[c.id] === false ? " collapsed" : "");
+  const checkedCount = c.checklist.filter((_, i) => isDone(c.id, i)).length;
+  const total = c.checklist.length;
+  const test = TEST_LABELS[c.test_type] || TEST_LABELS.checklist;
+
+  const resourcesHtml = c.resources.length === 0 ? ""
+    : `<div class="section">
+        <div class="section__label">📚 必讀資源</div>
+        <div class="res-list">${c.resources.map(renderResource).join("")}</div>
+      </div>`;
+
+  const checklistHtml = `<div class="section">
+    <div class="section__label">✅ 任務 Checklist（自我追蹤・本機儲存）</div>
+    <div class="checklist">
+      ${c.checklist.map((item, i) => {
+        const done = isDone(c.id, i);
+        return `<label class="checklist__item ${done ? 'done' : ''}">
+          <input type="checkbox" ${done ? 'checked' : ''} data-ch="${c.id}" data-idx="${i}">
+          <span class="checklist__item-text">${item}</span>
+        </label>`;
+      }).join("")}
+    </div>
+  </div>`;
+
+  const testHtml = `<div class="section">
+    <div class="section__label">🎯 通過條件</div>
+    <div class="test-badges">
+      <span class="test-badge test-badge--${test.cls}">${test.icon} ${test.text}</span>
+    </div>
+  </div>`;
+
+  const gapsHtml = c.gaps.length === 0 ? ""
+    : `<div class="section">
+        <div class="section__label">⚠️ 已知缺口（新人反饋指出、待補進手冊）</div>
+        ${c.gaps.map(g => `<div class="gap"><span class="gap__label">${g.label}：</span>${g.text}</div>`).join("")}
+      </div>`;
+
+  const noticeHtml = c.notice
+    ? `<div class="section">
+        <div class="section__label">📌 主管最近說明</div>
+        <div class="notice"><div class="notice__label">Posh 補充：</div>${c.notice}</div>
+      </div>`
+    : (c.notice === ""
+      ? `<div class="section">
+          <div class="section__label">📌 主管最近說明</div>
+          <div class="notice notice--empty">（暫無補充。當有新的裁示或公告，Posh 會填入這裡。）</div>
+        </div>`
+      : "");
+
+  const objectivesHtml = c.objectives.length === 0 ? ""
+    : `<div class="section">
+        <div class="section__label">🎓 學習目標</div>
+        <div class="section__content"><ul>${c.objectives.map(o => `<li>${o}</li>`).join("")}</ul></div>
+      </div>`;
+
+  return `
+    <div class="${cls}" id="${c.id}" data-search="${(c.title + ' ' + c.checklist.join(' ') + ' ' + (c.objectives||[]).join(' ')).toLowerCase()}">
+      <div class="chapter__header" onclick="window.__toggleCh('${c.id}')">
+        <span class="chapter__caret">▼</span>
+        <span class="chapter__num">第 ${c.no} 章</span>
+        <span class="chapter__title">
+          <div class="chapter__title-text">${c.title}</div>
+          <div class="chapter__title-meta">⏱ 預估 ${c.time} 分 ・ 👤 ${c.owner}</div>
+        </span>
+        <span class="chapter__progress">${checkedCount}/${total}</span>
+        <span class="chapter__health chapter__health--${health}" title="健康度"></span>
+      </div>
+      <div class="chapter__body">
+        ${objectivesHtml}
+        ${resourcesHtml}
+        ${checklistHtml}
+        ${testHtml}
+        ${gapsHtml}
+        ${noticeHtml}
+        <div class="chapter__footer">
+          <div class="chapter__meta">
+            <span>👤 Owner：<span class="chapter__owner">${c.owner}</span></span>
+            <span>📅 上次審視：${c.last_review}</span>
+          </div>
+          <a class="btn-mentor" href="${MENTOR_SHEET_URL}" target="_blank" rel="noopener">📋 給師父簽核</a>
+          <a class="btn-report" href="${REPORT_FORM_URL}?entry.chapter=${c.id}" target="_blank" rel="noopener">⚠️ 這節有問題 / 過時</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderAll() {
+  $("chapters").innerHTML = CHAPTERS.map(renderChapter).join("");
+
+  // 快速跳轉 chips
+  $("chip-list").innerHTML = CHAPTERS.map(c =>
+    `<a class="chip" href="#${c.id}" data-id="${c.id}">第 ${c.no} 章 ・ ${c.title}</a>`
+  ).join("");
+
+  updateStats();
+}
+
+function updateStats() {
+  let totalTasks = 0, doneTasks = 0, remainingTime = 0;
+  let healthGood = 0;
+  for (const c of CHAPTERS) {
+    totalTasks += c.checklist.length;
+    const done = c.checklist.filter((_, i) => isDone(c.id, i)).length;
+    doneTasks += done;
+    if (done < c.checklist.length) remainingTime += c.time * (c.checklist.length - done) / c.checklist.length;
+    if (healthOf(c.last_review) === "green") healthGood++;
+  }
+  const pct = totalTasks > 0 ? Math.round(doneTasks * 100 / totalTasks) : 0;
+  $("stat-progress").textContent = pct + "%";
+  $("stat-bar").style.width = pct + "%";
+  $("stat-done").textContent = doneTasks;
+  $("stat-total").textContent = totalTasks;
+  $("stat-time").textContent = Math.round(remainingTime / 60) + "h";
+  $("stat-health").textContent = healthGood;
+}
+
+// ───── 互動 ─────
+window.__toggleCh = function(id) {
+  state.expanded[id] = !(state.expanded[id] !== false);
+  saveProgress(state);
+  document.getElementById(id).classList.toggle("collapsed");
+};
+
+// Checkbox 變更
+document.addEventListener("change", e => {
+  if (e.target.matches('.checklist__item input')) {
+    toggleDone(e.target.dataset.ch, parseInt(e.target.dataset.idx, 10));
+    e.target.closest(".checklist__item").classList.toggle("done", e.target.checked);
+    // 更新該章的 X/Y
+    const ch = CHAPTERS.find(c => c.id === e.target.dataset.ch);
+    const done = ch.checklist.filter((_, i) => isDone(ch.id, i)).length;
+    document.querySelector(`#${ch.id} .chapter__progress`).textContent = `${done}/${ch.checklist.length}`;
+    updateStats();
+  }
+});
+
+// 搜尋（顯示 / 隱藏章節）
+$("search").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll(".chapter").forEach(el => {
+    const match = !q || el.dataset.search.includes(q);
+    el.style.display = match ? "" : "none";
+    if (match && q) el.classList.remove("collapsed");
+  });
+});
+
+// 全部展開 / 收起
+$("btn-expand-all").addEventListener("click", () => {
+  const anyCollapsed = [...document.querySelectorAll(".chapter")].some(el => el.classList.contains("collapsed"));
+  document.querySelectorAll(".chapter").forEach(el => {
+    if (anyCollapsed) { el.classList.remove("collapsed"); state.expanded[el.id] = true; }
+    else { el.classList.add("collapsed"); state.expanded[el.id] = false; }
+  });
+  saveProgress(state);
+  $("btn-expand-all").textContent = anyCollapsed ? "全部收起" : "全部展開";
+});
+
+// 重設進度
+$("btn-reset").addEventListener("click", () => {
+  if (!confirm("確定要重設所有 checklist 進度？此動作無法復原。")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state.checked = {}; state.expanded = {};
+  renderAll();
+});
+
+// 平滑滾動 + 展開（chip click）
+document.addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  e.preventDefault();
+  const id = chip.dataset.id;
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.classList.contains("collapsed")) {
+    el.classList.remove("collapsed");
+    state.expanded[id] = true;
+    saveProgress(state);
+  }
+  const y = el.getBoundingClientRect().top + window.pageYOffset - 80;
+  window.scrollTo({ top: y, behavior: "smooth" });
+});
+
+// 設定底部工具連結
+$("link-report").href = REPORT_FORM_URL;
+$("link-sheet").href = MENTOR_SHEET_URL;
+
+renderAll();
+</script>
+
+</body>
+</html>
