@@ -138,13 +138,22 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 .notice--empty { background: #FAFAFA; border: 1px dashed var(--border); color: var(--gray); font-style: italic; }
 
 /* Footer of chapter (owner + action buttons) */
-.chapter__footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--gray); padding-top: 6px; border-top: 1px dashed var(--border); }
+.chapter__footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--gray); padding-top: 6px; border-top: 1px dashed var(--border); }
 .chapter__meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .chapter__owner { font-weight: 700; color: var(--dark); }
-.btn-report { background: var(--white); border: 1px solid var(--border); color: var(--gray); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; text-decoration: none; transition: all .12s; margin-left: auto; }
-.btn-report:hover { border-color: var(--red); color: var(--red-dk); background: var(--red-lt); }
-.btn-mentor { background: var(--white); border: 1px solid var(--border); color: var(--orange-dk); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; text-decoration: none; transition: all .12s; }
-.btn-mentor:hover { border-color: var(--orange); background: var(--orange-lt); }
+.btn-action { background: var(--white); border: 1px solid var(--border); color: var(--gray); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; text-decoration: none; transition: all .12s; }
+.btn-action--mentor { color: var(--orange-dk); }
+.btn-action--mentor:hover { border-color: var(--orange); background: var(--orange-lt); }
+.btn-action--suggest { color: var(--teal-dk); margin-left: auto; }
+.btn-action--suggest:hover { border-color: var(--teal); background: var(--teal-lt); }
+.btn-action--report:hover { border-color: var(--red); color: var(--red-dk); background: var(--red-lt); }
+
+/* User badge */
+.user-bar { max-width: 1120px; margin: 12px auto 0; padding: 0 20px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 13px; color: var(--gray); }
+.user-bar__name { font-weight: 700; color: var(--dark); background: var(--white); padding: 4px 10px; border-radius: 4px; box-shadow: var(--shadow); }
+.user-bar__name--guest { color: var(--gray); font-style: italic; }
+.btn-user { background: var(--white); border: 1px solid var(--border); color: var(--orange-dk); padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .12s; }
+.btn-user:hover { border-color: var(--orange); background: var(--orange-lt); }
 
 /* Bottom tools */
 .bottom-tools { max-width: 1120px; margin: 0 auto 28px; padding: 0 20px; }
@@ -194,6 +203,11 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
     </div>
   </div>
 </section>
+
+<div class="user-bar">
+  <span>👤 目前使用者：<span class="user-bar__name user-bar__name--guest" id="user-name">guest</span></span>
+  <button class="btn-user" id="btn-switch-user" type="button">切換</button>
+</div>
 
 <section class="stats">
   <div class="stats__card">
@@ -267,7 +281,28 @@ const REPORT_FORM_URL = "https://docs.google.com/forms/d/e/REPLACE_WITH_YOUR_FOR
 const MENTOR_SHEET_URL = "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit";
 
 const TODAY = new Date("2026-05-23");
-const STORAGE_KEY = "oa_training_v1";
+const USER_KEY = "oa_training_user";
+
+// ───── 多使用者支援 ─────
+function getCurrentUser() {
+  return (localStorage.getItem(USER_KEY) || "").trim();
+}
+function setCurrentUser(name) {
+  if (name) localStorage.setItem(USER_KEY, name);
+  else localStorage.removeItem(USER_KEY);
+}
+function getStorageKey() {
+  const u = getCurrentUser() || "guest";
+  return "oa_training_v1__" + u;
+}
+// 舊版 (v1.0) 資料遷移：oa_training_v1 → oa_training_v1__guest
+(function migrateOldData() {
+  const oldData = localStorage.getItem("oa_training_v1");
+  if (oldData && !localStorage.getItem("oa_training_v1__guest")) {
+    localStorage.setItem("oa_training_v1__guest", oldData);
+    localStorage.removeItem("oa_training_v1");
+  }
+})();
 
 const CHAPTERS = [
   // ────────────────────────────────────────────────
@@ -681,14 +716,14 @@ const TEST_LABELS = {
   checklist: { icon: "✅", text: "Checklist 自主", cls: "checklist" }
 };
 
-// ───── 進度儲存（localStorage） ─────
+// ───── 進度儲存（localStorage，依 user 分） ─────
 function loadProgress() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"checked":{},"expanded":{}}');
+    return JSON.parse(localStorage.getItem(getStorageKey()) || '{"checked":{},"expanded":{}}');
   } catch { return { checked: {}, expanded: {} }; }
 }
-function saveProgress(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
-const state = loadProgress();
+function saveProgress(s) { localStorage.setItem(getStorageKey(), JSON.stringify(s)); }
+let state = loadProgress();
 
 function key(chId, idx) { return `${chId}|${idx}`; }
 function isDone(chId, idx) { return !!state.checked[key(chId, idx)]; }
@@ -799,8 +834,9 @@ function renderChapter(c) {
             <span>👤 Owner：<span class="chapter__owner">${c.owner}</span></span>
             <span>📅 上次審視：${c.last_review}</span>
           </div>
-          <a class="btn-mentor" href="${MENTOR_SHEET_URL}" target="_blank" rel="noopener">📋 給師父簽核</a>
-          <a class="btn-report" href="${REPORT_FORM_URL}?entry.chapter=${c.id}" target="_blank" rel="noopener">⚠️ 這節有問題 / 過時</a>
+          <a class="btn-action btn-action--mentor" href="${MENTOR_SHEET_URL}" target="_blank" rel="noopener">📋 簽核</a>
+          <a class="btn-action btn-action--suggest" href="${REPORT_FORM_URL}?entry.chapter=${c.id}&entry.type=建議改進" target="_blank" rel="noopener" title="建議補充新內容或改寫">💡 建議改進</a>
+          <a class="btn-action btn-action--report" href="${REPORT_FORM_URL}?entry.chapter=${c.id}&entry.type=過期或錯誤" target="_blank" rel="noopener" title="回報過期、連結壞掉、寫得不清楚">⚠️ 過期/錯誤</a>
         </div>
       </div>
     </div>`;
@@ -906,6 +942,36 @@ document.addEventListener("click", e => {
 $("link-report").href = REPORT_FORM_URL;
 $("link-sheet").href = MENTOR_SHEET_URL;
 
+// ───── 多使用者 UI ─────
+function updateUserBadge() {
+  const u = getCurrentUser();
+  const el = $("user-name");
+  if (u) {
+    el.textContent = u;
+    el.classList.remove("user-bar__name--guest");
+  } else {
+    el.textContent = "guest（點切換設定你的名字）";
+    el.classList.add("user-bar__name--guest");
+  }
+}
+
+$("btn-switch-user").addEventListener("click", () => {
+  const current = getCurrentUser();
+  const prompt_text = current
+    ? `目前：${current}\n\n輸入新使用者的英文名（留空保留現有 / 取消放棄）：`
+    : "請輸入你的英文名（例：John、Mary）：\n\n（每位新人各自的 checklist 進度會分開儲存。同一台電腦可切換不同人。）";
+  const name = prompt(prompt_text, current);
+  if (name === null) return;
+  const trimmed = name.trim();
+  if (!trimmed && !current) return;  // 沒有原值又沒輸入 → 不做事
+  setCurrentUser(trimmed);
+  // 切換後 reload state + 重新渲染
+  state = loadProgress();
+  updateUserBadge();
+  renderAll();
+});
+
+updateUserBadge();
 renderAll();
 </script>
 
