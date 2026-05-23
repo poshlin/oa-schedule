@@ -295,7 +295,7 @@ const RULES = [
   { id: "POOL-05", tier: "commission", category: "公池名單規範", roles: ["sales", "course", "teaching"],
     title: "誤撈罰則 — 計入犯錯率 1 次",
     body: "若傳送訊息的名單實際上『在兩個月內仍有聯繫紀錄』，將記錯誤率 1 次。\n\n<em>本條由業務自己截圖回報給 Posh。</em>",
-    source: "5/12 業務會議", tags: ["公池", "罰則", "自報"], reportable: true },
+    source: "5/12 業務會議", tags: ["公池", "罰則", "自報"], reporters: ["sales"] },
 
   // 正式生服務（業務間規則）
   { id: "OFFICIAL-01", tier: "commission", category: "正式生服務權", roles: ["sales"],
@@ -343,30 +343,30 @@ const RULES = [
   { id: "OPS-01", tier: "operational", category: "成交流程", roles: ["sales", "course", "teaching"],
     title: "成交須知 24 小時內未發送",
     body: "成交後，需於 24 小時內發送『成交須知』給家長（含艾伯特、麥塊等課程須知）。",
-    source: "犯錯率 Sheet", tags: ["成交須知", "時限"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["成交須知", "時限"], reporters: ["course", "teaching"] },
 
   { id: "OPS-02", tier: "operational", category: "開課前事項", roles: ["sales", "course", "teaching"],
     title: "開課當日 1600 前未完成事項",
     body: "開課日當日 1600 前需完成所有開課準備事項，包含：\n1. 紅點備註完整\n2. AD 登記\n3. 設定確認\n\n未完成計入犯錯率。",
-    source: "犯錯率 Sheet", tags: ["開課", "1600"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["開課", "1600"], reporters: ["course", "teaching"] },
 
   { id: "OPS-21", tier: "operational", category: "開課前事項", roles: ["sales", "course", "teaching"],
     title: "未協助延後開課日期",
     body: "需要延後開課的學生，業務未協助確認與調整。",
-    source: "犯錯率 Sheet", tags: ["延後", "開課"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["延後", "開課"], reporters: ["course", "teaching"] },
 
   { id: "OPS-03", tier: "operational", category: "紅點備註", roles: ["sales", "course", "teaching"],
     title: "寄件資訊未在紅點備註",
     body: "於寄送截止時間前，未在紅點備註寄件資訊（例如課本、教材寄送）。",
-    source: "犯錯率 Sheet", tags: ["紅點", "寄件"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["紅點", "寄件"], reporters: ["course", "teaching"] },
   { id: "OPS-04", tier: "operational", category: "紅點備註", roles: ["sales", "course", "teaching"],
     title: "起始 Anydesk 未在紅點備註",
     body: "未在紅點備註起始 Anydesk 設定資訊。",
-    source: "犯錯率 Sheet", tags: ["紅點", "Anydesk"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["紅點", "Anydesk"], reporters: ["course", "teaching"] },
   { id: "OPS-05", tier: "operational", category: "紅點備註", roles: ["sales", "course", "teaching"],
     title: "前階段剩堂處理未在紅點備註",
     body: "升下一階段時，前階段剩餘堂數需於紅點備註明確處理方式。\n\n<em>並非『有折抵才要備註』</em>，而是要『告知剩下堂數會怎麼處理』（折抵 / 保留 / 失效都要寫清楚），不然課務不會知道，業務若離職、後續家長詢問或接手業務也不清楚，屆時家長可能會生氣。\n\n（林家元 4/29 主管補充說明）",
-    source: "犯錯率 Sheet ＋ 林家元主管補充", tags: ["紅點", "階段轉換"], reportable: true },
+    source: "犯錯率 Sheet ＋ 林家元主管補充", tags: ["紅點", "階段轉換"], reporters: ["course", "teaching"] },
 
   { id: "OPS-06", tier: "pending", category: "綠點備註", roles: ["sales", "course", "teaching"],
     title: "綠點備註遺漏（規則待補）",
@@ -376,76 +376,76 @@ const RULES = [
   { id: "OPS-07", tier: "operational", category: "Corp 系統登記", roles: ["sales", "course", "teaching"],
     title: "Corp 上學生 AN 一小時前未完成",
     body: "開課日前一小時內，需完成 Corp 上學生的 AN 設定。",
-    source: "犯錯率 Sheet", tags: ["Corp", "AN", "時限"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["Corp", "AN", "時限"], reporters: ["course", "teaching"] },
   { id: "OPS-08", tier: "operational", category: "Corp 系統登記", roles: ["sales", "course", "teaching"],
     title: "至上課都未登記 AD",
     body: "至開課時間都未在 Corp 上完成 AD 登記（包含『已協助但仍無 AD』的情況）。",
-    source: "犯錯率 Sheet", tags: ["Corp", "AD"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["Corp", "AD"], reporters: ["course", "teaching"] },
   { id: "OPS-09", tier: "operational", category: "Corp 系統登記", roles: ["sales", "course", "teaching"],
     title: "Anydesk 設定逾期未完成",
     body: "Anydesk 帳號 / 設定逾期未完成。",
-    source: "犯錯率 Sheet", tags: ["Anydesk"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["Anydesk"], reporters: ["course", "teaching"] },
 
   { id: "OPS-10", tier: "operational", category: "群組訊息", roles: ["sales", "course", "teaching"],
     title: "業務★課務 Task 群組訊息未處理",
     body: "業務★課務 Task 群組訊息未於規定時間內回覆 / 處理。",
-    source: "犯錯率 Sheet", tags: ["群組訊息", "課務"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["群組訊息", "課務"], reporters: ["course", "teaching"] },
   { id: "OPS-11", tier: "operational", category: "群組訊息", roles: ["sales", "course", "teaching"],
     title: "業務★教學 Task 群組訊息未處理",
     body: "業務★教學 Task 群組訊息未於規定時間內回覆 / 處理。",
-    source: "犯錯率 Sheet", tags: ["群組訊息", "教學"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["群組訊息", "教學"], reporters: ["course", "teaching"] },
 
   { id: "OPS-12", tier: "operational", category: "新生設定", roles: ["sales", "course", "teaching"],
     title: "新生設定錯誤 — 課程種類 / 總堂數 / 起始堂數 / 啟用進度",
     body: "新生報名後的課程種類、總堂數、起始堂數、啟用進度等任一項設定錯誤。",
-    source: "犯錯率 Sheet", tags: ["新生", "設定"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["新生", "設定"], reporters: ["course", "teaching"] },
 
   { id: "OPS-13", tier: "operational", category: "階段設定", roles: ["sales", "course", "teaching"],
     title: "階段啟用範圍錯誤",
     body: "階段啟用範圍設定錯誤。\n\n範例：高階 1 應啟用到 15 堂、高階 2 應設 30 堂。",
-    source: "犯錯率 Sheet", tags: ["階段", "啟用"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["階段", "啟用"], reporters: ["course", "teaching"] },
   { id: "OPS-14", tier: "operational", category: "階段設定", roles: ["sales", "course", "teaching"],
     title: "階段總堂數設定錯誤",
     body: "各階段的總堂數設定錯誤（需依照標準階段堂數設定）。",
-    source: "犯錯率 Sheet", tags: ["階段", "總堂數"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["階段", "總堂數"], reporters: ["course", "teaching"] },
 
   { id: "OPS-15", tier: "operational", category: "升階判斷", roles: ["sales", "course", "teaching"],
     title: "升階判斷錯誤 — 體驗過 L1 起始應為 L2",
     body: "學生已體驗過 L1，新階段起始應為 L2 而非 L1（升階判斷錯誤）。",
-    source: "犯錯率 Sheet", tags: ["升階", "L1", "L2"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["升階", "L1", "L2"], reporters: ["course", "teaching"] },
 
   { id: "OPS-16", tier: "operational", category: "帳號協助", roles: ["sales", "course", "teaching"],
     title: "RB 帳號未提前協助確認",
     body: "已過預約日，仍未提前協助家長確認 RB 帳號。",
-    source: "犯錯率 Sheet", tags: ["RB", "帳號"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["RB", "帳號"], reporters: ["course", "teaching"] },
   { id: "OPS-17", tier: "operational", category: "帳號協助", roles: ["sales", "course", "teaching"],
     title: "麥塊帳號密碼未提供",
     body: "麥塊課程帳號密碼未於規定時間內提供給家長。",
-    source: "犯錯率 Sheet", tags: ["麥塊", "帳密"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["麥塊", "帳密"], reporters: ["course", "teaching"] },
 
   { id: "OPS-18", tier: "operational", category: "寄送 / 教材", roles: ["sales", "course", "teaching"],
     title: "課本 / 教材寄送資訊未提供",
     body: "於寄送截止時間前，未提供課本 / 教材的寄送資訊。",
-    source: "犯錯率 Sheet", tags: ["寄送", "教材"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["寄送", "教材"], reporters: ["course", "teaching"] },
 
   { id: "OPS-19", tier: "operational", category: "系統流程", roles: ["sales", "course", "teaching"],
     title: "Omni 申請未送",
     body: "Omni 系統相關申請未送出。",
-    source: "犯錯率 Sheet", tags: ["Omni"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["Omni"], reporters: ["course", "teaching"] },
   { id: "OPS-20", tier: "operational", category: "系統流程", roles: ["sales", "course", "teaching"],
     title: "課程暫停流程不完整",
     body: "課程暫停相關流程（含通知、設定、後續處理）未完整執行。",
-    source: "犯錯率 Sheet", tags: ["暫停"], reportable: true },
+    source: "犯錯率 Sheet", tags: ["暫停"], reporters: ["course", "teaching"] },
 
   // LINE 值日生（業務輪值的工作，不放給課務/教學組長）
   { id: "OPS-22", tier: "operational", category: "LINE 值日生", roles: ["sales"],
     title: "未確認 LINE 自助預約頁面",
     body: "LINE 值日生除回覆官方 LINE 訊息外，需到『尚未確認的 Line 預約試聽』頁面確認家長自行預約的資訊（例如年級、課程、設備等）。",
-    source: "3/12 公告", tags: ["LINE", "值日生"], reportable: true },
+    source: "3/12 公告", tags: ["LINE", "值日生"], reporters: ["course", "teaching"] },
   { id: "OPS-23", tier: "operational", category: "LINE 值日生", roles: ["sales"],
     title: "未轉提醒場次負責人 / 致電隔月未排場次",
     body: "1. 未確認的預約，需轉提醒給場次負責人。\n2. 若是隔月還未安排場次的，由值日生負責致電確認。\n3. 確認完畢後，由確認人到該頁面點『已確認』。",
-    source: "3/12 公告", tags: ["LINE", "值日生"], reportable: true }
+    source: "3/12 公告", tags: ["LINE", "值日生"], reporters: ["course", "teaching"] }
 ];
 
 // ─── 渲染與互動 ──────────────────────────────────────────────────────
@@ -499,7 +499,12 @@ function renderQuickJump(groups) {
 
 function renderRule(r) {
   const tags = (r.tags||[]).map(t => `<span class="rule__tag">${t}</span>`).join("");
-  const report = r.reportable
+  // 報這條按鈕：只對 reporters 包含的角色顯示
+  // role="all" 預設顯示所有 reportable 規則的按鈕
+  const reporters = r.reporters || [];
+  const showReport = reporters.length > 0 &&
+                     (state.role === "all" || reporters.includes(state.role));
+  const report = showReport
     ? `<a class="btn-report" href="${FORM_BASE_URL}" target="_blank" rel="noopener">📝 報這條</a>`
     : "";
   return `
