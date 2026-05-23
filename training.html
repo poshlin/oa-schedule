@@ -177,41 +177,57 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
   .chapter__body { padding-left: 18px; }
 }
 
-/* ────────── AI Chat Widget ────────── */
-.chat-mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s; }
-.chat-mask.open { opacity: 1; pointer-events: auto; }
+/* ────────── BYO AI Modal ────────── */
+.byo-mask { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s; display: flex; align-items: flex-start; justify-content: center; padding: 24px; overflow-y: auto; }
+.byo-mask.open { opacity: 1; pointer-events: auto; }
+.byo-modal { background: var(--white); max-width: 720px; width: 100%; border-radius: 14px; box-shadow: 0 12px 48px rgba(0,0,0,.3); overflow: hidden; margin: auto; transform: translateY(20px); transition: transform .25s; }
+.byo-mask.open .byo-modal { transform: translateY(0); }
+.byo-modal__header { padding: 16px 22px; background: var(--orange); color: var(--white); display: flex; align-items: center; gap: 10px; }
+.byo-modal__title { flex: 1; font-weight: 700; font-size: 16px; }
+.byo-modal__close { background: rgba(255,255,255,.2); border: none; color: var(--white); padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 700; }
+.byo-modal__close:hover { background: rgba(255,255,255,.3); }
+.byo-modal__tag { font-size: 11px; opacity: .9; background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 3px; }
+.byo-modal__body { padding: 22px; max-height: calc(100vh - 140px); overflow-y: auto; }
 
-.chat-widget { position: fixed; right: 0; top: 0; bottom: 0; width: 420px; max-width: 100vw; background: var(--white); box-shadow: -4px 0 20px rgba(0,0,0,.15); z-index: 101; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s ease; }
-.chat-widget.open { transform: translateX(0); }
-.chat-widget__header { padding: 14px 18px; background: var(--orange); color: var(--white); display: flex; align-items: center; gap: 10px; }
-.chat-widget__title { flex: 1; font-weight: 700; font-size: 15px; }
-.chat-widget__close { background: rgba(255,255,255,.2); border: none; color: var(--white); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 700; }
-.chat-widget__close:hover { background: rgba(255,255,255,.3); }
-.chat-widget__chapter-tag { font-size: 11px; opacity: .9; background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 3px; }
-.chat-widget__messages { flex: 1; padding: 18px; overflow-y: auto; background: var(--bg); display: flex; flex-direction: column; gap: 12px; }
-.msg { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6; max-width: 88%; word-wrap: break-word; white-space: pre-wrap; }
-.msg--ai { background: var(--white); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
-.msg--user { background: var(--orange); color: var(--white); align-self: flex-end; border-bottom-right-radius: 4px; }
-.msg--system { background: var(--teal-lt); color: var(--teal-dk); align-self: center; font-size: 12px; padding: 8px 14px; }
-.msg--error { background: var(--red-lt); color: var(--red-dk); align-self: center; font-size: 12px; }
-.msg__loading { display: inline-flex; gap: 4px; }
-.msg__loading span { width: 6px; height: 6px; background: var(--gray); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-.msg__loading span:nth-child(2) { animation-delay: .2s; }
-.msg__loading span:nth-child(3) { animation-delay: .4s; }
-@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+.byo-step { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.byo-step:last-child { border-bottom: 0; }
+.byo-step__title { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.byo-step__num { background: var(--dark); color: var(--white); width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-en); font-size: 12px; }
+.byo-step__title--done .byo-step__num { background: var(--green); }
+.byo-step__desc { font-size: 12.5px; color: var(--gray); margin-bottom: 10px; }
 
-.chat-widget__input-bar { padding: 12px; background: var(--white); border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-end; }
-.chat-widget__input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-zh); font-size: 14px; resize: none; min-height: 38px; max-height: 120px; line-height: 1.5; }
-.chat-widget__input:focus { outline: none; border-color: var(--orange); }
-.chat-widget__send { background: var(--orange); color: var(--white); border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background .12s; }
-.chat-widget__send:hover { background: var(--orange-dk); }
-.chat-widget__send:disabled { background: var(--gray); cursor: not-allowed; }
-.chat-widget__finish { background: var(--teal); color: var(--white); }
-.chat-widget__finish:hover { background: var(--teal-dk); }
-.chat-widget__hint { font-size: 11px; color: var(--gray); text-align: center; padding: 4px 12px; background: var(--bg); }
+.byo-prompt { width: 100%; min-height: 200px; max-height: 360px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-en); font-size: 12px; line-height: 1.55; background: var(--bg); color: var(--dark); resize: vertical; }
+.byo-output { width: 100%; min-height: 140px; padding: 12px; border: 2px dashed var(--border); border-radius: 8px; font-family: var(--font-en); font-size: 12px; line-height: 1.55; background: var(--white); color: var(--dark); resize: vertical; }
+.byo-output:focus { outline: none; border-color: var(--orange); border-style: solid; }
+
+.byo-btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.byo-btn { padding: 9px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--dark); font-family: var(--font-zh); font-size: 13px; font-weight: 700; cursor: pointer; transition: all .12s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.byo-btn:hover { border-color: var(--orange); color: var(--orange-dk); background: var(--orange-lt); }
+.byo-btn--primary { background: var(--orange); color: var(--white); border-color: var(--orange); }
+.byo-btn--primary:hover { background: var(--orange-dk); border-color: var(--orange-dk); color: var(--white); }
+.byo-btn--success { background: var(--green); color: var(--white); border-color: var(--green); }
+.byo-btn--success:hover { background: #3d8c40; border-color: #3d8c40; color: var(--white); }
+.byo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.byo-copy-hint { font-size: 11px; color: var(--green); margin-left: 6px; opacity: 0; transition: opacity .2s; }
+.byo-copy-hint.show { opacity: 1; }
+
+.byo-preview { background: var(--green-lt); border: 1px solid var(--green); border-radius: 8px; padding: 14px; margin-top: 12px; }
+.byo-preview__title { font-size: 13px; font-weight: 700; color: var(--green); margin-bottom: 10px; }
+.byo-fallback { background: var(--red-lt); border: 1px solid var(--red); border-radius: 8px; padding: 14px; margin-top: 12px; }
+.byo-fallback__title { font-size: 13px; font-weight: 700; color: var(--red-dk); margin-bottom: 6px; }
+.byo-fallback__hint { font-size: 12px; color: var(--dark); margin-bottom: 10px; }
+
+.byo-field { margin-bottom: 10px; }
+.byo-field label { display: block; font-size: 11px; font-weight: 700; color: var(--gray); margin-bottom: 4px; letter-spacing: .5px; text-transform: uppercase; }
+.byo-field input, .byo-field textarea, .byo-field select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-zh); font-size: 13px; background: var(--white); color: var(--dark); }
+.byo-field textarea { min-height: 60px; resize: vertical; line-height: 1.55; }
+.byo-field input:focus, .byo-field textarea:focus, .byo-field select:focus { outline: none; border-color: var(--orange); }
 
 @media (max-width: 720px) {
-  .chat-widget { width: 100%; }
+  .byo-mask { padding: 0; align-items: stretch; }
+  .byo-modal { border-radius: 0; max-height: 100vh; }
+  .byo-modal__body { max-height: calc(100vh - 70px); }
 }
 </style>
 </head>
@@ -309,22 +325,110 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
   v1.1 ・ 2026
 </footer>
 
-<!-- ────────── AI Chat Widget ────────── -->
-<div class="chat-mask" id="chat-mask" onclick="closeChat()"></div>
-<aside class="chat-widget" id="chat-widget" role="dialog" aria-label="AI 改進助理">
-  <div class="chat-widget__header">
-    <span class="chat-widget__title">💬 AI 改進助理</span>
-    <span class="chat-widget__chapter-tag" id="chat-chapter-tag"></span>
-    <button class="chat-widget__close" onclick="closeChat()">✕</button>
+<!-- ────────── BYO AI Modal ────────── -->
+<div class="byo-mask" id="byo-mask" onclick="if(event.target===this)closeChat()">
+  <div class="byo-modal" role="dialog" aria-label="AI 改進助理">
+    <div class="byo-modal__header">
+      <span class="byo-modal__title">💬 AI 改進助理</span>
+      <span class="byo-modal__tag" id="byo-tag"></span>
+      <button class="byo-modal__close" onclick="closeChat()">✕</button>
+    </div>
+    <div class="byo-modal__body">
+
+      <!-- Step 1: Copy prompt -->
+      <div class="byo-step">
+        <div class="byo-step__title"><span class="byo-step__num">1</span> 複製這段 prompt（含章節脈絡，AI 才知道你說哪一節）</div>
+        <textarea class="byo-prompt" id="byo-prompt" readonly></textarea>
+        <div class="byo-btn-row">
+          <button class="byo-btn byo-btn--primary" onclick="copyPrompt()">📋 一鍵複製 prompt</button>
+          <span class="byo-copy-hint" id="copy-hint">✓ 已複製</span>
+        </div>
+      </div>
+
+      <!-- Step 2: Open AI -->
+      <div class="byo-step">
+        <div class="byo-step__title"><span class="byo-step__num">2</span> 打開你常用的 AI、貼上、自然對話</div>
+        <div class="byo-step__desc">點下方按鈕會自動複製 prompt + 開新分頁，貼進去即可開始對話。對話順著流，最後讓 AI 給你 JSON。</div>
+        <div class="byo-btn-row">
+          <button class="byo-btn" onclick="openAI('https://chatgpt.com')">💬 開 ChatGPT</button>
+          <button class="byo-btn" onclick="openAI('https://gemini.google.com')">💎 開 Gemini</button>
+          <button class="byo-btn" onclick="openAI('https://claude.ai/new')">🧠 開 Claude.ai</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Paste back -->
+      <div class="byo-step">
+        <div class="byo-step__title"><span class="byo-step__num">3</span> 把 AI 給的最終 JSON 貼回這裡</div>
+        <div class="byo-step__desc">AI 在對話結尾應該會輸出一個 <code>```json ... ```</code> 區塊。把整個 JSON（或整段對話也行）貼進來。</div>
+        <textarea class="byo-output" id="byo-output" placeholder='貼上 AI 給的內容，例如：&#10;```json&#10;{&#10;  "chapter_id": "ch07",&#10;  "category": "unclear",&#10;  ...&#10;}&#10;```'></textarea>
+        <div class="byo-btn-row">
+          <button class="byo-btn byo-btn--primary" onclick="validateAndPreview()">🔍 解析 + 預覽</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Preview (hidden initially) -->
+      <div class="byo-step" id="byo-preview-step" style="display:none">
+        <div class="byo-step__title byo-step__title--done"><span class="byo-step__num">4</span> 預覽（可手動編輯任一欄位）</div>
+        <div class="byo-preview">
+          <div class="byo-field"><label>類型 Category</label>
+            <select id="prev-category">
+              <option value="missing_info">missing_info（缺資訊）</option>
+              <option value="unclear">unclear（寫得不清楚）</option>
+              <option value="outdated">outdated（內容過時）</option>
+              <option value="broken_link">broken_link（連結壞掉）</option>
+              <option value="new_content">new_content（建議新增）</option>
+              <option value="other">other（其他）</option>
+            </select>
+          </div>
+          <div class="byo-field"><label>摘要 Summary</label><input id="prev-summary"></div>
+          <div class="byo-field"><label>目前頁面原文 Current Text（若有）</label><textarea id="prev-current"></textarea></div>
+          <div class="byo-field"><label>建議改成 Proposed Text</label><textarea id="prev-proposed"></textarea></div>
+          <div class="byo-field"><label>理由 Reasoning</label><textarea id="prev-reasoning"></textarea></div>
+          <div class="byo-field"><label>信心 Confidence</label>
+            <select id="prev-confidence">
+              <option value="high">high（很有把握）</option>
+              <option value="medium" selected>medium（中等）</option>
+              <option value="low">low（不太確定，需 Posh 判斷）</option>
+            </select>
+          </div>
+          <div class="byo-btn-row">
+            <button class="byo-btn byo-btn--success" onclick="submitToPosh()">✅ 送 Posh 審核</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fallback: parse failed -->
+      <div class="byo-step" id="byo-fallback-step" style="display:none">
+        <div class="byo-step__title"><span class="byo-step__num">!</span> 無法解析 JSON</div>
+        <div class="byo-fallback">
+          <div class="byo-fallback__title">❌ AI 的輸出沒有可解析的 JSON</div>
+          <div class="byo-fallback__hint">
+            <strong>建議</strong>：回到 AI 對話視窗、輸入「請以 ```json``` code block 重新輸出剛剛的建議」，再貼回 Step 3。<br><br>
+            <strong>或</strong>：在下面手動填、直接送出（AI 的對話內容會被當原始記錄）：
+          </div>
+          <div class="byo-field"><label>類型</label>
+            <select id="fb-category">
+              <option value="missing_info">missing_info</option>
+              <option value="unclear">unclear</option>
+              <option value="outdated">outdated</option>
+              <option value="broken_link">broken_link</option>
+              <option value="new_content">new_content</option>
+              <option value="other" selected>other</option>
+            </select>
+          </div>
+          <div class="byo-field"><label>摘要</label><input id="fb-summary" placeholder="≤50 字"></div>
+          <div class="byo-field"><label>原文（若有）</label><textarea id="fb-current"></textarea></div>
+          <div class="byo-field"><label>建議改成</label><textarea id="fb-proposed"></textarea></div>
+          <div class="byo-field"><label>理由</label><textarea id="fb-reasoning"></textarea></div>
+          <div class="byo-btn-row">
+            <button class="byo-btn byo-btn--success" onclick="submitToPosh(true)">✅ 手動送 Posh 審核</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
-  <div class="chat-widget__messages" id="chat-messages"></div>
-  <div class="chat-widget__hint" id="chat-hint">對話完成、彼此確認改進建議後，點「✅ 完成並送出」</div>
-  <div class="chat-widget__input-bar">
-    <textarea class="chat-widget__input" id="chat-input" placeholder="輸入你的回應..."></textarea>
-    <button class="chat-widget__send" id="chat-send">送出</button>
-    <button class="chat-widget__send chat-widget__finish" id="chat-finish" title="當對話達成共識，點此送 Posh 審核">✅ 完成</button>
-  </div>
-</aside>
+</div>
 
 <script>
 // ───── 資料模型 ─────
@@ -333,17 +437,16 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 // gaps: 新人反饋指出的缺口 → 顯示為黃色 placeholder block
 
 // ─── 外部服務配置 ─────────────────────────────────────────────
-// 部署完 Cloudflare Worker / Apps Script 後把以下 URL 換上
+// 部署完 Apps Script 後把以下 URL 換上
 // 詳細部署步驟見 ai-feedback/README.md
 
-// AI Chat Worker URL（Cloudflare Worker）
-const AI_WORKER_URL = "https://REPLACE_WITH_YOUR_WORKER.workers.dev";
+// Apps Script Web App URL（用於接收建議 + Posh 採納/拒絕）
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/REPLACE_WITH_YOUR_DEPLOYMENT_ID/exec";
 
 // 師徒簽核 Master Sheet URL
 const MENTOR_SHEET_URL = "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit";
 
-// （已被 AI Chat 取代，保留變數以免破壞既有按鈕）
-const REPORT_FORM_URL = "https://docs.google.com/forms/d/e/REPLACE_WITH_YOUR_FORM_ID/viewform";
+// 進階：如需 L3 全自動 AI Chat（內嵌 widget，付 API 費用），見 ai-feedback/README.md L3 章節
 
 const TODAY = new Date("2026-05-23");
 const USER_KEY = "oa_training_user";
@@ -1053,16 +1156,63 @@ document.addEventListener("click", e => {
   }
 }, true);
 
-// ───── AI Chat Widget ─────────────────────────────────────────
-// 每個對話 session 的狀態
+// ───── BYO AI Modal（使用者用自己的 AI、貼回 JSON 送 Posh）─────
 let chatSession = {
   active: false,
   chapter_id: null,
-  mode: null,         // "suggest" | "report"
-  messages: []        // [{role:"user"|"assistant", content:"..."}]
+  mode: null,
+  prompt: ""
 };
 
-const MODE_LABELS = { suggest: "建議改進", report: "回報過期/錯誤" };
+const MODE_LABELS = { suggest: "💡 建議改進", report: "⚠️ 回報過期/錯誤" };
+
+function buildPrompt(ch, mode) {
+  const objectives = (ch.objectives || []).join("\n  - ");
+  const checklist = (ch.checklist || []).join("\n  - ");
+  const gaps = (ch.gaps || []).map(g => g.text).join("\n  - ") || "（無）";
+  const modeText = mode === "suggest" ? "建議補充新內容或改寫" : "回報過期、錯誤、不清楚的內容";
+
+  return `你是「橘子蘋果新人訓練頁」的內容改進助理。我（使用者）剛剛在訓練頁某一章節，點了「${MODE_LABELS[mode]}」按鈕，想跟你討論改進建議。
+
+## 章節脈絡
+- 章節：第 ${ch.no} 章 ・ ${ch.title}
+- 我的目的：${modeText}
+- 學習目標：
+  - ${objectives || "（無）"}
+- 章節 checklist：
+  - ${checklist || "（無）"}
+- 已知缺口（新人反饋指出、待補的）：
+  - ${gaps}
+${ch.notice ? "- 最近主管說明：" + ch.notice + "\n" : ""}
+
+## 你的任務
+1. **跟我對話**，釐清我想改進的具體位置與期望
+2. **問具體**：避免問「你覺得哪裡不好」，而是問「你說的『不清楚』是指 X 還是 Y？」
+3. **提具體方案**：避免說「應該寫清楚」，要說「我建議改成『……』，這樣有解到你的問題嗎？」
+4. **3-5 輪**對話內收斂，避免過長
+5. **不要承諾「會被採納」**——最終由總監 Posh 決定，你只是幫忙整理建議
+
+## 對話結束時
+等我說「OK 整理出來吧」或類似話之後，請以下列嚴格的 JSON 格式輸出（包在 \`\`\`json ... \`\`\` 內，純 JSON 無其他文字）：
+
+\`\`\`json
+{
+  "chapter_id": "${ch.id}",
+  "category": "missing_info | unclear | outdated | broken_link | new_content | other",
+  "summary": "≤50字摘要（必填）",
+  "current_text": "頁面上的相關原文（沒有就留空字串）",
+  "proposed_text": "你建議的完整新版本",
+  "reasoning": "為什麼這個改進有用",
+  "reporter_confidence": "high | medium | low"
+}
+\`\`\`
+
+## 注意事項
+- 若我講到敏感資訊（密碼、家長個資、業務員個資），提醒我不要寫進建議
+- 若我偏題（討論不是訓練頁的事），禮貌引導回主題或結束對話
+
+請開始：問我想改進這一節的什麼地方。`;
+}
 
 function openChat(chapterId, mode) {
   const ch = CHAPTERS.find(c => c.id === chapterId);
@@ -1072,193 +1222,163 @@ function openChat(chapterId, mode) {
     active: true,
     chapter_id: chapterId,
     mode: mode,
-    messages: []
+    prompt: buildPrompt(ch, mode)
   };
 
-  // UI: 顯示 widget、設定 header
-  document.getElementById("chat-mask").classList.add("open");
-  document.getElementById("chat-widget").classList.add("open");
-  document.getElementById("chat-chapter-tag").textContent = `第 ${ch.no} 章 ・ ${MODE_LABELS[mode]}`;
-  document.getElementById("chat-messages").innerHTML = "";
-  document.getElementById("chat-input").value = "";
-  document.getElementById("chat-input").disabled = false;
-  document.getElementById("chat-send").disabled = false;
-  document.getElementById("chat-finish").disabled = false;
+  // 設定 modal 內容
+  document.getElementById("byo-tag").textContent = `第 ${ch.no} 章 ・ ${MODE_LABELS[mode]}`;
+  document.getElementById("byo-prompt").value = chatSession.prompt;
+  document.getElementById("byo-output").value = "";
+  document.getElementById("byo-preview-step").style.display = "none";
+  document.getElementById("byo-fallback-step").style.display = "none";
+  document.getElementById("copy-hint").classList.remove("show");
 
-  // 檢查 AI Worker 是否配置
-  if (AI_WORKER_URL.includes("REPLACE_WITH_")) {
-    addMsg("error",
-      "⚙️ AI 助理尚未配置\n\n請依 ai-feedback/README.md 部署 Cloudflare Worker，並把 URL 填回 training.html。" +
-      "\n\n暫時請直接把問題告訴 Posh。");
-    document.getElementById("chat-input").disabled = true;
-    document.getElementById("chat-send").disabled = true;
-    document.getElementById("chat-finish").disabled = true;
-    return;
+  // 顯示
+  document.getElementById("byo-mask").classList.add("open");
+
+  // 檢查 Apps Script 是否配置
+  if (APPS_SCRIPT_URL.includes("REPLACE_WITH_")) {
+    setTimeout(() => alert(
+      "⚙️ Apps Script 尚未配置\n\n" +
+      "你的回報暫時無法送出。請依 ai-feedback/README.md 完成設定，\n" +
+      "或先把問題截圖告訴 Posh。\n\n" +
+      "（你還是可以複製 prompt + 跟 AI 對話、看看 AI 怎麼分析這個問題）"
+    ), 400);
   }
-
-  // AI 主動開場
-  const greeting = mode === "suggest"
-    ? `嗨！我看到你想改進「第 ${ch.no} 章 ・ ${ch.title}」這一節。\n\n請描述一下：你覺得這裡應該補充什麼、或哪段應該改寫？越具體越好。`
-    : `嗨！你想回報「第 ${ch.no} 章 ・ ${ch.title}」這一節有什麼問題？\n\n例如：內容過時、連結壞掉、寫得不清楚、跟其他規則矛盾⋯⋯都歡迎跟我說。`;
-  addMsg("ai", greeting);
-  setTimeout(() => document.getElementById("chat-input").focus(), 300);
 }
 
 function closeChat() {
-  if (chatSession.active && chatSession.messages.length > 0) {
-    if (!confirm("關閉後對話會消失（還沒送 Posh）。確定要關閉嗎？")) return;
-  }
-  document.getElementById("chat-mask").classList.remove("open");
-  document.getElementById("chat-widget").classList.remove("open");
+  document.getElementById("byo-mask").classList.remove("open");
   chatSession.active = false;
 }
 
-function addMsg(role, content) {
-  const el = document.createElement("div");
-  el.className = "msg msg--" + role;  // ai | user | system | error
-  el.textContent = content;
-  document.getElementById("chat-messages").appendChild(el);
-  el.scrollIntoView({ behavior: "smooth", block: "end" });
-  return el;
-}
-
-function addLoadingMsg() {
-  const el = document.createElement("div");
-  el.className = "msg msg--ai";
-  el.innerHTML = '<span class="msg__loading"><span></span><span></span><span></span></span>';
-  document.getElementById("chat-messages").appendChild(el);
-  el.scrollIntoView({ behavior: "smooth", block: "end" });
-  return el;
-}
-
-async function sendChatMessage() {
-  const input = document.getElementById("chat-input");
-  const text = input.value.trim();
-  if (!text) return;
-
-  // Add user message
-  addMsg("user", text);
-  chatSession.messages.push({ role: "user", content: text });
-  input.value = "";
-  input.disabled = true;
-  document.getElementById("chat-send").disabled = true;
-  document.getElementById("chat-finish").disabled = true;
-
-  const loadingEl = addLoadingMsg();
-
+function copyPrompt() {
+  const ta = document.getElementById("byo-prompt");
+  ta.select();
   try {
-    const ch = CHAPTERS.find(c => c.id === chatSession.chapter_id);
-    const r = await fetch(AI_WORKER_URL + "/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "chat",
-        messages: chatSession.messages,
-        chapter: {
-          id: ch.id,
-          no: ch.no,
-          title: ch.title,
-          owner: ch.owner,
-          objectives: ch.objectives,
-          resources: ch.resources,
-          checklist: ch.checklist,
-          gaps: ch.gaps,
-          notice: ch.notice || ""
-        },
-        mode: chatSession.mode,
-        reporter: getCurrentUser() || "guest"
-      })
-    });
-    loadingEl.remove();
-
-    if (!r.ok) {
-      const errText = await r.text();
-      addMsg("error", `AI 回應失敗（${r.status}）：${errText.substring(0, 200)}`);
-      return;
-    }
-
-    const data = await r.json();
-    addMsg("ai", data.reply);
-    chatSession.messages.push({ role: "assistant", content: data.reply });
-  } catch (err) {
-    loadingEl.remove();
-    addMsg("error", `連線錯誤：${err.message}\n\n請確認 Worker 已部署、網路正常。`);
-  } finally {
-    input.disabled = false;
-    document.getElementById("chat-send").disabled = false;
-    document.getElementById("chat-finish").disabled = false;
-    input.focus();
+    navigator.clipboard.writeText(ta.value);
+  } catch {
+    document.execCommand("copy");
   }
+  const hint = document.getElementById("copy-hint");
+  hint.classList.add("show");
+  setTimeout(() => hint.classList.remove("show"), 2000);
 }
 
-async function finishChat() {
-  if (chatSession.messages.length < 2) {
-    alert("請先跟 AI 對話、釐清你的建議再送出。");
+function openAI(url) {
+  copyPrompt();  // 自動複製 prompt 方便貼上
+  window.open(url, "_blank", "noopener");
+}
+
+function tryExtractJson(text) {
+  if (!text || !text.trim()) return null;
+  // 1) ```json ... ``` code block
+  const blockMatch = text.match(/```json\s*([\s\S]*?)```/i);
+  if (blockMatch) {
+    try { return JSON.parse(blockMatch[1].trim()); } catch (e) {}
+  }
+  // 2) ``` ... ``` (沒指定 json)
+  const anyBlock = text.match(/```\s*([\s\S]*?)```/);
+  if (anyBlock) {
+    try { return JSON.parse(anyBlock[1].trim()); } catch (e) {}
+  }
+  // 3) plain JSON 整段
+  try { return JSON.parse(text.trim()); } catch (e) {}
+  // 4) find first { ... } block
+  const objMatch = text.match(/\{[\s\S]*\}/);
+  if (objMatch) {
+    try { return JSON.parse(objMatch[0]); } catch (e) {}
+  }
+  return null;
+}
+
+function validateAndPreview() {
+  const raw = document.getElementById("byo-output").value;
+  if (!raw.trim()) {
+    alert("請先把 AI 給的 JSON 貼到上面。");
     return;
   }
-  if (!confirm("送出後 Posh 會收到 AI 整理的建議。確定送出嗎？")) return;
+  const json = tryExtractJson(raw);
+  if (!json) {
+    // 解析失敗 → 顯示 fallback 手動填表單
+    document.getElementById("byo-preview-step").style.display = "none";
+    document.getElementById("byo-fallback-step").style.display = "block";
+    return;
+  }
+  // 填入 preview 欄位
+  document.getElementById("prev-category").value = json.category || "other";
+  document.getElementById("prev-summary").value = json.summary || "";
+  document.getElementById("prev-current").value = json.current_text || "";
+  document.getElementById("prev-proposed").value = json.proposed_text || "";
+  document.getElementById("prev-reasoning").value = json.reasoning || "";
+  document.getElementById("prev-confidence").value = json.reporter_confidence || "medium";
 
-  document.getElementById("chat-send").disabled = true;
-  document.getElementById("chat-finish").disabled = true;
-  document.getElementById("chat-input").disabled = true;
-  const loadingEl = addLoadingMsg();
-  addMsg("system", "🤖 AI 正在整理建議...");
+  document.getElementById("byo-preview-step").style.display = "block";
+  document.getElementById("byo-fallback-step").style.display = "none";
+  document.getElementById("byo-preview-step").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function submitToPosh(fromFallback) {
+  const ch = CHAPTERS.find(c => c.id === chatSession.chapter_id);
+  const prefix = fromFallback ? "fb" : "prev";
+  const get = id => document.getElementById(`${prefix}-${id}`).value;
+
+  const payload = {
+    chapter_id: ch.id,
+    category: get("category"),
+    summary: get("summary"),
+    current_text: get("current"),
+    proposed_text: get("proposed"),
+    reasoning: get("reasoning"),
+    reporter_confidence: fromFallback ? "low" : get("confidence"),
+    reporter: getCurrentUser() || "guest",
+    mode: chatSession.mode,
+    timestamp: new Date().toISOString(),
+    conversation_log: "(BYO AI: 對話在使用者自己的 AI 工具，未保留。原始貼回內容如下：)\n\n" +
+                      document.getElementById("byo-output").value.substring(0, 4000),
+    needs_posh_decision: fromFallback || get("confidence") === "low",
+    needs_posh_reason: fromFallback ? "AI 輸出格式不對、靠手動填" : ""
+  };
+
+  if (!payload.summary || !payload.proposed_text) {
+    alert("摘要與建議文字至少要填一個。");
+    return;
+  }
+
+  if (APPS_SCRIPT_URL.includes("REPLACE_WITH_")) {
+    alert("⚙️ APPS_SCRIPT_URL 尚未配置，無法送出。請聯絡 Posh。");
+    return;
+  }
 
   try {
-    const ch = CHAPTERS.find(c => c.id === chatSession.chapter_id);
-    const r = await fetch(AI_WORKER_URL + "/submit", {
+    const r = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "submit",
-        messages: chatSession.messages,
-        chapter: {
-          id: ch.id, no: ch.no, title: ch.title,
-          objectives: ch.objectives, resources: ch.resources,
-          checklist: ch.checklist, gaps: ch.gaps, notice: ch.notice || ""
-        },
-        mode: chatSession.mode,
-        reporter: getCurrentUser() || "guest"
-      })
+      headers: { "Content-Type": "text/plain" },  // 避免 CORS preflight
+      body: JSON.stringify({ action: "submit", payload })
     });
-    loadingEl.remove();
-
-    if (!r.ok) {
-      const errText = await r.text();
-      addMsg("error", `送出失敗（${r.status}）：${errText.substring(0, 200)}`);
-      return;
-    }
-
     const data = await r.json();
-    addMsg("system", `✅ 已送出給 Posh 審核\n編號：#${data.row_id || "未知"}\n\n感謝你的貢獻 🙏`);
-    setTimeout(() => closeChat(), 3000);
+    if (data.ok) {
+      alert(`✅ 已送出給 Posh 審核\n編號：#${data.row_id}\n\n感謝你的貢獻 🙏`);
+      closeChat();
+    } else {
+      alert("送出失敗：" + (data.error || "未知錯誤"));
+    }
   } catch (err) {
-    loadingEl.remove();
-    addMsg("error", `連線錯誤：${err.message}`);
-  } finally {
-    document.getElementById("chat-input").disabled = false;
-    document.getElementById("chat-send").disabled = false;
-    document.getElementById("chat-finish").disabled = false;
+    alert("連線錯誤：" + err.message);
   }
 }
 
-// 綁定事件
-document.getElementById("chat-send").addEventListener("click", sendChatMessage);
-document.getElementById("chat-finish").addEventListener("click", finishChat);
-document.getElementById("chat-input").addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendChatMessage();
-  }
-});
-
-// ESC 關閉 widget
+// ESC 關閉 modal
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && chatSession.active) closeChat();
 });
 
 window.openChat = openChat;
 window.closeChat = closeChat;
+window.copyPrompt = copyPrompt;
+window.openAI = openAI;
+window.validateAndPreview = validateAndPreview;
+window.submitToPosh = submitToPosh;
 </script>
 
 </body>
