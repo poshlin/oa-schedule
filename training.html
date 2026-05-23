@@ -176,6 +176,43 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
   .stats__card { grid-template-columns: repeat(2, 1fr); }
   .chapter__body { padding-left: 18px; }
 }
+
+/* ────────── AI Chat Widget ────────── */
+.chat-mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.chat-mask.open { opacity: 1; pointer-events: auto; }
+
+.chat-widget { position: fixed; right: 0; top: 0; bottom: 0; width: 420px; max-width: 100vw; background: var(--white); box-shadow: -4px 0 20px rgba(0,0,0,.15); z-index: 101; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s ease; }
+.chat-widget.open { transform: translateX(0); }
+.chat-widget__header { padding: 14px 18px; background: var(--orange); color: var(--white); display: flex; align-items: center; gap: 10px; }
+.chat-widget__title { flex: 1; font-weight: 700; font-size: 15px; }
+.chat-widget__close { background: rgba(255,255,255,.2); border: none; color: var(--white); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 700; }
+.chat-widget__close:hover { background: rgba(255,255,255,.3); }
+.chat-widget__chapter-tag { font-size: 11px; opacity: .9; background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 3px; }
+.chat-widget__messages { flex: 1; padding: 18px; overflow-y: auto; background: var(--bg); display: flex; flex-direction: column; gap: 12px; }
+.msg { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6; max-width: 88%; word-wrap: break-word; white-space: pre-wrap; }
+.msg--ai { background: var(--white); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg--user { background: var(--orange); color: var(--white); align-self: flex-end; border-bottom-right-radius: 4px; }
+.msg--system { background: var(--teal-lt); color: var(--teal-dk); align-self: center; font-size: 12px; padding: 8px 14px; }
+.msg--error { background: var(--red-lt); color: var(--red-dk); align-self: center; font-size: 12px; }
+.msg__loading { display: inline-flex; gap: 4px; }
+.msg__loading span { width: 6px; height: 6px; background: var(--gray); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+.msg__loading span:nth-child(2) { animation-delay: .2s; }
+.msg__loading span:nth-child(3) { animation-delay: .4s; }
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+.chat-widget__input-bar { padding: 12px; background: var(--white); border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-end; }
+.chat-widget__input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-zh); font-size: 14px; resize: none; min-height: 38px; max-height: 120px; line-height: 1.5; }
+.chat-widget__input:focus { outline: none; border-color: var(--orange); }
+.chat-widget__send { background: var(--orange); color: var(--white); border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background .12s; }
+.chat-widget__send:hover { background: var(--orange-dk); }
+.chat-widget__send:disabled { background: var(--gray); cursor: not-allowed; }
+.chat-widget__finish { background: var(--teal); color: var(--white); }
+.chat-widget__finish:hover { background: var(--teal-dk); }
+.chat-widget__hint { font-size: 11px; color: var(--gray); text-align: center; padding: 4px 12px; background: var(--bg); }
+
+@media (max-width: 720px) {
+  .chat-widget { width: 100%; }
+}
 </style>
 </head>
 <body>
@@ -269,8 +306,25 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
   <a href="index.html">家長查詢</a> ｜
   <a href="rules.html">規則索引</a> ｜
   <a href="closest.html">電銷工具</a> ｜
-  v1.0 ・ 2026
+  v1.1 ・ 2026
 </footer>
+
+<!-- ────────── AI Chat Widget ────────── -->
+<div class="chat-mask" id="chat-mask" onclick="closeChat()"></div>
+<aside class="chat-widget" id="chat-widget" role="dialog" aria-label="AI 改進助理">
+  <div class="chat-widget__header">
+    <span class="chat-widget__title">💬 AI 改進助理</span>
+    <span class="chat-widget__chapter-tag" id="chat-chapter-tag"></span>
+    <button class="chat-widget__close" onclick="closeChat()">✕</button>
+  </div>
+  <div class="chat-widget__messages" id="chat-messages"></div>
+  <div class="chat-widget__hint" id="chat-hint">對話完成、彼此確認改進建議後，點「✅ 完成並送出」</div>
+  <div class="chat-widget__input-bar">
+    <textarea class="chat-widget__input" id="chat-input" placeholder="輸入你的回應..."></textarea>
+    <button class="chat-widget__send" id="chat-send">送出</button>
+    <button class="chat-widget__send chat-widget__finish" id="chat-finish" title="當對話達成共識，點此送 Posh 審核">✅ 完成</button>
+  </div>
+</aside>
 
 <script>
 // ───── 資料模型 ─────
@@ -278,10 +332,18 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 // health: 自動算（last_review 距今天 < 90d 綠 / 90-180 黃 / > 180 紅）
 // gaps: 新人反饋指出的缺口 → 顯示為黃色 placeholder block
 
-// 訓練頁問題回報 Form URL（替換成你建好的 Form URL）
-const REPORT_FORM_URL = "https://docs.google.com/forms/d/e/REPLACE_WITH_YOUR_FORM_ID/viewform";
-// 師徒簽核 Master Sheet URL（替換成你建好的 Sheet URL）
+// ─── 外部服務配置 ─────────────────────────────────────────────
+// 部署完 Cloudflare Worker / Apps Script 後把以下 URL 換上
+// 詳細部署步驟見 ai-feedback/README.md
+
+// AI Chat Worker URL（Cloudflare Worker）
+const AI_WORKER_URL = "https://REPLACE_WITH_YOUR_WORKER.workers.dev";
+
+// 師徒簽核 Master Sheet URL
 const MENTOR_SHEET_URL = "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_SHEET_ID/edit";
+
+// （已被 AI Chat 取代，保留變數以免破壞既有按鈕）
+const REPORT_FORM_URL = "https://docs.google.com/forms/d/e/REPLACE_WITH_YOUR_FORM_ID/viewform";
 
 const TODAY = new Date("2026-05-23");
 const USER_KEY = "oa_training_user";
@@ -838,8 +900,8 @@ function renderChapter(c) {
             <span>📅 上次審視：${c.last_review}</span>
           </div>
           <a class="btn-action btn-action--mentor" href="${MENTOR_SHEET_URL}" target="_blank" rel="noopener">📋 簽核</a>
-          <a class="btn-action btn-action--suggest" href="${REPORT_FORM_URL}?entry.chapter=${c.id}&entry.type=建議改進" target="_blank" rel="noopener" title="建議補充新內容或改寫">💡 建議改進</a>
-          <a class="btn-action btn-action--report" href="${REPORT_FORM_URL}?entry.chapter=${c.id}&entry.type=過期或錯誤" target="_blank" rel="noopener" title="回報過期、連結壞掉、寫得不清楚">⚠️ 過期/錯誤</a>
+          <button class="btn-action btn-action--suggest" type="button" onclick="openChat('${c.id}','suggest')" title="跟 AI 對話釐清你想改進什麼，AI 會幫你整理送 Posh 審核">💡 建議改進</button>
+          <button class="btn-action btn-action--report" type="button" onclick="openChat('${c.id}','report')" title="跟 AI 對話回報過期、錯誤、不清楚，AI 會幫你整理送 Posh 審核">⚠️ 過期/錯誤</button>
         </div>
       </div>
     </div>`;
@@ -978,7 +1040,6 @@ updateUserBadge();
 renderAll();
 
 // ───── Placeholder URL 防呆 ─────
-// 偵測未配置的 Form / Sheet URL，攔截點擊並顯示說明
 function isPlaceholder(url) {
   return !url || url.includes("REPLACE_WITH_") || url === "#";
 }
@@ -988,17 +1049,216 @@ document.addEventListener("click", e => {
   if (isPlaceholder(link.href) || link.href.includes("REPLACE_WITH_")) {
     e.preventDefault();
     e.stopPropagation();
-    alert(
-      "⚙️ 此功能尚未配置\n\n" +
-      "你需要：\n" +
-      "1. 建立 Google Form（問題回報 + 建議改進）\n" +
-      "2. 建立 Master Sheet（簽核 + 維護表）\n" +
-      "3. 把兩個 URL 填回 training.html 第 ~360 行\n\n" +
-      "完整步驟在專案內的 training-setup.md。\n" +
-      "或者直接告訴 Posh 你想反映什麼，他會幫你處理。"
-    );
+    alert("⚙️ 此功能尚未配置\n\n請參考 ai-feedback/README.md 完成部署，並把對應 URL 填回 training.html。");
   }
-}, true);  // capture phase: 先攔截
+}, true);
+
+// ───── AI Chat Widget ─────────────────────────────────────────
+// 每個對話 session 的狀態
+let chatSession = {
+  active: false,
+  chapter_id: null,
+  mode: null,         // "suggest" | "report"
+  messages: []        // [{role:"user"|"assistant", content:"..."}]
+};
+
+const MODE_LABELS = { suggest: "建議改進", report: "回報過期/錯誤" };
+
+function openChat(chapterId, mode) {
+  const ch = CHAPTERS.find(c => c.id === chapterId);
+  if (!ch) return;
+
+  chatSession = {
+    active: true,
+    chapter_id: chapterId,
+    mode: mode,
+    messages: []
+  };
+
+  // UI: 顯示 widget、設定 header
+  document.getElementById("chat-mask").classList.add("open");
+  document.getElementById("chat-widget").classList.add("open");
+  document.getElementById("chat-chapter-tag").textContent = `第 ${ch.no} 章 ・ ${MODE_LABELS[mode]}`;
+  document.getElementById("chat-messages").innerHTML = "";
+  document.getElementById("chat-input").value = "";
+  document.getElementById("chat-input").disabled = false;
+  document.getElementById("chat-send").disabled = false;
+  document.getElementById("chat-finish").disabled = false;
+
+  // 檢查 AI Worker 是否配置
+  if (AI_WORKER_URL.includes("REPLACE_WITH_")) {
+    addMsg("error",
+      "⚙️ AI 助理尚未配置\n\n請依 ai-feedback/README.md 部署 Cloudflare Worker，並把 URL 填回 training.html。" +
+      "\n\n暫時請直接把問題告訴 Posh。");
+    document.getElementById("chat-input").disabled = true;
+    document.getElementById("chat-send").disabled = true;
+    document.getElementById("chat-finish").disabled = true;
+    return;
+  }
+
+  // AI 主動開場
+  const greeting = mode === "suggest"
+    ? `嗨！我看到你想改進「第 ${ch.no} 章 ・ ${ch.title}」這一節。\n\n請描述一下：你覺得這裡應該補充什麼、或哪段應該改寫？越具體越好。`
+    : `嗨！你想回報「第 ${ch.no} 章 ・ ${ch.title}」這一節有什麼問題？\n\n例如：內容過時、連結壞掉、寫得不清楚、跟其他規則矛盾⋯⋯都歡迎跟我說。`;
+  addMsg("ai", greeting);
+  setTimeout(() => document.getElementById("chat-input").focus(), 300);
+}
+
+function closeChat() {
+  if (chatSession.active && chatSession.messages.length > 0) {
+    if (!confirm("關閉後對話會消失（還沒送 Posh）。確定要關閉嗎？")) return;
+  }
+  document.getElementById("chat-mask").classList.remove("open");
+  document.getElementById("chat-widget").classList.remove("open");
+  chatSession.active = false;
+}
+
+function addMsg(role, content) {
+  const el = document.createElement("div");
+  el.className = "msg msg--" + role;  // ai | user | system | error
+  el.textContent = content;
+  document.getElementById("chat-messages").appendChild(el);
+  el.scrollIntoView({ behavior: "smooth", block: "end" });
+  return el;
+}
+
+function addLoadingMsg() {
+  const el = document.createElement("div");
+  el.className = "msg msg--ai";
+  el.innerHTML = '<span class="msg__loading"><span></span><span></span><span></span></span>';
+  document.getElementById("chat-messages").appendChild(el);
+  el.scrollIntoView({ behavior: "smooth", block: "end" });
+  return el;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Add user message
+  addMsg("user", text);
+  chatSession.messages.push({ role: "user", content: text });
+  input.value = "";
+  input.disabled = true;
+  document.getElementById("chat-send").disabled = true;
+  document.getElementById("chat-finish").disabled = true;
+
+  const loadingEl = addLoadingMsg();
+
+  try {
+    const ch = CHAPTERS.find(c => c.id === chatSession.chapter_id);
+    const r = await fetch(AI_WORKER_URL + "/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "chat",
+        messages: chatSession.messages,
+        chapter: {
+          id: ch.id,
+          no: ch.no,
+          title: ch.title,
+          owner: ch.owner,
+          objectives: ch.objectives,
+          resources: ch.resources,
+          checklist: ch.checklist,
+          gaps: ch.gaps,
+          notice: ch.notice || ""
+        },
+        mode: chatSession.mode,
+        reporter: getCurrentUser() || "guest"
+      })
+    });
+    loadingEl.remove();
+
+    if (!r.ok) {
+      const errText = await r.text();
+      addMsg("error", `AI 回應失敗（${r.status}）：${errText.substring(0, 200)}`);
+      return;
+    }
+
+    const data = await r.json();
+    addMsg("ai", data.reply);
+    chatSession.messages.push({ role: "assistant", content: data.reply });
+  } catch (err) {
+    loadingEl.remove();
+    addMsg("error", `連線錯誤：${err.message}\n\n請確認 Worker 已部署、網路正常。`);
+  } finally {
+    input.disabled = false;
+    document.getElementById("chat-send").disabled = false;
+    document.getElementById("chat-finish").disabled = false;
+    input.focus();
+  }
+}
+
+async function finishChat() {
+  if (chatSession.messages.length < 2) {
+    alert("請先跟 AI 對話、釐清你的建議再送出。");
+    return;
+  }
+  if (!confirm("送出後 Posh 會收到 AI 整理的建議。確定送出嗎？")) return;
+
+  document.getElementById("chat-send").disabled = true;
+  document.getElementById("chat-finish").disabled = true;
+  document.getElementById("chat-input").disabled = true;
+  const loadingEl = addLoadingMsg();
+  addMsg("system", "🤖 AI 正在整理建議...");
+
+  try {
+    const ch = CHAPTERS.find(c => c.id === chatSession.chapter_id);
+    const r = await fetch(AI_WORKER_URL + "/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "submit",
+        messages: chatSession.messages,
+        chapter: {
+          id: ch.id, no: ch.no, title: ch.title,
+          objectives: ch.objectives, resources: ch.resources,
+          checklist: ch.checklist, gaps: ch.gaps, notice: ch.notice || ""
+        },
+        mode: chatSession.mode,
+        reporter: getCurrentUser() || "guest"
+      })
+    });
+    loadingEl.remove();
+
+    if (!r.ok) {
+      const errText = await r.text();
+      addMsg("error", `送出失敗（${r.status}）：${errText.substring(0, 200)}`);
+      return;
+    }
+
+    const data = await r.json();
+    addMsg("system", `✅ 已送出給 Posh 審核\n編號：#${data.row_id || "未知"}\n\n感謝你的貢獻 🙏`);
+    setTimeout(() => closeChat(), 3000);
+  } catch (err) {
+    loadingEl.remove();
+    addMsg("error", `連線錯誤：${err.message}`);
+  } finally {
+    document.getElementById("chat-input").disabled = false;
+    document.getElementById("chat-send").disabled = false;
+    document.getElementById("chat-finish").disabled = false;
+  }
+}
+
+// 綁定事件
+document.getElementById("chat-send").addEventListener("click", sendChatMessage);
+document.getElementById("chat-finish").addEventListener("click", finishChat);
+document.getElementById("chat-input").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+});
+
+// ESC 關閉 widget
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && chatSession.active) closeChat();
+});
+
+window.openChat = openChat;
+window.closeChat = closeChat;
 </script>
 
 </body>

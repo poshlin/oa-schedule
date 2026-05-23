@@ -1,0 +1,16 @@
+name = "oa-training-ai-feedback"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# 部署後你的 Worker URL 會是：
+# https://oa-training-ai-feedback.<你的子域>.workers.dev
+
+# 變數設定請用 `wrangler secret put` 指令（不要寫死在這檔案）：
+#   wrangler secret put ANTHROPIC_API_KEY
+#   wrangler secret put APPS_SCRIPT_URL
+#
+# 或在 Cloudflare Dashboard:
+#   Workers > 你的 Worker > Settings > Variables
+
+[vars]
+MODEL = "claude-sonnet-4-5"
