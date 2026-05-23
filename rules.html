@@ -9,12 +9,14 @@
 <style>
 :root {
   color-scheme: light only;
-  --orange: #FFA300; --orange-dk: #D48500;
-  --red: #FF5859;    --red-dk: #CC3344;
-  --teal: #00C4B3;   --teal-dk: #008F83;
+  --orange: #FFA300; --orange-dk: #D48500;  --orange-lt: #FFF4DD;
+  --red: #FF5859;    --red-dk: #CC3344;     --red-lt: #FFEBEB;
+  --teal: #00C4B3;   --teal-dk: #008F83;    --teal-lt: #DFFAF6;
   --gray: #646569;   --dark: #2D2D2D;
   --bg: #F5F5F5;     --white: #FFFFFF;
-  --shadow: 0 2px 8px rgba(45,45,45,.08);
+  --border: #E5E5E5;
+  --shadow: 0 1px 3px rgba(45,45,45,.06);
+  --shadow-md: 0 2px 8px rgba(45,45,45,.08);
   --shadow-lg: 0 4px 16px rgba(45,45,45,.12);
   --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
   --font-en: "Trebuchet MS", "Calibri", sans-serif;
@@ -22,81 +24,153 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { font-family: var(--font-zh); color: var(--dark); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
 
-.header { background: var(--white); border-bottom: 4px solid var(--dark); padding: 16px 20px; position: sticky; top: 0; z-index: 10; box-shadow: var(--shadow); }
-.header__inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+/* ───── Header ───── */
+.header { background: var(--white); border-bottom: 4px solid var(--dark); padding: 16px 20px; position: sticky; top: 0; z-index: 30; box-shadow: var(--shadow); }
+.header__inner { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
 .header__logo { height: 30px; }
 .header__title { font-size: 18px; font-weight: 700; border-left: 3px solid var(--dark); padding-left: 12px; }
 .header__title small { display: block; font-size: 12px; color: var(--gray); font-weight: 400; margin-top: 2px; }
 .staff-badge { background: var(--dark); color: var(--white); font-size: 11px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; font-weight: 700; letter-spacing: 0.5px; }
 
-.hero { background: linear-gradient(135deg, #2D2D2D 0%, #4A4A4A 100%); color: var(--white); padding: 28px 20px 32px; position: relative; overflow: hidden; }
+/* ───── Hero ───── */
+.hero { background: linear-gradient(135deg, #2D2D2D 0%, #4A4A4A 100%); color: var(--white); padding: 24px 20px 28px; position: relative; overflow: hidden; }
 .hero::after { content: ""; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: var(--orange); opacity: .15; border-radius: 50%; }
-.hero__inner { max-width: 1080px; margin: 0 auto; position: relative; z-index: 1; }
-.hero h1 { font-size: 22px; margin-bottom: 6px; color: var(--white); }
-.hero p { font-size: 14px; opacity: .9; }
-.tier-legend { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; font-size: 13px; }
+.hero__inner { max-width: 1120px; margin: 0 auto; position: relative; z-index: 1; }
+.hero h1 { font-size: 20px; margin-bottom: 4px; color: var(--white); }
+.hero p { font-size: 13px; opacity: .85; }
+.tier-legend { display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; font-size: 12px; }
 .tier-legend span { display: inline-flex; align-items: center; gap: 6px; }
-.tier-legend .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.tier-legend .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .tier-legend .dot--commission { background: var(--red); }
 .tier-legend .dot--operational { background: var(--orange); }
 .tier-legend .dot--pending { background: var(--teal); }
 
-.controls { max-width: 1080px; margin: -16px auto 0; padding: 0 20px; position: relative; z-index: 2; }
-.controls__card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 18px 20px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
-.search-input { width: 100%; padding: 12px 16px; font-size: 16px; font-family: var(--font-zh); color: var(--dark);
-  background: var(--bg); border: 2px solid transparent; border-radius: 8px; }
+/* ───── Controls ───── */
+.controls { max-width: 1120px; margin: -14px auto 0; padding: 0 20px; position: relative; z-index: 5; }
+.controls__card { background: var(--white); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 16px 18px; display: grid; gap: 12px; }
+.controls__row1 { display: grid; grid-template-columns: 1fr 200px; gap: 12px; align-items: stretch; }
+.search-input { width: 100%; padding: 12px 16px; font-size: 15px; font-family: var(--font-zh); color: var(--dark); background: var(--bg); border: 2px solid transparent; border-radius: 8px; }
 .search-input:focus { outline: none; border-color: var(--orange); background: var(--white); }
+.role-select { padding: 12px 36px 12px 14px; font-size: 15px; font-weight: 700; font-family: var(--font-zh); color: var(--dark); background: var(--white); border: 2px solid var(--dark); border-radius: 8px; cursor: pointer;
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%232D2D2D' d='M6 8L0 0h12z'/></svg>");
+  background-repeat: no-repeat; background-position: right 12px center; background-size: 10px;
+}
+.role-select:focus { outline: none; border-color: var(--orange); }
+
+.controls__row2 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .tier-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-.tier-tab { padding: 8px 14px; border-radius: 6px; border: 2px solid var(--bg); background: var(--white); color: var(--dark); font-family: var(--font-zh); font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; }
+.tier-tab { padding: 7px 12px; border-radius: 6px; border: 2px solid var(--bg); background: var(--white); color: var(--dark); font-family: var(--font-zh); font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; }
 .tier-tab:hover { border-color: var(--gray); }
 .tier-tab.active { background: var(--dark); color: var(--white); border-color: var(--dark); }
 .tier-tab.active--commission { background: var(--red); border-color: var(--red); }
 .tier-tab.active--operational { background: var(--orange); border-color: var(--orange); }
 .tier-tab.active--pending { background: var(--teal); border-color: var(--teal); }
 
-.result-info { max-width: 1080px; margin: 14px auto 0; padding: 0 20px; font-size: 13px; color: var(--gray); }
+.toggle-all { margin-left: auto; background: var(--bg); border: 2px solid var(--border); color: var(--dark); padding: 7px 12px; border-radius: 6px; font-family: var(--font-zh); font-size: 13px; font-weight: 700; cursor: pointer; transition: background .15s; }
+.toggle-all:hover { background: var(--white); border-color: var(--gray); }
 
-.results { max-width: 1080px; margin: 16px auto 32px; padding: 0 20px; }
-.category-group { margin-bottom: 28px; }
-.category-group__title {
-  font-size: 17px; font-weight: 700; color: var(--dark);
-  padding: 8px 12px; margin-bottom: 10px;
-  background: var(--white); border-radius: 8px;
-  display: flex; align-items: center; gap: 10px;
-  box-shadow: var(--shadow);
+/* ───── Quick-jump chip list ───── */
+.quick-jump { max-width: 1120px; margin: 12px auto 0; padding: 0 20px; }
+.quick-jump__inner {
+  background: var(--white); border-radius: 8px; padding: 10px 12px; box-shadow: var(--shadow);
+  display: flex; gap: 6px; overflow-x: auto; align-items: center;
+  scrollbar-width: thin;
 }
-.category-group__count { font-size: 12px; color: var(--gray); font-weight: 400; }
+.quick-jump__label { font-size: 12px; color: var(--gray); font-weight: 700; white-space: nowrap; padding: 0 4px; }
+.chip { padding: 5px 12px; border-radius: 16px; background: var(--bg); color: var(--dark); font-size: 12px; cursor: pointer; white-space: nowrap; border: 1px solid transparent; transition: all .15s; text-decoration: none; }
+.chip:hover { background: var(--white); border-color: var(--orange); color: var(--orange-dk); }
+.chip--commission { background: var(--red-lt); color: var(--red-dk); }
+.chip--operational { background: var(--orange-lt); color: var(--orange-dk); }
+.chip--pending { background: var(--teal-lt); color: var(--teal-dk); }
 
-.rule { background: var(--white); border-radius: 10px; box-shadow: var(--shadow);
-  padding: 16px 20px; margin-bottom: 10px; border-left: 5px solid var(--gray); }
+/* ───── Result info ───── */
+.result-info { max-width: 1120px; margin: 14px auto 0; padding: 0 20px; font-size: 13px; color: var(--gray); }
+
+/* ───── Categories（兩層卡片） ───── */
+.results { max-width: 1120px; margin: 14px auto 32px; padding: 0 20px; }
+.category {
+  border-radius: 14px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  overflow: hidden;
+}
+.category--commission { background: var(--red-lt); border-color: rgba(255,88,89,.25); }
+.category--operational { background: var(--orange-lt); border-color: rgba(255,163,0,.25); }
+.category--pending { background: var(--teal-lt); border-color: rgba(0,196,179,.25); }
+
+.category__header {
+  padding: 14px 20px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  font-weight: 700; color: var(--dark);
+  user-select: none;
+  transition: background .12s;
+}
+.category__header:hover { background: rgba(0,0,0,.03); }
+.category__caret {
+  width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: transform .2s;
+}
+.category.collapsed .category__caret { transform: rotate(-90deg); }
+.category__tier-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.category__tier-dot--commission { background: var(--red); }
+.category__tier-dot--operational { background: var(--orange); }
+.category__tier-dot--pending { background: var(--teal); }
+.category__tier-name { font-size: 12px; color: var(--gray); font-weight: 700; }
+.category__name { font-size: 17px; flex: 1; min-width: 0; }
+.category__count { font-size: 12px; color: var(--gray); font-weight: 400; padding: 3px 9px; background: var(--white); border-radius: 12px; }
+
+.category__body {
+  padding: 0 16px 16px;
+  display: grid; gap: 10px;
+}
+.category.collapsed .category__body { display: none; }
+
+/* ───── Rule 子卡 ───── */
+.rule {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 14px 16px 12px;
+  box-shadow: var(--shadow);
+  border-left: 3px solid var(--gray);
+  display: grid; gap: 8px;
+  transition: box-shadow .15s, transform .1s;
+}
+.rule:hover { box-shadow: var(--shadow-md); }
 .rule--commission { border-left-color: var(--red); }
 .rule--operational { border-left-color: var(--orange); }
 .rule--pending { border-left-color: var(--teal); }
-.rule__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
-.rule__id { font-family: var(--font-en); font-size: 12px; color: var(--gray);
-  background: var(--bg); padding: 2px 8px; border-radius: 4px; font-weight: 700; }
-.rule__title { font-size: 16px; font-weight: 700; color: var(--dark); flex: 1; min-width: 0; }
-.rule__body { font-size: 14px; color: var(--dark); line-height: 1.75; margin-bottom: 10px; white-space: pre-wrap; }
-.rule__body em { font-style: normal; color: var(--orange-dk); font-weight: 700; }
-.rule__meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--gray); }
-.rule__tag { background: var(--bg); color: var(--gray); padding: 2px 8px; border-radius: 4px; font-weight: 700; }
-.rule__source { font-family: var(--font-en); font-style: italic; }
-.btn-report { display: inline-flex; align-items: center; gap: 4px; background: var(--orange); color: var(--white);
-  padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 700;
-  margin-left: auto; transition: background .15s; }
+
+.rule__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rule__id { font-family: var(--font-en); font-size: 11px; color: var(--gray); background: var(--bg); padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: .3px; }
+.rule__title { font-size: 15px; font-weight: 700; color: var(--dark); flex: 1; min-width: 0; }
+.btn-report { display: inline-flex; align-items: center; gap: 4px; background: var(--orange); color: var(--white); padding: 5px 11px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 700; transition: background .15s; }
 .btn-report:hover { background: var(--orange-dk); }
 
-.empty { text-align: center; padding: 60px 20px; color: var(--gray); font-size: 15px; }
+.rule__body { font-size: 13.5px; color: var(--dark); line-height: 1.7; white-space: pre-wrap; }
+.rule__body em { font-style: normal; color: var(--orange-dk); font-weight: 700; }
 
-.footer { text-align: center; font-size: 12px; color: var(--gray); padding: 20px; border-top: 1px solid #E5E5E5; }
+.rule__meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 11px; color: var(--gray); margin-top: 2px; }
+.rule__tag { background: var(--bg); color: var(--gray); padding: 1px 7px; border-radius: 3px; font-weight: 700; }
+.rule__source { font-family: var(--font-en); font-style: italic; margin-left: auto; }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--gray); font-size: 15px; background: var(--white); border-radius: 12px; }
+
+/* ───── Footer ───── */
+.footer { text-align: center; font-size: 12px; color: var(--gray); padding: 20px; border-top: 1px solid var(--border); }
 .footer a { color: var(--orange); text-decoration: none; }
 
+/* ───── Mobile ───── */
 @media (max-width: 720px) {
   .header__title { font-size: 16px; }
   .hero h1 { font-size: 18px; }
-  .controls__card { grid-template-columns: 1fr; }
-  .rule__head { flex-direction: column; align-items: flex-start; }
-  .btn-report { margin-left: 0; margin-top: 6px; }
+  .controls__row1 { grid-template-columns: 1fr; }
+  .controls__row2 { flex-direction: column; align-items: stretch; }
+  .tier-tabs { justify-content: center; }
+  .toggle-all { margin-left: 0; }
+  .category__name { font-size: 15px; }
+  .rule__source { margin-left: 0; }
 }
 </style>
 </head>
@@ -122,22 +196,40 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
     <h1>遇到問題不確定怎麼處理？先在這查</h1>
     <p>規則來自會議紀錄 + 犯錯率表單 + 主管裁示。新案件討論出結論後會持續增補。</p>
     <div class="tier-legend">
-      <span><span class="dot dot--commission"></span>業績相關（最重要）</span>
-      <span><span class="dot dot--operational"></span>操作規範（長期注意）</span>
-      <span><span class="dot dot--pending"></span>待確認 / Posh 裁示</span>
+      <span><span class="dot dot--commission"></span>業績相關</span>
+      <span><span class="dot dot--operational"></span>操作規範</span>
+      <span><span class="dot dot--pending"></span>待確認</span>
     </div>
   </div>
 </section>
 
 <section class="controls">
   <div class="controls__card">
-    <input type="search" id="search" class="search-input" placeholder="搜尋關鍵字（如：MGM、紅點、追蹤權、30%）...">
-    <div class="tier-tabs">
-      <button class="tier-tab active" data-tier="all" type="button">全部</button>
-      <button class="tier-tab" data-tier="commission" type="button">🔴 業績</button>
-      <button class="tier-tab" data-tier="operational" type="button">🟡 操作</button>
-      <button class="tier-tab" data-tier="pending" type="button">🔵 待確認</button>
+    <div class="controls__row1">
+      <input type="search" id="search" class="search-input" placeholder="搜尋（MGM / 紅點 / 30% / Anydesk ...）">
+      <select id="role-select" class="role-select">
+        <option value="all">全部身分</option>
+        <option value="sales">業務</option>
+        <option value="course">課務</option>
+        <option value="teaching">教學組長</option>
+      </select>
     </div>
+    <div class="controls__row2">
+      <div class="tier-tabs">
+        <button class="tier-tab active" data-tier="all" type="button">全部</button>
+        <button class="tier-tab" data-tier="commission" type="button">🔴 業績</button>
+        <button class="tier-tab" data-tier="operational" type="button">🟡 操作</button>
+        <button class="tier-tab" data-tier="pending" type="button">🔵 待確認</button>
+      </div>
+      <button class="toggle-all" id="toggle-all" type="button">全部收起</button>
+    </div>
+  </div>
+</section>
+
+<section class="quick-jump">
+  <div class="quick-jump__inner">
+    <span class="quick-jump__label">快速跳轉</span>
+    <div id="chip-list" style="display: flex; gap: 6px;"></div>
   </div>
 </section>
 
@@ -156,269 +248,262 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 <script>
 const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc3iBaqAofo1jMHqNAi5vleGL2-rMuvpgopiLlxlh8abyQAig/viewform?usp=preview";
 
-// 規則資料：tier = commission / operational / pending
-// category = 大分類，用來分組
-// reportable = true → 顯示「📝 報這條」按鈕（連到 Google Form）
+// roles: 哪些身分需要看這條規則（"sales" 業務 / "course" 課務 / "teaching" 教學組長）
+// 預設業務都要看（因為犯錯影響獎金 + 業績規則本就跟業務有關）
+// 課務跟教學組長：看全部 ops + 公池/追蹤權 commission（用於協調），不看 MGM/30%/正式生這些業務間細節
 const RULES = [
-  // ──────────────────────────────────────────────────────────────────
-  // 🔴 業績相關
-  // ──────────────────────────────────────────────────────────────────
-
-  // MGM 追蹤權
-  { id: "MGM-01", tier: "commission", category: "MGM 追蹤權",
+  // ──── 🔴 業績相關 ────
+  // MGM 追蹤權（業務間規則）
+  { id: "MGM-01", tier: "commission", category: "MGM 追蹤權", roles: ["sales"],
     title: "預約前主動告知 — 原業務可拿回",
     body: "若家長以任何形式主動告知有推薦名單（需有紀錄為證），在尚未發生預約前，原業務可主動拿回該 MGM 名單，享有優先追蹤權。",
     source: "5/12 業務會議", tags: ["MGM", "追蹤權"] },
-
-  { id: "MGM-02", tier: "commission", category: "MGM 追蹤權",
+  { id: "MGM-02", tier: "commission", category: "MGM 追蹤權", roles: ["sales"],
     title: "跨月尚未敲定場次 — 原業務可重排",
     body: "若為跨月預約，且尚未敲定由哪位業務負責體驗場次，原業務仍符合 MGM 優先追蹤權，可自行重新安排預約。",
     source: "5/12 業務會議", tags: ["MGM", "追蹤權", "跨月"] },
-
-  { id: "MGM-03", tier: "commission", category: "MGM 追蹤權",
+  { id: "MGM-03", tier: "commission", category: "MGM 追蹤權", roles: ["sales"],
     title: "已預約在他人場次 — 適用借教室規則",
     body: "若該名單已經預約在其他業務的場次，則適用『借教室』規則處理。",
     source: "5/12 業務會議", tags: ["MGM", "借教室"] },
-
-  { id: "MGM-04", tier: "commission", category: "MGM 追蹤權",
+  { id: "MGM-04", tier: "commission", category: "MGM 追蹤權", roles: ["sales"],
     title: "預約後才得知 MGM — 原業務無追蹤權",
     body: "若在名單預約之後才獲得 MGM 紀錄，原業務無追蹤權，該名單歸屬於該體驗場次的業務。",
     source: "5/12 業務會議", tags: ["MGM", "追蹤權"] },
-
-  { id: "MGM-05", tier: "commission", category: "MGM 追蹤權",
+  { id: "MGM-05", tier: "commission", category: "MGM 追蹤權", roles: ["sales"],
     title: "訊息群組內 MGM — 第一位回覆者取得",
     body: "正式生若在訊息中提及 MGM，由第一位回覆訊息者取得該 MGM 的優先追蹤權。",
     source: "5/12 業務會議", tags: ["MGM", "訊息群組"] },
 
-  // 公池規範
-  { id: "POOL-01", tier: "commission", category: "公池名單規範",
+  // 公池規範（業務 + 課務 + 教學組長都要懂）
+  { id: "POOL-01", tier: "commission", category: "公池名單規範", roles: ["sales", "course", "teaching"],
     title: "公池定義（未成正式生）— 2 個月無聯絡轉公池",
     body: "無正式課程學生超過兩個月無聯絡紀錄，即轉為公池名單（包含任何 MGM 推薦名單）。",
     source: "5/12 業務會議", tags: ["公池", "新生"] },
-
-  { id: "POOL-02", tier: "commission", category: "公池名單規範",
+  { id: "POOL-02", tier: "commission", category: "公池名單規範", roles: ["sales", "course", "teaching"],
     title: "正式生公池 — 2 個月無聯繫開放撈取",
     body: "正式生 2 個月無聯繫紀錄，同樣開放給所有業務撈取。",
     source: "5/12 業務會議", tags: ["公池", "正式生"] },
-
-  { id: "POOL-03", tier: "commission", category: "公池名單規範",
+  { id: "POOL-03", tier: "commission", category: "公池名單規範", roles: ["sales", "course", "teaching"],
     title: "撈取後 LINE@ 命名規範（嚴格執行）",
     body: "業務傳送訊息給公池名單後，可獲得優先追蹤權。必須在 LINE@ 上修改名稱，格式為：<em>[家長稱呼]([業務英文名]追蹤)</em>。英文名字首必須大寫。\n\n範例：洪德恩爸爸(Posh追蹤)\n\n⚠️ 若未依規定格式修改名稱，即喪失優先追蹤權。",
     source: "5/12 業務會議", tags: ["公池", "LINE@", "命名規範"] },
-
-  { id: "POOL-04", tier: "commission", category: "公池名單規範",
+  { id: "POOL-04", tier: "commission", category: "公池名單規範", roles: ["sales", "course", "teaching"],
     title: "撈取後系統轉換流程",
     body: "家長回覆訊息且確認要繼續追蹤後，業務需自行將資訊提供給 Posh，協助於系統將負責業務修改為自己。",
     source: "5/12 業務會議", tags: ["公池", "系統"] },
-
-  { id: "POOL-05", tier: "commission", category: "公池名單規範",
+  { id: "POOL-05", tier: "commission", category: "公池名單規範", roles: ["sales", "course", "teaching"],
     title: "誤撈罰則 — 計入犯錯率 1 次",
     body: "若傳送訊息的名單實際上『在兩個月內仍有聯繫紀錄』，將記錯誤率 1 次。業務需主動截圖給 Posh 報備。\n\n（流程待 Posh 釐清：由業務 self-report 還是課務發現後計入？）",
     source: "5/12 業務會議", tags: ["公池", "罰則"], reportable: true },
 
-  // 正式生服務
-  { id: "OFFICIAL-01", tier: "commission", category: "正式生服務權",
+  // 正式生服務（業務間規則）
+  { id: "OFFICIAL-01", tier: "commission", category: "正式生服務權", roles: ["sales"],
     title: "系統負責業務優先服務",
     body: "系統上的正式生負責業務，享有優先服務該家長的權益。",
     source: "5/12 業務會議", tags: ["正式生"] },
-
-  { id: "OFFICIAL-02", tier: "commission", category: "正式生服務權",
+  { id: "OFFICIAL-02", tier: "commission", category: "正式生服務權", roles: ["sales"],
     title: "複數業務 — 業務間自行協調",
     body: "若該正式生有複數業務同時服務，請業務之間自行溝通協調。",
     source: "5/12 業務會議", tags: ["正式生", "協調"] },
 
-  // 業績分潤
-  { id: "COMMISSION-01", tier: "commission", category: "業績分潤 30%",
+  // 業績分潤（業務間規則）
+  { id: "COMMISSION-01", tier: "commission", category: "業績分潤 30%", roles: ["sales"],
     title: "預約者享 30% 分潤",
     body: "為鼓勵業務積極推動預約，只要系統上顯示的『預約者』為該業務，<em>不論該名單日後何時被成交</em>，皆可分得 30% 的業績。",
     source: "5/12 業務會議", tags: ["業績", "30%", "分潤"] },
-
-  { id: "COMMISSION-02", tier: "commission", category: "業績分潤 30%",
+  { id: "COMMISSION-02", tier: "commission", category: "業績分潤 30%", roles: ["sales"],
     title: "例外：再次填表由電銷成交 — 原業務不享",
     body: "若業務初次預約體驗但未成交，時隔多日後家長『再次填寫表單』，並由電銷人員完成預約並成交，則原業務不享有 30% 分潤。",
     source: "5/12 業務會議", tags: ["業績", "30%", "例外"] },
-
-  { id: "COMMISSION-03", tier: "commission", category: "業績分潤 30%",
+  { id: "COMMISSION-03", tier: "commission", category: "業績分潤 30%", roles: ["sales"],
     title: "判定標準 — 以系統當下「預約者」為主",
     body: "業績歸屬一律以系統當下顯示的『預約者』為主。若有異議，最終由 Posh 裁定。",
     source: "5/12 業務會議", tags: ["業績", "判定"] },
 
-  // 追蹤權歸屬
-  { id: "TRACK-01", tier: "commission", category: "追蹤權歸屬",
+  // 追蹤權歸屬（業務 + 課務 + 教學組長都要懂）
+  { id: "TRACK-01", tier: "commission", category: "追蹤權歸屬", roles: ["sales", "course", "teaching"],
     title: "A 推薦時間 早於 B 主動訊息 — A 業務優先",
     body: "案件背景：A 學生家長推薦負責數學的業務（MGM 推薦）／B 學生家長來學習數學。\n\n若 A 家長推薦時間早於 B 家長主動訊息時間：B 學生的數學課程，由 A 家長推薦之業務享有優先追蹤權。",
     source: "3/25 會議", tags: ["追蹤權", "MGM"] },
-
-  { id: "TRACK-02", tier: "commission", category: "追蹤權歸屬",
+  { id: "TRACK-02", tier: "commission", category: "追蹤權歸屬", roles: ["sales", "course", "teaching"],
     title: "A 推薦時間 晚於 B 主動訊息 — B 業務優先（若已聯繫上）",
     body: "若 A 家長推薦時間晚於 B 家長主動訊息時間：若 B 家長原本的學生業務已經有聯繫上，則 B 學生家長業務享有課程優先追蹤權。",
     source: "3/25 會議", tags: ["追蹤權", "MGM"] },
-
-  { id: "TRACK-03", tier: "commission", category: "追蹤權歸屬",
+  { id: "TRACK-03", tier: "commission", category: "追蹤權歸屬", roles: ["sales", "course", "teaching"],
     title: "新生 — 無法壓日期，2 個月失追蹤權",
     body: "新生沒辦法壓日期，超過兩個月沒聯繫就失去追蹤權體驗。",
     source: "3/24 會議", tags: ["新生", "追蹤權"] },
-
-  { id: "TRACK-04", tier: "commission", category: "追蹤權歸屬",
+  { id: "TRACK-04", tier: "commission", category: "追蹤權歸屬", roles: ["sales", "course", "teaching"],
     title: "舊生 — 可壓明確時間，追蹤權 1 個月",
     body: "舊生可以壓明確的時間，追蹤權為一個月。",
     source: "3/24 會議", tags: ["舊生", "追蹤權"] },
 
-  // ──────────────────────────────────────────────────────────────────
-  // 🟡 操作規範（犯錯率）
-  // ──────────────────────────────────────────────────────────────────
-
-  { id: "OPS-01", tier: "operational", category: "成交流程",
+  // ──── 🟡 操作規範（業務 + 課務 + 教學組長都要看，但 LINE 值日生是業務輪值） ────
+  { id: "OPS-01", tier: "operational", category: "成交流程", roles: ["sales", "course", "teaching"],
     title: "成交須知 24 小時內未發送",
     body: "成交後，需於 24 小時內發送『成交須知』給家長（含艾伯特、麥塊等課程須知）。",
     source: "犯錯率 Sheet", tags: ["成交須知", "時限"], reportable: true },
 
-  { id: "OPS-02", tier: "operational", category: "開課前事項",
+  { id: "OPS-02", tier: "operational", category: "開課前事項", roles: ["sales", "course", "teaching"],
     title: "開課當日 1600 前未完成事項",
     body: "開課日當日 1600 前需完成所有開課準備事項，包含：\n1. 紅點備註完整\n2. AD 登記\n3. 設定確認\n\n未完成計入犯錯率。",
     source: "犯錯率 Sheet", tags: ["開課", "1600"], reportable: true },
 
-  { id: "OPS-03", tier: "operational", category: "紅點備註",
-    title: "寄件資訊未在紅點備註",
-    body: "於寄送截止時間前，未在紅點備註寄件資訊（例如課本、教材寄送）。",
-    source: "犯錯率 Sheet", tags: ["紅點", "寄件"], reportable: true },
-
-  { id: "OPS-04", tier: "operational", category: "紅點備註",
-    title: "起始 Anydesk 未在紅點備註",
-    body: "未在紅點備註起始 Anydesk 設定資訊。",
-    source: "犯錯率 Sheet", tags: ["紅點", "Anydesk"], reportable: true },
-
-  { id: "OPS-05", tier: "operational", category: "紅點備註",
-    title: "前階段剩堂處理未在紅點備註",
-    body: "升下一階段時，前階段剩餘堂數需於紅點備註明確處理方式。\n\n<em>並非『有折抵才要備註』</em>，而是要『告知剩下堂數會怎麼處理』（折抵 / 保留 / 失效都要寫清楚），不然課務不會知道，業務若離職、後續家長詢問或接手業務也不清楚，屆時家長可能會生氣。\n\n（林家元 4/29 主管補充說明）",
-    source: "犯錯率 Sheet ＋ 林家元主管補充", tags: ["紅點", "階段轉換"], reportable: true },
-
-  { id: "OPS-06", tier: "pending", category: "綠點備註",
-    title: "綠點備註遺漏（規則待補）",
-    body: "犯錯率 Sheet 內有提及『綠點備註』類別，但具體規則與情境待 Posh 補充。",
-    source: "犯錯率 Sheet", tags: ["綠點", "待補"] },
-
-  { id: "OPS-07", tier: "operational", category: "Corp 系統登記",
-    title: "Corp 上學生 AN 一小時前未完成",
-    body: "開課日前一小時內，需完成 Corp 上學生的 AN 設定。",
-    source: "犯錯率 Sheet", tags: ["Corp", "AN", "時限"], reportable: true },
-
-  { id: "OPS-08", tier: "operational", category: "Corp 系統登記",
-    title: "至上課都未登記 AD",
-    body: "至開課時間都未在 Corp 上完成 AD 登記（包含『已協助但仍無 AD』的情況）。",
-    source: "犯錯率 Sheet", tags: ["Corp", "AD"], reportable: true },
-
-  { id: "OPS-09", tier: "operational", category: "Corp 系統登記",
-    title: "Anydesk 設定逾期未完成",
-    body: "Anydesk 帳號 / 設定逾期未完成。",
-    source: "犯錯率 Sheet", tags: ["Anydesk"], reportable: true },
-
-  { id: "OPS-10", tier: "operational", category: "群組訊息",
-    title: "業務★課務 Task 群組訊息未處理",
-    body: "業務★課務 Task 群組訊息未於規定時間內回覆 / 處理。",
-    source: "犯錯率 Sheet", tags: ["群組訊息", "課務"], reportable: true },
-
-  { id: "OPS-11", tier: "operational", category: "群組訊息",
-    title: "業務★教學 Task 群組訊息未處理",
-    body: "業務★教學 Task 群組訊息未於規定時間內回覆 / 處理。",
-    source: "犯錯率 Sheet", tags: ["群組訊息", "教學"], reportable: true },
-
-  { id: "OPS-12", tier: "operational", category: "新生設定",
-    title: "新生設定錯誤 — 課程種類 / 總堂數 / 起始堂數 / 啟用進度",
-    body: "新生報名後的課程種類、總堂數、起始堂數、啟用進度等任一項設定錯誤。",
-    source: "犯錯率 Sheet", tags: ["新生", "設定"], reportable: true },
-
-  { id: "OPS-13", tier: "operational", category: "階段設定",
-    title: "階段啟用範圍錯誤",
-    body: "階段啟用範圍設定錯誤。\n\n範例：高階 1 應啟用到 15 堂、高階 2 應設 30 堂。",
-    source: "犯錯率 Sheet", tags: ["階段", "啟用"], reportable: true },
-
-  { id: "OPS-14", tier: "operational", category: "階段設定",
-    title: "階段總堂數設定錯誤",
-    body: "各階段的總堂數設定錯誤（需依照標準階段堂數設定）。",
-    source: "犯錯率 Sheet", tags: ["階段", "總堂數"], reportable: true },
-
-  { id: "OPS-15", tier: "operational", category: "升階判斷",
-    title: "升階判斷錯誤 — 體驗過 L1 起始應為 L2",
-    body: "學生已體驗過 L1，新階段起始應為 L2 而非 L1（升階判斷錯誤）。",
-    source: "犯錯率 Sheet", tags: ["升階", "L1", "L2"], reportable: true },
-
-  { id: "OPS-16", tier: "operational", category: "帳號協助",
-    title: "RB 帳號未提前協助確認",
-    body: "已過預約日，仍未提前協助家長確認 RB 帳號。",
-    source: "犯錯率 Sheet", tags: ["RB", "帳號"], reportable: true },
-
-  { id: "OPS-17", tier: "operational", category: "帳號協助",
-    title: "麥塊帳號密碼未提供",
-    body: "麥塊課程帳號密碼未於規定時間內提供給家長。",
-    source: "犯錯率 Sheet", tags: ["麥塊", "帳密"], reportable: true },
-
-  { id: "OPS-18", tier: "operational", category: "寄送 / 教材",
-    title: "課本 / 教材寄送資訊未提供",
-    body: "於寄送截止時間前，未提供課本 / 教材的寄送資訊。",
-    source: "犯錯率 Sheet", tags: ["寄送", "教材"], reportable: true },
-
-  { id: "OPS-19", tier: "operational", category: "系統流程",
-    title: "Omni 申請未送",
-    body: "Omni 系統相關申請未送出。",
-    source: "犯錯率 Sheet", tags: ["Omni"], reportable: true },
-
-  { id: "OPS-20", tier: "operational", category: "系統流程",
-    title: "課程暫停流程不完整",
-    body: "課程暫停相關流程（含通知、設定、後續處理）未完整執行。",
-    source: "犯錯率 Sheet", tags: ["暫停"], reportable: true },
-
-  { id: "OPS-21", tier: "operational", category: "開課前事項",
+  { id: "OPS-21", tier: "operational", category: "開課前事項", roles: ["sales", "course", "teaching"],
     title: "未協助延後開課日期",
     body: "需要延後開課的學生，業務未協助確認與調整。",
     source: "犯錯率 Sheet", tags: ["延後", "開課"], reportable: true },
 
-  { id: "OPS-22", tier: "operational", category: "LINE 值日生",
+  { id: "OPS-03", tier: "operational", category: "紅點備註", roles: ["sales", "course", "teaching"],
+    title: "寄件資訊未在紅點備註",
+    body: "於寄送截止時間前，未在紅點備註寄件資訊（例如課本、教材寄送）。",
+    source: "犯錯率 Sheet", tags: ["紅點", "寄件"], reportable: true },
+  { id: "OPS-04", tier: "operational", category: "紅點備註", roles: ["sales", "course", "teaching"],
+    title: "起始 Anydesk 未在紅點備註",
+    body: "未在紅點備註起始 Anydesk 設定資訊。",
+    source: "犯錯率 Sheet", tags: ["紅點", "Anydesk"], reportable: true },
+  { id: "OPS-05", tier: "operational", category: "紅點備註", roles: ["sales", "course", "teaching"],
+    title: "前階段剩堂處理未在紅點備註",
+    body: "升下一階段時，前階段剩餘堂數需於紅點備註明確處理方式。\n\n<em>並非『有折抵才要備註』</em>，而是要『告知剩下堂數會怎麼處理』（折抵 / 保留 / 失效都要寫清楚），不然課務不會知道，業務若離職、後續家長詢問或接手業務也不清楚，屆時家長可能會生氣。\n\n（林家元 4/29 主管補充說明）",
+    source: "犯錯率 Sheet ＋ 林家元主管補充", tags: ["紅點", "階段轉換"], reportable: true },
+
+  { id: "OPS-06", tier: "pending", category: "綠點備註", roles: ["sales", "course", "teaching"],
+    title: "綠點備註遺漏（規則待補）",
+    body: "犯錯率 Sheet 內有提及『綠點備註』類別，但具體規則與情境待 Posh 補充。",
+    source: "犯錯率 Sheet", tags: ["綠點", "待補"] },
+
+  { id: "OPS-07", tier: "operational", category: "Corp 系統登記", roles: ["sales", "course", "teaching"],
+    title: "Corp 上學生 AN 一小時前未完成",
+    body: "開課日前一小時內，需完成 Corp 上學生的 AN 設定。",
+    source: "犯錯率 Sheet", tags: ["Corp", "AN", "時限"], reportable: true },
+  { id: "OPS-08", tier: "operational", category: "Corp 系統登記", roles: ["sales", "course", "teaching"],
+    title: "至上課都未登記 AD",
+    body: "至開課時間都未在 Corp 上完成 AD 登記（包含『已協助但仍無 AD』的情況）。",
+    source: "犯錯率 Sheet", tags: ["Corp", "AD"], reportable: true },
+  { id: "OPS-09", tier: "operational", category: "Corp 系統登記", roles: ["sales", "course", "teaching"],
+    title: "Anydesk 設定逾期未完成",
+    body: "Anydesk 帳號 / 設定逾期未完成。",
+    source: "犯錯率 Sheet", tags: ["Anydesk"], reportable: true },
+
+  { id: "OPS-10", tier: "operational", category: "群組訊息", roles: ["sales", "course", "teaching"],
+    title: "業務★課務 Task 群組訊息未處理",
+    body: "業務★課務 Task 群組訊息未於規定時間內回覆 / 處理。",
+    source: "犯錯率 Sheet", tags: ["群組訊息", "課務"], reportable: true },
+  { id: "OPS-11", tier: "operational", category: "群組訊息", roles: ["sales", "course", "teaching"],
+    title: "業務★教學 Task 群組訊息未處理",
+    body: "業務★教學 Task 群組訊息未於規定時間內回覆 / 處理。",
+    source: "犯錯率 Sheet", tags: ["群組訊息", "教學"], reportable: true },
+
+  { id: "OPS-12", tier: "operational", category: "新生設定", roles: ["sales", "course", "teaching"],
+    title: "新生設定錯誤 — 課程種類 / 總堂數 / 起始堂數 / 啟用進度",
+    body: "新生報名後的課程種類、總堂數、起始堂數、啟用進度等任一項設定錯誤。",
+    source: "犯錯率 Sheet", tags: ["新生", "設定"], reportable: true },
+
+  { id: "OPS-13", tier: "operational", category: "階段設定", roles: ["sales", "course", "teaching"],
+    title: "階段啟用範圍錯誤",
+    body: "階段啟用範圍設定錯誤。\n\n範例：高階 1 應啟用到 15 堂、高階 2 應設 30 堂。",
+    source: "犯錯率 Sheet", tags: ["階段", "啟用"], reportable: true },
+  { id: "OPS-14", tier: "operational", category: "階段設定", roles: ["sales", "course", "teaching"],
+    title: "階段總堂數設定錯誤",
+    body: "各階段的總堂數設定錯誤（需依照標準階段堂數設定）。",
+    source: "犯錯率 Sheet", tags: ["階段", "總堂數"], reportable: true },
+
+  { id: "OPS-15", tier: "operational", category: "升階判斷", roles: ["sales", "course", "teaching"],
+    title: "升階判斷錯誤 — 體驗過 L1 起始應為 L2",
+    body: "學生已體驗過 L1，新階段起始應為 L2 而非 L1（升階判斷錯誤）。",
+    source: "犯錯率 Sheet", tags: ["升階", "L1", "L2"], reportable: true },
+
+  { id: "OPS-16", tier: "operational", category: "帳號協助", roles: ["sales", "course", "teaching"],
+    title: "RB 帳號未提前協助確認",
+    body: "已過預約日，仍未提前協助家長確認 RB 帳號。",
+    source: "犯錯率 Sheet", tags: ["RB", "帳號"], reportable: true },
+  { id: "OPS-17", tier: "operational", category: "帳號協助", roles: ["sales", "course", "teaching"],
+    title: "麥塊帳號密碼未提供",
+    body: "麥塊課程帳號密碼未於規定時間內提供給家長。",
+    source: "犯錯率 Sheet", tags: ["麥塊", "帳密"], reportable: true },
+
+  { id: "OPS-18", tier: "operational", category: "寄送 / 教材", roles: ["sales", "course", "teaching"],
+    title: "課本 / 教材寄送資訊未提供",
+    body: "於寄送截止時間前，未提供課本 / 教材的寄送資訊。",
+    source: "犯錯率 Sheet", tags: ["寄送", "教材"], reportable: true },
+
+  { id: "OPS-19", tier: "operational", category: "系統流程", roles: ["sales", "course", "teaching"],
+    title: "Omni 申請未送",
+    body: "Omni 系統相關申請未送出。",
+    source: "犯錯率 Sheet", tags: ["Omni"], reportable: true },
+  { id: "OPS-20", tier: "operational", category: "系統流程", roles: ["sales", "course", "teaching"],
+    title: "課程暫停流程不完整",
+    body: "課程暫停相關流程（含通知、設定、後續處理）未完整執行。",
+    source: "犯錯率 Sheet", tags: ["暫停"], reportable: true },
+
+  // LINE 值日生（業務輪值的工作，不放給課務/教學組長）
+  { id: "OPS-22", tier: "operational", category: "LINE 值日生", roles: ["sales"],
     title: "未確認 LINE 自助預約頁面",
     body: "LINE 值日生除回覆官方 LINE 訊息外，需到『尚未確認的 Line 預約試聽』頁面確認家長自行預約的資訊（例如年級、課程、設備等）。",
     source: "3/12 公告", tags: ["LINE", "值日生"], reportable: true },
-
-  { id: "OPS-23", tier: "operational", category: "LINE 值日生",
+  { id: "OPS-23", tier: "operational", category: "LINE 值日生", roles: ["sales"],
     title: "未轉提醒場次負責人 / 致電隔月未排場次",
     body: "1. 未確認的預約，需轉提醒給場次負責人。\n2. 若是隔月還未安排場次的，由值日生負責致電確認。\n3. 確認完畢後，由確認人到該頁面點『已確認』。",
     source: "3/12 公告", tags: ["LINE", "值日生"], reportable: true }
 ];
 
 // ─── 渲染與互動 ──────────────────────────────────────────────────────
-let currentTier = "all";
-let currentSearch = "";
-
 const TIER_LABELS = { commission: "🔴 業績", operational: "🟡 操作", pending: "🔵 待確認" };
-const TIER_ORDER = ["commission", "operational", "pending"];
+const TIER_NAMES  = { commission: "業績相關", operational: "操作規範", pending: "待確認" };
+const TIER_ORDER  = ["commission", "operational", "pending"];
+
+const state = {
+  tier: "all",
+  role: "all",
+  search: "",
+  collapsedCategories: new Set(),  // 哪些 category 是收起的
+};
 
 function $(id) { return document.getElementById(id); }
+function slugify(s) { return s.replace(/[^\w一-龥]+/g, "-"); }
 
-function filterAndGroup() {
-  const q = currentSearch.trim().toLowerCase();
-  const filtered = RULES.filter(r => {
-    if (currentTier !== "all" && r.tier !== currentTier) return false;
+function filterRules() {
+  const q = state.search.trim().toLowerCase();
+  return RULES.filter(r => {
+    if (state.tier !== "all" && r.tier !== state.tier) return false;
+    if (state.role !== "all" && !(r.roles || []).includes(state.role)) return false;
     if (!q) return true;
-    const haystack = (r.id + r.title + r.body + r.category + (r.tags||[]).join(",")).toLowerCase();
-    return haystack.includes(q);
+    const hay = (r.id + r.title + r.body + r.category + (r.tags||[]).join(",")).toLowerCase();
+    return hay.includes(q);
   });
-  // group by tier → category
-  const groups = {};  // tier → category → rules[]
+}
+
+function groupByCategory(filtered) {
+  // tier → category → rules[]
+  const groups = {};
   for (const r of filtered) {
     if (!groups[r.tier]) groups[r.tier] = {};
     if (!groups[r.tier][r.category]) groups[r.tier][r.category] = [];
     groups[r.tier][r.category].push(r);
   }
-  return { filtered, groups };
+  return groups;
+}
+
+function renderQuickJump(groups) {
+  const chips = [];
+  for (const tier of TIER_ORDER) {
+    if (!groups[tier]) continue;
+    for (const category of Object.keys(groups[tier])) {
+      const slug = slugify(`${tier}-${category}`);
+      chips.push(`<a class="chip chip--${tier}" href="#cat-${slug}" data-slug="cat-${slug}">${category}</a>`);
+    }
+  }
+  $("chip-list").innerHTML = chips.join("");
 }
 
 function renderRule(r) {
-  const tierCls = `rule--${r.tier}`;
   const tags = (r.tags||[]).map(t => `<span class="rule__tag">${t}</span>`).join("");
   const report = r.reportable
     ? `<a class="btn-report" href="${FORM_BASE_URL}" target="_blank" rel="noopener">📝 報這條</a>`
     : "";
   return `
-    <div class="rule ${tierCls}">
+    <div class="rule rule--${r.tier}">
       <div class="rule__head">
         <span class="rule__id">${r.id}</span>
         <span class="rule__title">${r.title}</span>
@@ -433,11 +518,26 @@ function renderRule(r) {
 }
 
 function render() {
-  const { filtered, groups } = filterAndGroup();
-  $("result-info").textContent = `共 ${filtered.length} / ${RULES.length} 條規則` +
-    (currentSearch ? `（搜尋「${currentSearch}」）` : "");
+  const filtered = filterRules();
+  const groups = groupByCategory(filtered);
 
-  if (filtered.length === 0) {
+  // 結果資訊
+  const totalShown = filtered.length;
+  const filters = [];
+  if (state.role !== "all") {
+    const roleLabel = { sales: "業務", course: "課務", teaching: "教學組長" }[state.role];
+    filters.push(roleLabel + " 視角");
+  }
+  if (state.tier !== "all") filters.push(TIER_NAMES[state.tier]);
+  if (state.search) filters.push(`搜尋「${state.search}」`);
+  const filterText = filters.length ? `（${filters.join(" · ")}）` : "";
+  $("result-info").textContent = `共 ${totalShown} / ${RULES.length} 條規則${filterText}`;
+
+  // Quick jump
+  renderQuickJump(groups);
+
+  // Categories
+  if (totalShown === 0) {
     $("results").innerHTML = '<div class="empty">🔍 沒有符合條件的規則</div>';
     return;
   }
@@ -446,36 +546,103 @@ function render() {
   for (const tier of TIER_ORDER) {
     if (!groups[tier]) continue;
     for (const [category, rules] of Object.entries(groups[tier])) {
+      const slug = slugify(`${tier}-${category}`);
+      const catKey = `${tier}|${category}`;
+      const collapsed = state.collapsedCategories.has(catKey) ? "collapsed" : "";
       html += `
-        <div class="category-group">
-          <div class="category-group__title">
-            ${TIER_LABELS[tier]} ・ ${category}
-            <span class="category-group__count">${rules.length} 條</span>
+        <div class="category category--${tier} ${collapsed}" id="cat-${slug}" data-key="${catKey}">
+          <div class="category__header" onclick="window.__toggleCategory && window.__toggleCategory('${catKey}')">
+            <span class="category__caret">▼</span>
+            <span class="category__tier-dot category__tier-dot--${tier}"></span>
+            <span class="category__tier-name">${TIER_NAMES[tier]}</span>
+            <span class="category__name">${category}</span>
+            <span class="category__count">${rules.length} 條</span>
           </div>
-          ${rules.map(renderRule).join("")}
+          <div class="category__body">
+            ${rules.map(renderRule).join("")}
+          </div>
         </div>`;
     }
   }
   $("results").innerHTML = html;
+
+  // 更新 toggle-all 按鈕文字
+  const totalCategories = Object.values(groups).reduce((sum, t) => sum + Object.keys(t).length, 0);
+  const allCollapsed = state.collapsedCategories.size >= totalCategories && totalCategories > 0;
+  $("toggle-all").textContent = allCollapsed ? "全部展開" : "全部收起";
 }
 
-// search input
-$("search").addEventListener("input", e => {
-  currentSearch = e.target.value;
+// Toggle one category（onclick 用，掛到 window）
+window.__toggleCategory = function(catKey) {
+  if (state.collapsedCategories.has(catKey)) {
+    state.collapsedCategories.delete(catKey);
+  } else {
+    state.collapsedCategories.add(catKey);
+  }
+  render();
+};
+
+// Toggle all
+$("toggle-all").addEventListener("click", () => {
+  const filtered = filterRules();
+  const groups = groupByCategory(filtered);
+  const allKeys = [];
+  for (const tier of TIER_ORDER) {
+    if (!groups[tier]) continue;
+    for (const category of Object.keys(groups[tier])) {
+      allKeys.push(`${tier}|${category}`);
+    }
+  }
+  const allCollapsed = allKeys.every(k => state.collapsedCategories.has(k));
+  if (allCollapsed) {
+    state.collapsedCategories.clear();
+  } else {
+    allKeys.forEach(k => state.collapsedCategories.add(k));
+  }
   render();
 });
 
-// tier tabs
+// Search
+$("search").addEventListener("input", e => {
+  state.search = e.target.value;
+  render();
+});
+
+// Role
+$("role-select").addEventListener("change", e => {
+  state.role = e.target.value;
+  render();
+});
+
+// Tier tabs
 document.querySelectorAll(".tier-tab").forEach(btn => {
   btn.addEventListener("click", () => {
-    currentTier = btn.dataset.tier;
+    state.tier = btn.dataset.tier;
     document.querySelectorAll(".tier-tab").forEach(b => {
       b.classList.remove("active", "active--commission", "active--operational", "active--pending");
     });
     btn.classList.add("active");
-    if (currentTier !== "all") btn.classList.add(`active--${currentTier}`);
+    if (state.tier !== "all") btn.classList.add(`active--${state.tier}`);
     render();
   });
+});
+
+// Smooth scroll for chip jump（offset by header height ~70px）
+document.addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  e.preventDefault();
+  const target = document.getElementById(chip.dataset.slug);
+  if (!target) return;
+  const headerOffset = 80;
+  const y = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+  window.scrollTo({ top: y, behavior: "smooth" });
+  // 如果該 category 是收起的，自動展開
+  const key = target.dataset.key;
+  if (key && state.collapsedCategories.has(key)) {
+    state.collapsedCategories.delete(key);
+    render();
+  }
 });
 
 render();
