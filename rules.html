@@ -294,8 +294,8 @@ const RULES = [
     source: "5/12 業務會議", tags: ["公池", "系統"] },
   { id: "POOL-05", tier: "commission", category: "公池名單規範", roles: ["sales", "course", "teaching"],
     title: "誤撈罰則 — 計入犯錯率 1 次",
-    body: "若傳送訊息的名單實際上『在兩個月內仍有聯繫紀錄』，將記錯誤率 1 次。業務需主動截圖給 Posh 報備。\n\n（流程待 Posh 釐清：由業務 self-report 還是課務發現後計入？）",
-    source: "5/12 業務會議", tags: ["公池", "罰則"], reportable: true },
+    body: "若傳送訊息的名單實際上『在兩個月內仍有聯繫紀錄』，將記錯誤率 1 次。\n\n<em>本條由業務自己截圖回報給 Posh。</em>",
+    source: "5/12 業務會議", tags: ["公池", "罰則", "自報"], reportable: true },
 
   // 正式生服務（業務間規則）
   { id: "OFFICIAL-01", tier: "commission", category: "正式生服務權", roles: ["sales"],
