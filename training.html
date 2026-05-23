@@ -28,7 +28,7 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 
 /* Header */
 .header { background: var(--white); border-bottom: 4px solid var(--orange); padding: 16px 20px; position: sticky; top: 0; z-index: 30; box-shadow: var(--shadow); }
-.header__inner { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+.header__inner { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .header__logo { height: 30px; }
 .header__title { font-size: 18px; font-weight: 700; border-left: 3px solid var(--orange); padding-left: 12px; }
 .header__title small { display: block; font-size: 12px; color: var(--gray); font-weight: 400; margin-top: 2px; }
@@ -148,12 +148,15 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 .btn-action--suggest:hover { border-color: var(--teal); background: var(--teal-lt); }
 .btn-action--report:hover { border-color: var(--red); color: var(--red-dk); background: var(--red-lt); }
 
-/* User badge */
-.user-bar { max-width: 1120px; margin: 12px auto 0; padding: 0 20px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 13px; color: var(--gray); }
-.user-bar__name { font-weight: 700; color: var(--dark); background: var(--white); padding: 4px 10px; border-radius: 4px; box-shadow: var(--shadow); }
+/* User badge in header */
+.user-bar { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray); }
+.user-bar__name { font-weight: 700; color: var(--dark); background: var(--bg); padding: 4px 10px; border-radius: 4px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-bar__name--guest { color: var(--gray); font-style: italic; }
 .btn-user { background: var(--white); border: 1px solid var(--border); color: var(--orange-dk); padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .12s; }
 .btn-user:hover { border-color: var(--orange); background: var(--orange-lt); }
+@media (max-width: 720px) {
+  .user-bar { width: 100%; margin-top: 8px; justify-content: flex-end; }
+}
 
 /* Bottom tools */
 .bottom-tools { max-width: 1120px; margin: 0 auto 28px; padding: 0 20px; }
@@ -189,6 +192,11 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
       <span class="staff-badge">內部</span>
       <small>17 章節 ・ 索引 + 進度 + 缺口提示 + 健康度監測</small>
     </div>
+    <div class="user-bar">
+      <span>👤</span>
+      <span class="user-bar__name user-bar__name--guest" id="user-name">guest</span>
+      <button class="btn-user" id="btn-switch-user" type="button">切換</button>
+    </div>
   </div>
 </header>
 
@@ -203,11 +211,6 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
     </div>
   </div>
 </section>
-
-<div class="user-bar">
-  <span>👤 目前使用者：<span class="user-bar__name user-bar__name--guest" id="user-name">guest</span></span>
-  <button class="btn-user" id="btn-switch-user" type="button">切換</button>
-</div>
 
 <section class="stats">
   <div class="stats__card">
@@ -973,6 +976,29 @@ $("btn-switch-user").addEventListener("click", () => {
 
 updateUserBadge();
 renderAll();
+
+// ───── Placeholder URL 防呆 ─────
+// 偵測未配置的 Form / Sheet URL，攔截點擊並顯示說明
+function isPlaceholder(url) {
+  return !url || url.includes("REPLACE_WITH_") || url === "#";
+}
+document.addEventListener("click", e => {
+  const link = e.target.closest("a");
+  if (!link) return;
+  if (isPlaceholder(link.href) || link.href.includes("REPLACE_WITH_")) {
+    e.preventDefault();
+    e.stopPropagation();
+    alert(
+      "⚙️ 此功能尚未配置\n\n" +
+      "你需要：\n" +
+      "1. 建立 Google Form（問題回報 + 建議改進）\n" +
+      "2. 建立 Master Sheet（簽核 + 維護表）\n" +
+      "3. 把兩個 URL 填回 training.html 第 ~360 行\n\n" +
+      "完整步驟在專案內的 training-setup.md。\n" +
+      "或者直接告訴 Posh 你想反映什麼，他會幫你處理。"
+    );
+  }
+}, true);  // capture phase: 先攔截
 </script>
 
 </body>
