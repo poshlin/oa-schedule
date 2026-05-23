@@ -311,8 +311,8 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
       <a class="tool-link" href="index.html" target="_blank">📅 開班時段查詢</a>
       <a class="tool-link" href="https://corp.orangeapple.co/" target="_blank">🔐 Corp 系統登入</a>
       <a class="tool-link" href="https://docs.google.com/forms/d/e/1FAIpQLSc3iBaqAofo1jMHqNAi5vleGL2-rMuvpgopiLlxlh8abyQAig/viewform" target="_blank">📝 犯錯率回報</a>
-      <a class="tool-link" href="#" id="link-report" target="_blank">⚠️ 訓練頁問題回報</a>
       <a class="tool-link" href="#" id="link-sheet" target="_blank">📋 師徒簽核 Master Sheet</a>
+      <a class="tool-link" href="review.html" target="_blank">🔍 Posh 審核控制台</a>
     </div>
   </div>
 </section>
@@ -1107,7 +1107,6 @@ document.addEventListener("click", e => {
 });
 
 // 設定底部工具連結
-$("link-report").href = REPORT_FORM_URL;
 $("link-sheet").href = MENTOR_SHEET_URL;
 
 // ───── 多使用者 UI ─────
