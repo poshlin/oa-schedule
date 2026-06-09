@@ -134,7 +134,10 @@ function _apply(body) {
   }
   if (!rowData) return jsonResponse_({ error: "row not found" }, 404);
 
-  const currentText = String(rowData[7] || "").trim();
+  // 支援從 review.html「修改後採納」覆寫 current_text 跟 proposed_text
+  const currentText = body.override_current
+    ? String(body.override_current).trim()
+    : String(rowData[7] || "").trim();
   const proposedText = body.override_proposed || rowData[8];
   const chapterId = rowData[4];
   const rowId = rowData[1];

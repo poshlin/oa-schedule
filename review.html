@@ -77,8 +77,36 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 .empty__icon { font-size: 48px; margin-bottom: 12px; }
 .loading { text-align: center; padding: 40px 20px; color: var(--gray); }
 .error-banner { background: var(--red-lt); color: var(--red-dk); padding: 14px 20px; border-radius: 8px; margin: 16px 24px; max-width: 1280px; }
+
+/* Edit modal */
+.edit-mask { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; display: none; align-items: flex-start; justify-content: center; padding: 24px; overflow-y: auto; }
+.edit-mask.open { display: flex; }
+.edit-modal { background: var(--white); max-width: 880px; width: 100%; border-radius: 14px; box-shadow: 0 12px 48px rgba(0,0,0,.3); overflow: hidden; margin: auto; }
+.edit-modal__header { padding: 16px 22px; background: var(--orange); color: var(--white); display: flex; align-items: center; gap: 10px; }
+.edit-modal__title { flex: 1; font-weight: 700; font-size: 16px; }
+.edit-modal__close { background: rgba(255,255,255,.2); border: none; color: var(--white); padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 700; }
+.edit-modal__close:hover { background: rgba(255,255,255,.3); }
+.edit-modal__id { font-family: var(--font-en); font-size: 12px; opacity: .9; background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 3px; }
+.edit-modal__body { padding: 20px 22px; max-height: calc(100vh - 200px); overflow-y: auto; }
+.edit-section { margin-bottom: 18px; }
+.edit-section__label { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.edit-section__hint { font-size: 11.5px; color: var(--gray); margin-bottom: 8px; }
+.edit-section__hint strong { color: var(--red-dk); }
+.edit-textarea { width: 100%; padding: 12px 14px; font-family: var(--font-zh); font-size: 14px; line-height: 1.7; border: 2px solid var(--border); border-radius: 8px; resize: vertical; color: var(--dark); background: var(--white); }
+.edit-textarea:focus { outline: none; border-color: var(--orange); }
+.edit-textarea--current { min-height: 80px; }
+.edit-textarea--proposed { min-height: 200px; }
+.edit-count { font-size: 11px; color: var(--gray); text-align: right; margin-top: 4px; font-family: var(--font-en); }
+.edit-count--warn { color: var(--red-dk); font-weight: 700; }
+.edit-count--ok { color: var(--green); font-weight: 700; }
+.edit-tip { background: var(--teal-lt); border-left: 4px solid var(--teal); padding: 10px 14px; font-size: 12px; color: var(--dark); border-radius: 6px; margin-bottom: 14px; line-height: 1.6; }
+.edit-tip strong { color: var(--teal-dk); }
+.edit-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 14px; border-top: 1px solid var(--border); }
+
 @media (max-width: 720px) {
   .diff { grid-template-columns: 1fr; }
+  .edit-mask { padding: 0; align-items: stretch; }
+  .edit-modal { border-radius: 0; }
 }
 </style>
 </head>
@@ -102,6 +130,50 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 
 <div class="status" id="status-text">準備載入...</div>
 <div class="items" id="items-list"></div>
+
+<!-- Edit modal -->
+<div class="edit-mask" id="edit-mask">
+  <div class="edit-modal" role="dialog">
+    <div class="edit-modal__header">
+      <span class="edit-modal__title">✏️ 修改後採納</span>
+      <span class="edit-modal__id" id="edit-row-id"></span>
+      <button class="edit-modal__close" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="edit-modal__body">
+
+      <div class="edit-tip">
+        <strong>💡 提示</strong>：純新增內容類型（current_text 為「無對應原文」）時，
+        請把 current_text 改成 training.html 內<strong>確實存在且唯一</strong>的句子當「定位點」，
+        然後 proposed_text 設成「定位句 + 你想新增的內容」一起作為新版本。
+      </div>
+
+      <div class="edit-section">
+        <div class="edit-section__label">📕 current_text（要替換掉的原文）</div>
+        <div class="edit-section__hint">
+          必須 <strong>≥ 15 字</strong>、且在 training.html 內<strong>唯一存在</strong>。
+          可以是 HTML tag、中文句子、或一段獨特組合。
+        </div>
+        <textarea class="edit-textarea edit-textarea--current" id="edit-current" oninput="updateEditCount()"></textarea>
+        <div class="edit-count" id="edit-current-count">0 字</div>
+      </div>
+
+      <div class="edit-section">
+        <div class="edit-section__label">📗 proposed_text（會用這個版本去替換）</div>
+        <div class="edit-section__hint">
+          系統會在 training.html 找到上面的 current_text、把它整段換成這個 proposed_text。
+        </div>
+        <textarea class="edit-textarea edit-textarea--proposed" id="edit-proposed" oninput="updateEditCount()"></textarea>
+        <div class="edit-count" id="edit-proposed-count">0 字</div>
+      </div>
+
+      <div class="edit-actions">
+        <button class="btn btn--reject" onclick="closeEdit()">取消</button>
+        <button class="btn btn--approve" onclick="confirmEdit()">✅ 採納並 commit</button>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <script>
 // 從 URL ?key=XXX 取得密鑰
@@ -264,13 +336,66 @@ async function reject(rowId) {
   await postAction("reject", { row_id: rowId, reason });
 }
 
-async function editAndApprove(rowId) {
-  const proposedEl = document.getElementById("proposed-" + rowId);
-  const current = proposedEl.textContent;
-  const edited = prompt("修改建議文字（會用這個版本去 commit）：", current);
-  if (edited === null || edited === current) return;
-  await postAction("apply", { row_id: rowId, override_proposed: edited });
+let editingRowId = null;
+
+function editAndApprove(rowId) {
+  const item = allItems.find(it => it.row_id === rowId);
+  if (!item) return;
+  editingRowId = rowId;
+  document.getElementById("edit-row-id").textContent = rowId + " ・ " + (item.chapter_id || "");
+  document.getElementById("edit-current").value = item.current_text || "";
+  document.getElementById("edit-proposed").value = item.proposed_text || "";
+  document.getElementById("edit-mask").classList.add("open");
+  updateEditCount();
+  setTimeout(() => document.getElementById("edit-current").focus(), 50);
 }
+
+function closeEdit() {
+  document.getElementById("edit-mask").classList.remove("open");
+  editingRowId = null;
+}
+
+function updateEditCount() {
+  const cur = document.getElementById("edit-current").value;
+  const prop = document.getElementById("edit-proposed").value;
+  const curCount = document.getElementById("edit-current-count");
+  const propCount = document.getElementById("edit-proposed-count");
+  curCount.textContent = cur.length + " 字 " + (cur.length >= 15 ? "✓ 符合 ≥ 15 字" : "⚠️ 需 ≥ 15 字");
+  curCount.className = "edit-count " + (cur.length >= 15 ? "edit-count--ok" : "edit-count--warn");
+  propCount.textContent = prop.length + " 字";
+}
+
+async function confirmEdit() {
+  if (!editingRowId) return;
+  const current = document.getElementById("edit-current").value.trim();
+  const proposed = document.getElementById("edit-proposed").value;
+  if (current.length < 15) {
+    alert("⚠️ current_text 必須 ≥ 15 字。\n\n目前：" + current.length + " 字");
+    return;
+  }
+  if (!proposed.trim()) {
+    alert("⚠️ proposed_text 不能空白");
+    return;
+  }
+  if (!confirm("確定要採納並 commit 嗎？\n\n會直接寫進 GitHub repo。")) return;
+  const rowId = editingRowId;
+  closeEdit();
+  await postAction("apply", {
+    row_id: rowId,
+    override_current: current,
+    override_proposed: proposed
+  });
+}
+
+// ESC 關閉 modal
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && editingRowId) closeEdit();
+});
+
+// 點背景關閉
+document.getElementById("edit-mask").addEventListener("click", e => {
+  if (e.target.id === "edit-mask") closeEdit();
+});
 
 async function postAction(action, extra) {
   try {
