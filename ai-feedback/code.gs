@@ -1,18 +1,12 @@
 /**
- * 橘子蘋果訓練頁 AI 改進助理 — Google Apps Script
+ * 橘子蘋果訓練頁 AI 改進助理 — Google Apps Script v1.1
+ * 修正：_apply + updateGitHubFile_ 加入嚴格驗證、避免空 current_text 把內容插到檔頭
  *
  * 兩種 action：
- *   submit  — 從 Cloudflare Worker 接收 AI 整理好的建議，寫進「待審區」Sheet
+ *   submit  — 從 training.html 接收 AI 整理好的建議，寫進「待審區」Sheet
  *   apply   — 從 review.html 收到 Posh 採納指令，用 GitHub API 自動 commit 修改
  *
- * 部署步驟：
- *   1. 在 Master Sheet 內：擴充功能 → Apps Script → 貼此檔案
- *   2. 專案屬性（Script Properties）填入：
- *        GITHUB_TOKEN      — 你的 GitHub Personal Access Token（需 repo 寫權限）
- *        GITHUB_REPO       — poshlin/oa-schedule
- *        REVIEW_SECRET     — 給 review.html 用的密鑰字串（自己設定）
- *   3. 部署 → 新增部署 → 類型「網路應用程式」→ 執行身分「我」→ 存取權限「任何人」
- *   4. 複製 URL → 填到 Cloudflare Worker 的 APPS_SCRIPT_URL 變數
+ * 部署步驟見 ai-feedback/README.md
  */
 
 const PENDING_TAB = "待審區";
@@ -52,13 +46,12 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  // 給 review.html 拉清單用（GET 簡單 cache-friendly）
   try {
     const params = e.parameter || {};
     if (params.action === "list") {
       return _list({ status: params.status || "pending", secret: params.secret });
     }
-    return jsonResponse_({ ok: true, service: "OA Training Feedback Apps Script" });
+    return jsonResponse_({ ok: true, service: "OA Training Feedback Apps Script v1.1" });
   } catch (err) {
     return jsonResponse_({ error: err.message }, 500);
   }
@@ -90,7 +83,6 @@ function _submit(payload) {
 }
 
 function _list(body) {
-  // 驗證 secret（避免外人抓 Sheet 內容）
   if (body.secret !== getProp("REVIEW_SECRET")) {
     return jsonResponse_({ error: "unauthorized" }, 401);
   }
@@ -142,20 +134,25 @@ function _apply(body) {
   }
   if (!rowData) return jsonResponse_({ error: "row not found" }, 404);
 
-  const currentText = rowData[7];   // current_text
-  const proposedText = rowData[8];  // proposed_text
+  const currentText = String(rowData[7] || "").trim();
+  const proposedText = body.override_proposed || rowData[8];
   const chapterId = rowData[4];
   const rowId = rowData[1];
 
-  // 取得 GitHub repo 內 training.html 現況
+  // ★ 新增驗證：current_text 必須夠長
+  if (currentText.length < 15) {
+    return jsonResponse_({
+      error: "current_text 太短或為空（少於 15 字元），無法安全定位替換點。\n\n建議：\n1. 用「✏️ 修改後採納」手動填入完整的 current_text\n2. 或回 Sheet 把該列的 current_text 補上具體原文後再採納\n3. 純新增內容的建議、建議手動編輯 training.html，不要走自動採納"
+    }, 400);
+  }
+
   const ghResult = updateGitHubFile_({
     path: "training.html",
     findText: currentText,
     replaceText: proposedText,
-    commitMessage: `[AI feedback] ${chapterId}: ${rowData[6]}\n\n採納 ${rowId}（${rowData[2]} 回報）\n\nCo-Authored-By: ${rowData[2]} <noreply@orangeapple.co>`
+    commitMessage: "[AI feedback] " + chapterId + ": " + rowData[6] + "\n\n採納 " + rowId + "（" + rowData[2] + " 回報）\n\nCo-Authored-By: " + rowData[2] + " <noreply@orangeapple.co>"
   });
 
-  // 更新 Sheet 狀態
   sheet.getRange(rowIdx, 15).setValue("applied");
   sheet.getRange(rowIdx, 16).setValue(new Date().toISOString());
   sheet.getRange(rowIdx, 17).setValue(ghResult.sha || "");
@@ -168,14 +165,13 @@ function updateGitHubFile_({ path, findText, replaceText, commitMessage }) {
   const token = getProp("GITHUB_TOKEN");
   if (!repo || !token) throw new Error("GITHUB_REPO 或 GITHUB_TOKEN 未設定");
 
-  const api = `https://api.github.com/repos/${repo}/contents/${path}`;
+  const api = "https://api.github.com/repos/" + repo + "/contents/" + path;
   const headers = {
     "Authorization": "token " + token,
     "Accept": "application/vnd.github+json"
   };
 
-  // 1. 取得目前檔案內容 + SHA
-  const getResp = UrlFetchApp.fetch(api, { method: "get", headers, muteHttpExceptions: true });
+  const getResp = UrlFetchApp.fetch(api, { method: "get", headers: headers, muteHttpExceptions: true });
   const fileInfo = JSON.parse(getResp.getContentText());
   if (getResp.getResponseCode() !== 200) {
     throw new Error("GitHub get file failed: " + JSON.stringify(fileInfo));
@@ -183,22 +179,27 @@ function updateGitHubFile_({ path, findText, replaceText, commitMessage }) {
   const sha = fileInfo.sha;
   const currentContent = Utilities.newBlob(Utilities.base64Decode(fileInfo.content), "text/plain").getDataAsString();
 
-  // 2. 確認 findText 存在
-  if (currentContent.indexOf(findText) === -1) {
-    throw new Error("findText not found in " + path + " — 可能已被改過、或 current_text 不夠精準。建議手動處理。");
+  if (!findText || findText.length < 15) {
+    throw new Error("findText 太短（< 15 字元），無法安全替換。請填具體原文。");
+  }
+  const firstIdx = currentContent.indexOf(findText);
+  if (firstIdx === -1) {
+    throw new Error("findText 不存在於 " + path + " — 可能 AI 提供的原文有誤、或檔案已被改過。建議『修改後採納』手動處理。");
+  }
+  const secondIdx = currentContent.indexOf(findText, firstIdx + 1);
+  if (secondIdx !== -1) {
+    throw new Error("findText 在 " + path + " 內出現多次（位置 " + firstIdx + " 跟 " + secondIdx + "），不確定要替換哪一個。請『修改後採納』、把 current_text 改得更具體（加上前後文）使其唯一。");
   }
 
-  // 3. 替換
-  const newContent = currentContent.replace(findText, replaceText);
+  const newContent = currentContent.substring(0, firstIdx) + replaceText + currentContent.substring(firstIdx + findText.length);
   if (newContent === currentContent) {
     throw new Error("no change after replace");
   }
 
-  // 4. PUT 寫回（GitHub API 要 base64）
   const newBase64 = Utilities.base64Encode(Utilities.newBlob(newContent).getBytes());
   const putResp = UrlFetchApp.fetch(api, {
     method: "put",
-    headers,
+    headers: headers,
     contentType: "application/json",
     payload: JSON.stringify({
       message: commitMessage,
@@ -217,4 +218,43 @@ function updateGitHubFile_({ path, findText, replaceText, commitMessage }) {
 function jsonResponse_(obj, code) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * 自我診斷：驗證 Properties、Sheet、GitHub API 是否都通
+ */
+function runSelfTest() {
+  const result = { checks: [] };
+
+  const repo = getProp("GITHUB_REPO");
+  const token = getProp("GITHUB_TOKEN");
+  const secret = getProp("REVIEW_SECRET");
+  result.checks.push({ name: "GITHUB_REPO", pass: !!repo, value: repo || "(未設)" });
+  result.checks.push({ name: "GITHUB_TOKEN", pass: !!token, value: token ? "已設(隱藏)" : "(未設)" });
+  result.checks.push({ name: "REVIEW_SECRET", pass: !!secret, value: secret ? "已設(隱藏)" : "(未設)" });
+
+  try {
+    getPendingSheet_();
+    result.checks.push({ name: "可寫 Sheet (待審區)", pass: true });
+  } catch (e) {
+    result.checks.push({ name: "可寫 Sheet", pass: false, error: e.message });
+  }
+
+  if (repo && token) {
+    try {
+      const r = UrlFetchApp.fetch("https://api.github.com/repos/" + repo, {
+        headers: { "Authorization": "token " + token, "Accept": "application/vnd.github+json" },
+        muteHttpExceptions: true
+      });
+      const code = r.getResponseCode();
+      result.checks.push({ name: "GitHub API 連通", pass: code === 200, value: "HTTP " + code });
+    } catch (e) {
+      result.checks.push({ name: "GitHub API 連通", pass: false, error: e.message });
+    }
+  } else {
+    result.checks.push({ name: "GitHub API 連通", pass: false, error: "因為 GITHUB_REPO 或 GITHUB_TOKEN 未設、所以沒試" });
+  }
+
+  Logger.log(JSON.stringify(result, null, 2));
+  return result;
 }
