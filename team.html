@@ -156,8 +156,8 @@ const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1w2T1rI0-Lb2Qjfjj
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// 部門顯示順序（沒列到的會排在最後）
-const DEPT_ORDER = ["線上事業部", "課程顧問", "課務", "電銷", "管理"];
+// 職務分組順序（沒列到的會排在最後）
+const JOB_ORDER = ["總監", "課程顧問", "課務", "電銷", "管理"];
 
 document.getElementById("sheet-link").href = SHEET_EDIT_URL || "#";
 
@@ -212,6 +212,15 @@ function escapeHtml(s) {
   }[c]));
 }
 
+// 從職稱自動推導左上角徽章（標籤欄沒填時使用）
+function deriveTag(title) {
+  if (!title) return "";
+  if (title.includes("總監")) return "總監";
+  if (title.includes("主管")) return "主管";
+  if (title.includes("組長")) return "組長";
+  return "";
+}
+
 function fmtJoinDate(s) {
   if (!s) return "";
   const t = String(s).trim();
@@ -245,26 +254,26 @@ let activeDept = "全部";
 
 function render() {
   const main = document.getElementById("main");
-  const list = activeDept === "全部" ? allPeople : allPeople.filter(p => p.department === activeDept);
+  const list = activeDept === "全部" ? allPeople : allPeople.filter(p => p.job === activeDept);
 
   if (list.length === 0) {
     main.innerHTML = `<div class="state">
       <div class="state__icon">🙇</div>
-      <div class="state__title">這個部門目前沒有資料</div>
+      <div class="state__title">這個職務目前沒有資料</div>
       <div class="state__msg">到團隊主檔 Sheet 新增資料、把「公開」欄打 TRUE。</div>
     </div>`;
     return;
   }
 
-  // 依部門分組
+  // 依職務分組
   const grouped = {};
   list.forEach(p => {
-    const d = p.department || "其他";
+    const d = p.job || "其他";
     if (!grouped[d]) grouped[d] = [];
     grouped[d].push(p);
   });
 
-  const ordered = [...DEPT_ORDER.filter(d => grouped[d]), ...Object.keys(grouped).filter(d => !DEPT_ORDER.includes(d))];
+  const ordered = [...JOB_ORDER.filter(d => grouped[d]), ...Object.keys(grouped).filter(d => !JOB_ORDER.includes(d))];
 
   main.innerHTML = ordered.map(dept => {
     const cards = grouped[dept]
@@ -279,10 +288,10 @@ function renderFilters() {
   const filters = document.getElementById("filters");
   const counts = { 全部: allPeople.length };
   allPeople.forEach(p => {
-    const d = p.department || "其他";
+    const d = p.job || "其他";
     counts[d] = (counts[d] || 0) + 1;
   });
-  const depts = ["全部", ...DEPT_ORDER.filter(d => counts[d]), ...Object.keys(counts).filter(d => d !== "全部" && !DEPT_ORDER.includes(d))];
+  const depts = ["全部", ...JOB_ORDER.filter(d => counts[d]), ...Object.keys(counts).filter(d => d !== "全部" && !JOB_ORDER.includes(d))];
   filters.innerHTML = depts.map(d =>
     `<button class="filter-chip ${d === activeDept ? "active" : ""}" onclick="switchDept('${escapeHtml(d)}')">${escapeHtml(d)}<span class="filter-chip__count">${counts[d]}</span></button>`
   ).join("");
@@ -329,12 +338,13 @@ async function load() {
         const i = idxOf(name);
         return i === -1 ? "" : String(r[i] || "").trim();
       };
+      const titleVal = get("職稱") || get("職位") || get("title");
       return {
         chinese_name: get("中文姓名") || get("chinese_name"),
         english_name: get("英文名") || get("english_name"),
-        department: get("部門") || get("department"),
-        title: get("職稱") || get("title"),
-        role_tag: get("標籤") || get("role_tag"),
+        job: get("職務") || get("部門") || get("department"),
+        title: titleVal,
+        role_tag: get("標籤") || get("role_tag") || deriveTag(titleVal),
         photo_url: get("照片URL") || get("photo_url"),
         join_date: get("加入日期") || get("join_date"),
         bio: get("一句話介紹") || get("bio"),
