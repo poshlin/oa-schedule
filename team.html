@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>團隊介紹｜線上事業部 — 橘子蘋果</title>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-dk: #D48500;
+  --red: #FF5859;    --red-dk: #CC3344;
+  --teal: #00C4B3;   --teal-dk: #008F83; --teal-lt: #E0F7F4;
+  --gray: #646569;   --gray-lt: #9A9A9F;
+  --dark: #2D2D2D;
+  --bg: #F5F5F5;     --white: #FFFFFF;
+  --shadow: 0 2px 8px rgba(45,45,45,.08);
+  --shadow-lg: 0 4px 16px rgba(45,45,45,.12);
+  --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-en: "Trebuchet MS", "Calibri", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: var(--font-zh); color: var(--dark); background: var(--bg); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+
+.header { background: var(--white); border-bottom: 4px solid var(--orange); padding: 16px 20px; position: sticky; top: 0; z-index: 10; box-shadow: var(--shadow); }
+.header__inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+.header__logo { height: 30px; }
+.header__title { font-size: 18px; font-weight: 700; border-left: 3px solid var(--orange); padding-left: 12px; flex: 1; }
+.header__title small { display: block; font-size: 12px; color: var(--gray); font-weight: 400; margin-top: 2px; }
+.staff-badge { background: var(--orange); color: var(--white); font-size: 11px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; font-weight: 700; letter-spacing: 0.5px; }
+
+.hero { background: linear-gradient(135deg, var(--orange) 0%, #FFC04D 100%); color: var(--white); padding: 28px 20px 32px; position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: var(--teal); opacity: .18; border-radius: 50%; }
+.hero__inner { max-width: 1080px; margin: 0 auto; position: relative; z-index: 1; }
+.hero h1 { font-size: 22px; margin-bottom: 6px; color: var(--white); }
+.hero p { font-size: 14px; opacity: .95; }
+.hero p a { color: var(--white); text-decoration: underline; font-weight: 700; }
+
+.filters { max-width: 1080px; margin: 16px auto 0; padding: 0 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-chip {
+  background: var(--white); color: var(--gray); border: 2px solid transparent; border-radius: 24px;
+  padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: var(--font-zh); transition: all .15s;
+  box-shadow: var(--shadow);
+}
+.filter-chip:hover { color: var(--dark); }
+.filter-chip.active { background: var(--orange); color: var(--white); }
+.filter-chip__count { font-family: var(--font-en); opacity: .7; margin-left: 6px; }
+
+.section-title { max-width: 1080px; margin: 28px auto 12px; padding: 0 20px; font-size: 14px; font-weight: 700; color: var(--gray); letter-spacing: .5px; display: flex; align-items: center; gap: 10px; }
+.section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: var(--orange); border-radius: 2px; }
+
+.grid { max-width: 1080px; margin: 0 auto 20px; padding: 0 20px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+
+.card {
+  background: var(--white); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
+  display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s;
+  position: relative;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.card__photo {
+  aspect-ratio: 1 / 1; background: linear-gradient(135deg, #F0F0F0 0%, #E0E0E0 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px; color: var(--gray-lt); position: relative;
+}
+.card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card__photo-placeholder { font-family: var(--font-en); font-size: 56px; font-weight: 700; color: var(--white); background: var(--orange); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.card__role-tag {
+  position: absolute; top: 10px; left: 10px;
+  background: rgba(45,45,45,.78); color: var(--white);
+  font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+.card__body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; }
+.card__name { font-size: 18px; font-weight: 700; color: var(--dark); line-height: 1.3; }
+.card__name-en { font-family: var(--font-en); font-size: 14px; color: var(--gray); font-weight: 400; margin-left: 6px; }
+.card__title { font-size: 13px; color: var(--teal-dk); font-weight: 700; margin-top: 2px; }
+.card__meta { font-size: 11px; color: var(--gray-lt); margin-top: 6px; font-family: var(--font-en); }
+.card__bio { font-size: 13px; color: var(--gray); line-height: 1.6; margin-top: 10px; flex: 1; }
+
+.state {
+  max-width: 600px; margin: 60px auto; padding: 40px 24px;
+  background: var(--white); border-radius: 14px; box-shadow: var(--shadow);
+  text-align: center;
+}
+.state--error { border-left: 5px solid var(--red); text-align: left; }
+.state__icon { font-size: 48px; margin-bottom: 12px; }
+.state__title { font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+.state__msg { font-size: 14px; color: var(--gray); line-height: 1.7; }
+.state__msg code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-family: var(--font-en); font-size: 12px; color: var(--red-dk); }
+.state__msg ol { text-align: left; margin: 12px 0 0 24px; }
+.state__msg li { margin-bottom: 6px; }
+.spinner { display: inline-block; width: 36px; height: 36px; border: 4px solid var(--bg); border-top-color: var(--orange); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.footer { text-align: center; font-size: 12px; color: var(--gray); padding: 24px 20px; border-top: 1px solid #E5E5E5; line-height: 1.7; }
+.footer a { color: var(--orange); text-decoration: none; font-weight: 700; }
+.footer a:hover { color: var(--orange-dk); }
+
+@media (max-width: 600px) {
+  .header__title { font-size: 16px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 0 14px; }
+  .card__name { font-size: 16px; }
+  .card__photo-placeholder { font-size: 42px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <svg class="header__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 174.6 34.03" aria-label="橘子蘋果">
+      <path fill="#ffa300" d="m24,21c0-4.9,2.36-9.25,6.01-11.99-1.54-.65-3.23-1-5.01-1-7.17,0-13,5.83-13,13s5.83,13,13,13c1.77,0,3.46-.36,5.01-1-3.64-2.74-6.01-7.1-6.01-11.99Z"/>
+      <path fill="#00c4b3" d="m31,5c0,.7.14,1.36.4,1.96.2.02.4.04.6.04,2.76,0,5-2.24,5-5,0-.7-.14-1.36-.4-1.96-.2-.02-.4-.04-.6-.04-2.76,0-5,2.24-5,5Z"/>
+      <path fill="#ff5859" d="m39,8c-7.17,0-13,5.83-13,13s5.83,13,13,13,13-5.83,13-13-5.83-13-13-13Z"/>
+    </svg>
+    <div class="header__title">
+      團隊介紹｜線上事業部
+      <span class="staff-badge">內部</span>
+      <small>主管 / 課程顧問 / 課務 / 電銷 同仁簡介，資料來自團隊主檔 Sheet，60 秒內同步</small>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <h1>👋 認識我們的人</h1>
+    <p>新人歡迎卡 ・ 給家長看的人員介紹 ・ 內部跨部門快速找人。<a href="training.html">← 回新人訓練頁</a></p>
+  </div>
+</section>
+
+<div class="filters" id="filters"></div>
+
+<main id="main">
+  <div class="state">
+    <div class="spinner"></div>
+    <div class="state__title" style="margin-top: 16px;">資料載入中…</div>
+  </div>
+</main>
+
+<footer class="footer">
+  <p>資料來源：<a href="#" id="sheet-link" target="_blank">團隊主檔 Sheet</a> ・ 要新增 / 修改人員、直接編輯 Sheet 即可。</p>
+  <p style="margin-top: 6px;">建議補上照片以提升新人記憶 ・ 出問題請聯絡 Posh</p>
+</footer>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 設定區：上線前要改這 2 個 URL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 從「團隊主檔」分頁 → 檔案 → 共用 → 發布到網路 → 選擇分頁、格式 CSV → 複製連結
+const CSV_URL = "PASTE_PUBLISHED_CSV_URL_HERE";
+
+// 給 footer 連回 Sheet 用，方便你直接點開編輯
+const SHEET_EDIT_URL = "PASTE_SHEET_EDIT_URL_HERE";
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 部門顯示順序（沒列到的會排在最後）
+const DEPT_ORDER = ["線上事業部", "課程顧問", "課務", "電銷", "管理"];
+
+document.getElementById("sheet-link").href = SHEET_EDIT_URL || "#";
+
+// CSV 解析（支援欄位內含逗號、雙引號跳脫）
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuote) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuote = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQuote = true;
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c === "\r") { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+// Google Drive 分享連結 → 縮圖直連
+// 接受格式：
+//   https://drive.google.com/file/d/FILE_ID/view?...
+//   https://drive.google.com/open?id=FILE_ID
+//   https://drive.google.com/uc?id=FILE_ID
+function driveImg(url) {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  // 已經是直連圖片就照用
+  if (/\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(trimmed)) return trimmed;
+  const m = trimmed.match(/[-\w]{25,}/);
+  if (!m) return trimmed; // 不認識的格式直接交給 <img>
+  return "https://drive.google.com/thumbnail?id=" + m[0] + "&sz=w400";
+}
+
+function initials(name, ename) {
+  if (ename && ename.trim()) return ename.trim()[0].toUpperCase();
+  if (name && name.trim()) return name.trim()[0];
+  return "?";
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function fmtJoinDate(s) {
+  if (!s) return "";
+  const t = String(s).trim();
+  return t ? "加入 " + t : "";
+}
+
+function renderCard(p) {
+  const photoSrc = driveImg(p.photo_url);
+  const init = escapeHtml(initials(p.chinese_name, p.english_name));
+  const placeholder = `<div class="card__photo-placeholder">${init}</div>`;
+  const photoHtml = photoSrc
+    ? `<img src="${escapeHtml(photoSrc)}" alt="${escapeHtml(p.chinese_name)}" data-init="${init}" onerror="this.outerHTML='<div class=&quot;card__photo-placeholder&quot;>'+this.dataset.init+'</div>'">`
+    : placeholder;
+  const roleTag = p.role_tag ? `<span class="card__role-tag">${escapeHtml(p.role_tag)}</span>` : "";
+  return `<div class="card">
+    <div class="card__photo">
+      ${photoHtml}
+      ${roleTag}
+    </div>
+    <div class="card__body">
+      <div class="card__name">${escapeHtml(p.chinese_name)}<span class="card__name-en">${escapeHtml(p.english_name)}</span></div>
+      <div class="card__title">${escapeHtml(p.title)}</div>
+      <div class="card__meta">${escapeHtml(fmtJoinDate(p.join_date))}</div>
+      ${p.bio ? `<div class="card__bio">${escapeHtml(p.bio)}</div>` : ""}
+    </div>
+  </div>`;
+}
+
+let allPeople = [];
+let activeDept = "全部";
+
+function render() {
+  const main = document.getElementById("main");
+  const list = activeDept === "全部" ? allPeople : allPeople.filter(p => p.department === activeDept);
+
+  if (list.length === 0) {
+    main.innerHTML = `<div class="state">
+      <div class="state__icon">🙇</div>
+      <div class="state__title">這個部門目前沒有資料</div>
+      <div class="state__msg">到團隊主檔 Sheet 新增資料、把「公開」欄打 TRUE。</div>
+    </div>`;
+    return;
+  }
+
+  // 依部門分組
+  const grouped = {};
+  list.forEach(p => {
+    const d = p.department || "其他";
+    if (!grouped[d]) grouped[d] = [];
+    grouped[d].push(p);
+  });
+
+  const ordered = [...DEPT_ORDER.filter(d => grouped[d]), ...Object.keys(grouped).filter(d => !DEPT_ORDER.includes(d))];
+
+  main.innerHTML = ordered.map(dept => {
+    const cards = grouped[dept]
+      .sort((a, b) => (parseInt(a.order || 99) - parseInt(b.order || 99)))
+      .map(renderCard).join("");
+    return `<div class="section-title">${escapeHtml(dept)}<span style="font-family: var(--font-en); color: var(--gray-lt); font-weight: 400;">（${grouped[dept].length}）</span></div>
+      <div class="grid">${cards}</div>`;
+  }).join("");
+}
+
+function renderFilters() {
+  const filters = document.getElementById("filters");
+  const counts = { 全部: allPeople.length };
+  allPeople.forEach(p => {
+    const d = p.department || "其他";
+    counts[d] = (counts[d] || 0) + 1;
+  });
+  const depts = ["全部", ...DEPT_ORDER.filter(d => counts[d]), ...Object.keys(counts).filter(d => d !== "全部" && !DEPT_ORDER.includes(d))];
+  filters.innerHTML = depts.map(d =>
+    `<button class="filter-chip ${d === activeDept ? "active" : ""}" onclick="switchDept('${escapeHtml(d)}')">${escapeHtml(d)}<span class="filter-chip__count">${counts[d]}</span></button>`
+  ).join("");
+}
+
+function switchDept(d) {
+  activeDept = d;
+  renderFilters();
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function load() {
+  if (!CSV_URL || CSV_URL.startsWith("PASTE_")) {
+    document.getElementById("main").innerHTML = `<div class="state state--error">
+      <div class="state__icon">⚙️</div>
+      <div class="state__title">尚未設定資料來源</div>
+      <div class="state__msg">
+        請依下列步驟設定團隊主檔 Sheet：
+        <ol>
+          <li>開啟 Google Sheets、建立分頁「<code>團隊主檔</code>」，欄位順序見 <code>team-setup.md</code></li>
+          <li>檔案 → 共用 → 發布到網路 → 選「團隊主檔」分頁、格式選 CSV → 複製連結</li>
+          <li>把連結貼到 <code>team.html</code> 的 <code>CSV_URL</code> 常數</li>
+          <li>把整個 Sheet 的編輯連結貼到 <code>SHEET_EDIT_URL</code></li>
+          <li>commit 推到 GitHub、等 Pages 重建</li>
+        </ol>
+      </div>
+    </div>`;
+    return;
+  }
+
+  try {
+    const cb = Math.floor(Date.now() / 60000); // 每分鐘換一次快取金鑰、避免 CDN 卡舊資料
+    const sep = CSV_URL.includes("?") ? "&" : "?";
+    const resp = await fetch(CSV_URL + sep + "cb=" + cb, { cache: "no-cache" });
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const text = await resp.text();
+    const rows = parseCSV(text).filter(r => r.length > 1 && r.some(c => c.trim()));
+    if (rows.length < 2) throw new Error("Sheet 沒有資料");
+    const headers = rows[0].map(h => h.trim());
+    const idxOf = name => headers.indexOf(name);
+    const people = rows.slice(1).map(r => {
+      const get = name => {
+        const i = idxOf(name);
+        return i === -1 ? "" : String(r[i] || "").trim();
+      };
+      return {
+        chinese_name: get("中文姓名") || get("chinese_name"),
+        english_name: get("英文名") || get("english_name"),
+        department: get("部門") || get("department"),
+        title: get("職稱") || get("title"),
+        role_tag: get("標籤") || get("role_tag"),
+        photo_url: get("照片URL") || get("photo_url"),
+        join_date: get("加入日期") || get("join_date"),
+        bio: get("一句話介紹") || get("bio"),
+        public: (get("公開") || get("public") || "").toUpperCase(),
+        order: get("排序") || get("order") || "99"
+      };
+    }).filter(p => p.public === "TRUE" && p.chinese_name);
+
+    allPeople = people;
+    renderFilters();
+    render();
+  } catch (err) {
+    document.getElementById("main").innerHTML = `<div class="state state--error">
+      <div class="state__icon">⚠️</div>
+      <div class="state__title">載入失敗</div>
+      <div class="state__msg">
+        <code>${escapeHtml(err.message)}</code><br><br>
+        可能原因：<br>
+        ・Sheet 還沒「發布到網路」<br>
+        ・CSV_URL 貼錯<br>
+        ・分頁名稱沒對到<br>
+        ・網路問題（重新整理試試）
+      </div>
+    </div>`;
+  }
+}
+
+window.switchDept = switchDept;
+load();
+</script>
+</body>
+</html>
