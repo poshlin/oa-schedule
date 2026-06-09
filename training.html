@@ -1200,12 +1200,18 @@ ${ch.notice ? "- 最近主管說明：" + ch.notice + "\n" : ""}
   "chapter_id": "${ch.id}",
   "category": "missing_info | unclear | outdated | broken_link | new_content | other",
   "summary": "≤50字摘要（必填）",
-  "current_text": "頁面上的相關原文（沒有就留空字串）",
-  "proposed_text": "你建議的完整新版本",
+  "current_text": "頁面上的原文（必填、≥15字、且要在 training.html 內唯一存在）",
+  "proposed_text": "建議的完整新版本（系統會用這段替換 current_text）",
   "reasoning": "為什麼這個改進有用",
   "reporter_confidence": "high | medium | low"
 }
 \`\`\`
+
+## ⚠️ current_text 的關鍵規則（不照做會 commit 到錯位置）
+- **必填、不可空字串、不可少於 15 字元**
+- 必須是 training.html 內**確實存在的原文**（一字不漏、含標點、含 HTML tag 也 OK）
+- 必須在整份 HTML 內**唯一**（如果某句話多處出現，要加上前後文使其唯一）
+- 若是「純新增內容」（找不到要替換什麼）→ 找該章節內附近一個唯一句子作為「定位點」、把它放進 current_text，然後 proposed_text 給「該定位句 + 新增內容」整段作為新版本
 
 ## 注意事項
 - 若我講到敏感資訊（密碼、家長個資、業務員個資），提醒我不要寫進建議
