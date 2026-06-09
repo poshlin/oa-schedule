@@ -231,8 +231,8 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
     <div class="card__label">📚 常用樣本</div>
     <div class="card__hint">點任一張卡片載入到上方輸入區，可以再改寫。</div>
     <div class="tpl-tabs">
-      <button class="tpl-tab active" data-tab="default" type="button">預設樣本</button>
-      <button class="tpl-tab" data-tab="mine" type="button">我的樣本 <span id="mine-count">(0)</span></button>
+      <button class="tpl-tab active" data-tab="mine" type="button">⭐ 我的樣本 <span id="mine-count">(0)</span></button>
+      <button class="tpl-tab" data-tab="default" type="button">預設樣本（參考用）</button>
     </div>
     <div class="tpl-grid" id="tpl-grid"></div>
     <div class="tpl-actions">
@@ -469,8 +469,8 @@ const DEFAULT_TEMPLATES = [
     text: "家長您好，橘子蘋果新一期試聽營開放預約囉！這次主題是 OOOO。歡迎家長讓孩子體驗看看，名額有限。 http://oaoa.fun/xxxxx"
   },
   {
-    name: "☀️ 暑期營隊",
-    text: "家長您好，橘子蘋果暑假營隊開放報名！多元主題、限量名額。詳情： http://oaoa.fun/xxxxx"
+    name: "🏆 APCS 培訓檢定營",
+    text: "家長您好，橘子蘋果 APCS 程式檢定培訓營開放報名！協助孩子準備升學加分證照、短期集訓快速上手。詳情： http://oaoa.fun/xxxxx"
   },
   {
     name: "🔍 公池追蹤",
@@ -504,7 +504,7 @@ function saveMyTemplates(list) {
   localStorage.setItem(MY_TPL_KEY, JSON.stringify(list));
 }
 
-let currentTab = "default";
+let currentTab = "mine";  // 預設先看「我的樣本」（業務常用的會自己存）
 
 function renderTemplates() {
   const list = currentTab === "default" ? DEFAULT_TEMPLATES : loadMyTemplates();
@@ -512,7 +512,11 @@ function renderTemplates() {
   $("mine-count").textContent = `(${loadMyTemplates().length})`;
 
   if (list.length === 0) {
-    grid.innerHTML = `<div class="tpl-empty">${currentTab === "mine" ? "還沒儲存任何樣本。點下方「儲存目前內容為樣本」開始建立。" : "沒有預設樣本"}</div>`;
+    grid.innerHTML = currentTab === "mine"
+      ? `<div class="tpl-empty">⭐ 你還沒儲存任何樣本<br><br>
+          寫完一封簡訊後、點下方「💾 把目前內容存成樣本」就能存起來重複用。<br>
+          需要起手範本？切到「預設樣本（參考用）」看看。</div>`
+      : `<div class="tpl-empty">沒有預設樣本</div>`;
     return;
   }
 
