@@ -1178,16 +1178,49 @@ async function loadMentorSignoffs() {
     const rows = parseSignoffCsv(await resp.text()).filter(r => r.length > 1 && r.some(c => String(c).trim()));
     if (rows.length < 2) return false;
     const headers = rows[0].map(h => String(h).trim());
-    const idxId = headers.indexOf("chapter_id");
-    const idxDate = headers.indexOf("last_review_date");
-    const idxBy = headers.indexOf("reviewed_by");
-    if (idxId === -1 || idxDate === -1) return false;
+
+    // 欄位查找：接受中英雙語、跟舊版命名（章節 / chapter_id / Owner / reviewed_by / 上次審視日 / last_review_date）
+    const findIdx = (...names) => {
+      for (const n of names) { const i = headers.indexOf(n); if (i !== -1) return i; }
+      return -1;
+    };
+    const idxId = findIdx("chapter_id", "章節ID", "ID");
+    const idxChName = findIdx("章節", "chapter", "chapter_title", "章節名稱");
+    const idxDate = findIdx("last_review_date", "上次審視日", "上次審視", "簽核日期");
+    const idxBy = findIdx("reviewed_by", "Owner", "owner", "簽核人");
+
+    if (idxDate === -1) return false;
+    if (idxId === -1 && idxChName === -1) return false;
+
+    // chapter_id 解析：優先用 chapter_id 欄、否則從「1. 認識線上事業部」這種前綴推導成 ch01
+    const getChapterId = (row) => {
+      if (idxId !== -1) {
+        const v = String(row[idxId] || "").trim();
+        if (v) return v.startsWith("ch") ? v : "ch" + String(v).padStart(2, "0");
+      }
+      if (idxChName !== -1) {
+        const v = String(row[idxChName] || "").trim();
+        const m = v.match(/^(\d+)/);
+        if (m) return "ch" + String(m[1]).padStart(2, "0");
+      }
+      return "";
+    };
+
+    // 日期正規化：Sheet 可能輸出 2026/6/9、2026-06-09、2026-6-9 等格式
+    const normDate = (s) => {
+      const t = String(s || "").trim();
+      const m = t.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (!m) return t;
+      return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+    };
+
     const map = {};
     rows.slice(1).forEach(r => {
-      const id = String(r[idxId] || "").trim();
-      const date = String(r[idxDate] || "").trim();
+      const id = getChapterId(r);
+      const date = normDate(r[idxDate]);
       if (id && date) map[id] = { date, by: idxBy === -1 ? "" : String(r[idxBy] || "").trim() };
     });
+
     let touched = 0;
     CHAPTERS.forEach(c => {
       const sig = map[c.id];
