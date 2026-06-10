@@ -444,8 +444,12 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 // Apps Script Web App URL（用於接收建議 + Posh 採納/拒絕）
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhsZCru1S0zF4QZX0QhIqvVNoseLmQWdc9r2KMpfAkdGaVyesjJzxuQ_MvzT1O90q3/exec";
 
-// 師徒簽核 Master Sheet URL
+// 師徒簽核 Master Sheet URL（給按鈕連回去用）
 const MENTOR_SHEET_URL = "https://docs.google.com/spreadsheets/d/1m9w6mdScB34jyifewnxgpy0LItBeRN2WGkBHpg2u93E/edit";
+
+// 師徒簽核 CSV 端點（讀取最新簽核日、覆蓋下面 CHAPTERS 寫死的 last_review）
+// Sheet 發布為 CSV 後、把連結貼這裡。沒貼會 fallback 用 CHAPTERS 寫死的日期、不會壞。
+const MENTOR_CSV_URL = "PASTE_MENTOR_SIGNOFF_CSV_URL_HERE";
 
 // 進階：如需 L3 全自動 AI Chat（內嵌 widget，付 API 費用），見 ai-feedback/README.md L3 章節
 
@@ -1002,7 +1006,7 @@ function renderChapter(c) {
         <div class="chapter__footer">
           <div class="chapter__meta">
             <span>👤 Owner：<span class="chapter__owner">${c.owner}</span></span>
-            <span>📅 上次審視：${c.last_review}</span>
+            <span>📅 上次審視：${c.last_review}${c.reviewed_by ? ` ・ ${c.reviewed_by}` : ""}</span>
           </div>
           <a class="btn-action btn-action--mentor" href="${MENTOR_SHEET_URL}" target="_blank" rel="noopener">📋 簽核</a>
           <button class="btn-action btn-action--suggest" type="button" onclick="openChat('${c.id}','suggest')" title="跟 AI 對話釐清你想改進什麼，AI 會幫你整理送 Posh 審核">💡 建議改進</button>
@@ -1142,6 +1146,65 @@ $("btn-switch-user").addEventListener("click", () => {
 
 updateUserBadge();
 renderAll();
+loadMentorSignoffs().then(updated => { if (updated) renderAll(); });
+
+// ───── 從 Sheet 讀最新簽核日、覆蓋 CHAPTERS 寫死的 last_review ─────
+function parseSignoffCsv(text) {
+  const rows = [];
+  let row = [], field = "", inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuote) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQuote = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQuote = true;
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c !== "\r") field += c;
+    }
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+async function loadMentorSignoffs() {
+  if (!MENTOR_CSV_URL || MENTOR_CSV_URL.startsWith("PASTE_")) return false;
+  try {
+    const cb = Math.floor(Date.now() / 60000);
+    const sep = MENTOR_CSV_URL.includes("?") ? "&" : "?";
+    const resp = await fetch(MENTOR_CSV_URL + sep + "cb=" + cb, { cache: "no-cache" });
+    if (!resp.ok) return false;
+    const rows = parseSignoffCsv(await resp.text()).filter(r => r.length > 1 && r.some(c => String(c).trim()));
+    if (rows.length < 2) return false;
+    const headers = rows[0].map(h => String(h).trim());
+    const idxId = headers.indexOf("chapter_id");
+    const idxDate = headers.indexOf("last_review_date");
+    const idxBy = headers.indexOf("reviewed_by");
+    if (idxId === -1 || idxDate === -1) return false;
+    const map = {};
+    rows.slice(1).forEach(r => {
+      const id = String(r[idxId] || "").trim();
+      const date = String(r[idxDate] || "").trim();
+      if (id && date) map[id] = { date, by: idxBy === -1 ? "" : String(r[idxBy] || "").trim() };
+    });
+    let touched = 0;
+    CHAPTERS.forEach(c => {
+      const sig = map[c.id];
+      if (sig && sig.date && sig.date !== c.last_review) {
+        c.last_review = sig.date;
+        c.reviewed_by = sig.by;
+        touched++;
+      } else if (sig && sig.by) {
+        c.reviewed_by = sig.by;
+      }
+    });
+    return touched > 0;
+  } catch (e) {
+    console.warn("[mentor signoff] CSV 讀取失敗、用 fallback 寫死日期", e);
+    return false;
+  }
+}
 
 // ───── Placeholder URL 防呆 ─────
 function isPlaceholder(url) {
