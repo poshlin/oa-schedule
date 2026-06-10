@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>Posh 控制台｜線上事業部</title>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-dk: #D48500; --orange-lt: #FFF7E0;
+  --red: #FF5859; --red-dk: #CC3344;
+  --teal: #00C4B3; --teal-dk: #008F83; --teal-lt: #E0F7F4;
+  --green: #5FAA7A; --green-dk: #3F7F58;
+  --blue: #5588B5; --blue-dk: #3D6D9A;
+  --gray: #646569; --gray-lt: #9A9A9F;
+  --dark: #2D2D2D;
+  --bg: #F5F5F5; --white: #FFFFFF;
+  --shadow: 0 2px 8px rgba(45,45,45,.08);
+  --shadow-lg: 0 4px 16px rgba(45,45,45,.12);
+  --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-en: "Trebuchet MS", "Calibri", sans-serif;
+  --font-mono: "Menlo", "Monaco", "Consolas", monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: var(--font-zh); color: var(--dark); background: var(--bg); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+
+.header { background: linear-gradient(135deg, #2D2D2D 0%, #4A4A4A 100%); color: var(--white); padding: 24px 20px; border-bottom: 4px solid var(--orange); }
+.header__inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+.header__icon { font-size: 32px; }
+.header__title { font-size: 22px; font-weight: 700; flex: 1; }
+.header__title small { display: block; font-size: 12px; color: rgba(255,255,255,.7); font-weight: 400; margin-top: 4px; letter-spacing: .5px; }
+.header__badge { background: var(--orange); color: var(--white); font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 700; letter-spacing: 1px; }
+
+.banner { background: var(--orange-lt); border-bottom: 1px solid var(--orange); padding: 12px 20px; }
+.banner__inner { max-width: 1080px; margin: 0 auto; font-size: 13px; color: var(--orange-dk); display: flex; gap: 10px; align-items: flex-start; }
+.banner b { font-weight: 700; }
+
+main { max-width: 1080px; margin: 24px auto 40px; padding: 0 20px; }
+
+.section { background: var(--white); border-radius: 14px; box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+.section__header { padding: 16px 22px; background: var(--bg); border-bottom: 1px solid #E5E5E5; display: flex; align-items: center; gap: 10px; }
+.section__title { font-size: 16px; font-weight: 700; color: var(--dark); flex: 1; }
+.section__hint { font-size: 12px; color: var(--gray); }
+.section__body { padding: 20px 22px; }
+
+.link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.link-card {
+  display: block; padding: 14px 16px; background: var(--bg); border-radius: 10px;
+  text-decoration: none; color: var(--dark); border-left: 4px solid var(--gray-lt);
+  transition: all .15s; position: relative;
+}
+.link-card:hover { background: var(--white); box-shadow: var(--shadow); transform: translateY(-1px); }
+.link-card--primary { border-left-color: var(--orange); background: var(--orange-lt); }
+.link-card--primary:hover { background: #FFEAB8; }
+.link-card--secondary { border-left-color: var(--teal); }
+.link-card--tertiary { border-left-color: var(--blue); }
+.link-card--quaternary { border-left-color: var(--green); }
+.link-card--warn { border-left-color: var(--red); }
+.link-card__title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.link-card__desc { font-size: 12px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+.link-card__when { font-size: 11px; color: var(--orange-dk); margin-top: 6px; font-style: italic; }
+
+/* AI Prompt 區 */
+.prompt-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.prompt-tab {
+  padding: 8px 16px; background: var(--bg); color: var(--gray); border: 2px solid transparent; border-radius: 20px;
+  font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font-zh); transition: all .15s;
+}
+.prompt-tab:hover { color: var(--dark); }
+.prompt-tab.active { background: var(--orange); color: var(--white); }
+
+.prompt-box { background: #1E1E1E; color: #E0E0E0; border-radius: 10px; overflow: hidden; }
+.prompt-box__bar { padding: 10px 14px; background: #2D2D2D; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #9A9A9F; }
+.prompt-box__bar span { flex: 1; }
+.prompt-box__copy {
+  background: var(--orange); color: var(--white); border: none; padding: 6px 14px; border-radius: 6px;
+  font-family: var(--font-zh); font-weight: 700; font-size: 12px; cursor: pointer;
+  transition: background .15s;
+}
+.prompt-box__copy:hover { background: var(--orange-dk); }
+.prompt-box__copy.ok { background: var(--green); }
+.prompt-content {
+  padding: 16px 18px; font-family: var(--font-mono); font-size: 12px; line-height: 1.7;
+  white-space: pre-wrap; max-height: 480px; overflow-y: auto;
+}
+.prompt-pane { display: none; }
+.prompt-pane.active { display: block; }
+
+.workflow {
+  background: linear-gradient(135deg, #FFF7E0 0%, #FFEAB8 100%);
+  border: 2px solid var(--orange); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
+}
+.workflow__title { font-size: 13px; font-weight: 700; color: var(--orange-dk); margin-bottom: 8px; }
+.workflow__steps { font-size: 12px; color: var(--dark); line-height: 1.8; }
+
+.kbd {
+  display: inline-block; background: var(--white); border: 1px solid var(--gray-lt); border-bottom-width: 2px;
+  border-radius: 4px; padding: 1px 6px; font-family: var(--font-mono); font-size: 11px; color: var(--dark);
+}
+
+.footer { text-align: center; font-size: 12px; color: var(--gray); padding: 20px; line-height: 1.7; }
+.footer code { background: var(--white); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); }
+
+@media (max-width: 600px) {
+  .header__title { font-size: 18px; }
+  .link-grid { grid-template-columns: 1fr; }
+  .prompt-content { font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <span class="header__icon">🎛</span>
+    <div class="header__title">
+      Posh 控制台
+      <small>線上事業部・所有工具一頁通</small>
+    </div>
+    <span class="header__badge">PRIVATE</span>
+  </div>
+</header>
+
+<div class="banner">
+  <div class="banner__inner">
+    <span>📌</span>
+    <span><b>只記這一個網址就好：</b><code style="background:rgba(212,133,0,.1);padding:2px 8px;border-radius:4px;font-family:var(--font-mono)">poshlin.github.io/oa-schedule/console.html</code> ・ Cmd+D 加書籤、命名「Posh 控制台」。所有 Sheet / Form / Drive / AI Prompt 都從這裡進。</span>
+  </div>
+</div>
+
+<main>
+
+<!-- ========================================
+     最常用：每天 / 每週進來的東西
+     ======================================== -->
+<section class="section">
+  <div class="section__header">
+    <span style="font-size:18px">⭐</span>
+    <span class="section__title">最常用</span>
+    <span class="section__hint">每天 / 每週要做的</span>
+  </div>
+  <div class="section__body">
+    <div class="link-grid">
+      <a class="link-card link-card--primary" href="review.html" target="_blank">
+        <div class="link-card__title">✅ AI feedback 審核台</div>
+        <div class="link-card__desc">審核同仁提交的訓練建議、按一鍵採納 / 拒絕。</div>
+        <div class="link-card__when">同仁送 AI feedback 時進來</div>
+      </a>
+      <a class="link-card link-card--secondary" href="team.html" target="_blank">
+        <div class="link-card__title">👥 團隊介紹頁</div>
+        <div class="link-card__desc">前台、看效果用。改資料請去團隊主檔 Sheet。</div>
+        <div class="link-card__when">改完 Sheet 之後驗收</div>
+      </a>
+      <a class="link-card link-card--tertiary" href="training.html" target="_blank">
+        <div class="link-card__title">🎓 新人訓練頁</div>
+        <div class="link-card__desc">17 章節、給新人按進度自學用的頁面。</div>
+        <div class="link-card__when">驗收訓練頁效果</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+     訓練系統
+     ======================================== -->
+<section class="section">
+  <div class="section__header">
+    <span style="font-size:18px">📚</span>
+    <span class="section__title">訓練系統</span>
+    <span class="section__hint">章節維護 + 簽核 + AI feedback</span>
+  </div>
+  <div class="section__body">
+    <div class="link-grid">
+      <a class="link-card link-card--primary" href="https://docs.google.com/spreadsheets/d/1m9w6mdScB34jyifewnxgpy0LItBeRN2WGkBHpg2u93E/edit" target="_blank">
+        <div class="link-card__title">📊 新人訓練 Master Sheet</div>
+        <div class="link-card__desc">訓練內容維護表 + 待審區 + 變動觸發 — 全部在這一份。</div>
+        <div class="link-card__when">章節簽核、看 AI feedback 待審項</div>
+      </a>
+      <a class="link-card" href="training.html" target="_blank">
+        <div class="link-card__title">🎓 新人訓練頁（前台）</div>
+        <div class="link-card__desc">17 章索引、健康度顏色從 Master Sheet 即時讀。</div>
+      </a>
+      <a class="link-card" href="review.html" target="_blank">
+        <div class="link-card__title">✅ AI feedback 審核台</div>
+        <div class="link-card__desc">同仁送來的訓練改進建議在這裡審。</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+     團隊介紹頁
+     ======================================== -->
+<section class="section">
+  <div class="section__header">
+    <span style="font-size:18px">👥</span>
+    <span class="section__title">團隊介紹頁</span>
+    <span class="section__hint">人員 + 照片 + AI 處理</span>
+  </div>
+  <div class="section__body">
+    <div class="workflow">
+      <div class="workflow__title">📋 新人入職 SOP（記不得就回來看）</div>
+      <div class="workflow__steps">
+        ① 給他「大頭照上傳 Form」連結 ・
+        ② 他傳原圖 → 自動進 Form 回應 Sheet ・
+        ③ 你在「OA 團隊照片 Drive」找他的圖 ・
+        ④ 在下面 <b>AI 照片 Prompt</b> 區、按職務挑 prompt、複製 ・
+        ⑤ 開 Gemini Nano Banana、上傳原圖 + 貼 prompt ・
+        ⑥ AI 處理過的圖回傳給本人確認 ・
+        ⑦ 上傳統一處理版到 Drive、複製連結 ・
+        ⑧ 貼到團隊主檔 Sheet 對應人的「照片URL」欄
+      </div>
+    </div>
+    <div class="link-grid">
+      <a class="link-card link-card--primary" href="https://docs.google.com/spreadsheets/d/1w2T1rI0-Lb2QjfjjMLby2133NyihFqFh57zpskpUjyk/edit" target="_blank">
+        <div class="link-card__title">📊 團隊主檔 Sheet</div>
+        <div class="link-card__desc">改人員資料、職務、職稱、照片URL、公開狀態。</div>
+        <div class="link-card__when">改員工資料時</div>
+      </a>
+      <a class="link-card link-card--secondary" href="https://drive.google.com/drive/u/3/folders/1ygzOuZhqL5FESScXmIFgJwybfrExEKfS" target="_blank">
+        <div class="link-card__title">📷 OA 團隊照片 Drive</div>
+        <div class="link-card__desc">照片倉庫。記得每張照片要設「知道連結的任何人可檢視」。</div>
+        <div class="link-card__when">換 / 上傳照片時</div>
+      </a>
+      <a class="link-card link-card--tertiary" href="https://docs.google.com/forms/d/1QblDwqCYOFmYoMxJUZxU_vhO2ysRrw6xe-A_fAi49Vg/edit" target="_blank">
+        <div class="link-card__title">📝 大頭照上傳 Form（編輯）</div>
+        <div class="link-card__desc">改題目、改說明文字、看回應數。</div>
+      </a>
+      <a class="link-card link-card--tertiary" href="https://docs.google.com/forms/d/1QblDwqCYOFmYoMxJUZxU_vhO2ysRrw6xe-A_fAi49Vg/viewform" target="_blank">
+        <div class="link-card__title">🔗 Form 公開連結（給同仁）</div>
+        <div class="link-card__desc">複製這個 URL 給同仁填、不是上面的編輯網址。</div>
+        <div class="link-card__when">LINE 群組通知新人時</div>
+      </a>
+      <a class="link-card link-card--quaternary" href="https://docs.google.com/spreadsheets/d/1G4xjth-SIdycIDzdaCGD6slBkhAVlt27_bnWrG_AvuQ/edit?gid=253087927" target="_blank">
+        <div class="link-card__title">📥 Form 回應 Sheet</div>
+        <div class="link-card__desc">看誰交了大頭照、提取照片 Drive 連結。</div>
+        <div class="link-card__when">處理同仁交來的原圖時</div>
+      </a>
+      <a class="link-card" href="team.html" target="_blank">
+        <div class="link-card__title">👥 團隊頁（前台）</div>
+        <div class="link-card__desc">改完 Sheet 後驗收用、60 秒自動更新。</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+     AI 照片 Prompt — 一鍵複製
+     ======================================== -->
+<section class="section">
+  <div class="section__header">
+    <span style="font-size:18px">🎨</span>
+    <span class="section__title">AI 照片 Prompt（一鍵複製）</span>
+    <span class="section__hint">按職務挑、複製 → 貼 Gemini / ChatGPT</span>
+  </div>
+  <div class="section__body">
+
+    <div class="prompt-tabs" id="prompt-tabs">
+      <button class="prompt-tab active" data-job="總監">👑 總監</button>
+      <button class="prompt-tab" data-job="課程顧問">📚 課程顧問</button>
+      <button class="prompt-tab" data-job="課務">📅 課務</button>
+      <button class="prompt-tab" data-job="電銷">💬 電銷</button>
+    </div>
+
+    <div class="prompt-pane active" data-job="總監">
+      <div class="prompt-box">
+        <div class="prompt-box__bar">
+          <span>總監 Prompt ・ 給 Posh 自己用</span>
+          <button class="prompt-box__copy" onclick="copyPrompt(this, 'pt-總監')">📋 一鍵複製</button>
+        </div>
+        <div class="prompt-content" id="pt-總監">請根據我上傳的人物照片，製作一張「總監」職務使用的專業團隊肖像照。
+
+保留人物真實五官、臉型、髮型與辨識度，不要改變成另一個人。
+
+規格：
+- 直式 4:5、半身肖像、人物置中
+- 表情自然、自信、親切
+- 光線柔和乾淨
+- 背景乾淨但有設計感
+
+風格定位：策略領導、品牌方向、組織視野
+背景設計：
+- 主色：柔和橘金色 #E89400 與米白色 #FAF7F2
+- 細緻幾何光線、微弱科技網格
+- 可加入學習節點或品牌核心光圈
+- 整體有領導感、穩定感、信任感
+
+整體要專業、溫暖、清楚、有高度。
+適合放在兒童程式教育品牌的團隊介紹頁。
+
+請避免：
+- 改變人物長相、五官、臉型
+- 過度磨皮、變年輕變老
+- 卡通化、3D 公仔化
+- 像證件照、網紅寫真、傳統企業形象照
+- 太權威、太老派
+- 背景比人物搶眼
+- 出現錯誤文字、亂碼、多餘人物、變形手指</div>
+      </div>
+    </div>
+
+    <div class="prompt-pane" data-job="課程顧問">
+      <div class="prompt-box">
+        <div class="prompt-box__bar">
+          <span>課程顧問 Prompt ・ Vina / Voight / Peter / Caesar / Ivan</span>
+          <button class="prompt-box__copy" onclick="copyPrompt(this, 'pt-課程顧問')">📋 一鍵複製</button>
+        </div>
+        <div class="prompt-content" id="pt-課程顧問">請根據我上傳的人物照片，製作一張「課程顧問」職務使用的專業團隊肖像照。
+
+保留人物真實五官、臉型、髮型與辨識度，不要改變成另一個人。
+
+規格：
+- 直式 4:5、半身肖像、人物置中
+- 表情自然、專業、親切
+- 光線柔和乾淨
+- 背景乾淨但有設計感
+
+風格定位：理解孩子需求、規劃學習路徑、提供課程建議、建立家長信任
+背景設計：
+- 主色：淡藍灰 #5588B5、米白色 #FAF7F2
+- 可加入學習路徑、節點線、簡潔書本圖形、課程模組卡片
+- 視覺感要專業、清楚、有判斷力
+
+整體要展現「教育規劃顧問」的氣質、不是單純銷售人員。
+適合放在兒童程式教育品牌的團隊介紹頁。
+
+請避免：
+- 改變人物長相、五官、臉型
+- 過度磨皮、變年輕變老
+- 卡通化、3D 公仔化
+- 像證件照、網紅寫真
+- 太業務導向、太冷硬
+- 背景比人物搶眼
+- 出現錯誤文字、亂碼、多餘人物、變形手指</div>
+      </div>
+    </div>
+
+    <div class="prompt-pane" data-job="課務">
+      <div class="prompt-box">
+        <div class="prompt-box__bar">
+          <span>課務 Prompt ・ Eric（主管）+ Yoann / Iron / Lynn / Luna</span>
+          <button class="prompt-box__copy" onclick="copyPrompt(this, 'pt-課務')">📋 一鍵複製</button>
+        </div>
+        <div class="prompt-content" id="pt-課務">請根據我上傳的人物照片，製作一張「課務」職務使用的專業團隊肖像照。
+
+保留人物真實五官、臉型、髮型與辨識度，不要改變成另一個人。
+
+規格：
+- 直式 4:5、半身肖像、人物置中
+- 表情自然、溫暖、親切
+- 光線柔和乾淨
+- 背景乾淨但有設計感
+
+風格定位：課程安排、學生照顧、家長溝通、細節執行、穩定支援
+背景設計：
+- 主色：柔和綠色 #5FAA7A、米白色 #FAF7F2、少量淺橘色點綴
+- 可加入日曆、勾選符號、課表線條、學習進度節點
+- 視覺感要溫暖、細緻、可靠
+
+整體要呈現「讓課程順利運作、是學生與家長體驗的重要支援者」的氣質。
+不要讓角色看起來只是後勤。
+適合放在兒童程式教育品牌的團隊介紹頁。
+
+請避免：
+- 改變人物長相、五官、臉型
+- 過度磨皮、變年輕變老
+- 卡通化、3D 公仔化
+- 像行政證件照、太弱化角色
+- 背景比人物搶眼
+- 出現錯誤文字、亂碼、多餘人物、變形手指</div>
+      </div>
+    </div>
+
+    <div class="prompt-pane" data-job="電銷">
+      <div class="prompt-box">
+        <div class="prompt-box__bar">
+          <span>電銷 Prompt ・ Catherine（組長）+ Howz / Mina / Hubert</span>
+          <button class="prompt-box__copy" onclick="copyPrompt(this, 'pt-電銷')">📋 一鍵複製</button>
+        </div>
+        <div class="prompt-content" id="pt-電銷">請根據我上傳的人物照片，製作一張「電銷」職務使用的專業團隊肖像照。
+
+保留人物真實五官、臉型、髮型與辨識度，不要改變成另一個人。
+
+規格：
+- 直式 4:5、半身肖像、人物置中
+- 表情自然、親切、有活力
+- 光線柔和乾淨
+- 背景乾淨但有設計感
+
+風格定位：第一線溝通、家長信任、清楚說明、親切引導
+背景設計：
+- 主色：暖橘色 #FF7A2E、奶油橘 #FFC069、米白色 #FAF7F2
+- 可加入簡潔對話框、圓形圖形、溝通線條、輕量科技節點
+- 視覺感要親切、開放、清楚
+
+整體要讓新人感受到這個角色是「家長接觸品牌時的重要溝通窗口」。
+適合放在兒童程式教育品牌的團隊介紹頁。
+
+請避免：
+- 改變人物長相、五官、臉型
+- 過度磨皮、變年輕變老
+- 卡通化、3D 公仔化
+- 像客服證件照、硬銷售廣告
+- 太商業狼性、過度業務感
+- 背景比人物搶眼
+- 出現錯誤文字、亂碼、多餘人物、變形手指</div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--gray);margin-top:14px;line-height:1.7">
+      💡 <b>建議跑 Gemini Nano Banana</b>（東方臉自然、便宜）。ChatGPT 4o image gen 也行、但容易 over-stylize。
+      QA 必做、不要批次自動上線。詳細工作流見
+      <a href="https://github.com/poshlin/oa-schedule/blob/main/team-photo-prompts.md" target="_blank" style="color:var(--orange-dk);font-weight:700">team-photo-prompts.md</a>。
+    </p>
+  </div>
+</section>
+
+<!-- ========================================
+     對外工具
+     ======================================== -->
+<section class="section">
+  <div class="section__header">
+    <span style="font-size:18px">🛠</span>
+    <span class="section__title">對外 / 內部工具</span>
+    <span class="section__hint">業務 + 電銷的查詢介面</span>
+  </div>
+  <div class="section__body">
+    <div class="link-grid">
+      <a class="link-card" href="index.html" target="_blank">
+        <div class="link-card__title">🏫 教室課表查詢（給家長）</div>
+        <div class="link-card__desc">家長可看各縣市實體教室即時開班。</div>
+      </a>
+      <a class="link-card" href="closest.html" target="_blank">
+        <div class="link-card__title">📍 最近教室查詢（電銷用）</div>
+        <div class="link-card__desc">輸入家長地址、找最近教室 + 線上推薦話術。</div>
+      </a>
+      <a class="link-card" href="rules.html" target="_blank">
+        <div class="link-card__title">📜 業務規則索引</div>
+        <div class="link-card__desc">42 條規則、按角色 filter、查獎金 / 跳級 / 退費。</div>
+      </a>
+      <a class="link-card" href="sms.html" target="_blank">
+        <div class="link-card__title">📱 SMS 字數計算</div>
+        <div class="link-card__desc">含 maac.io 短網址自動換算、超字數警告。</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+     後台 / 程式碼
+     ======================================== -->
+<section class="section">
+  <div class="section__header">
+    <span style="font-size:18px">🔧</span>
+    <span class="section__title">後台（給你跟 Claude 用）</span>
+    <span class="section__hint">改 code / 改 Apps Script 才會用到</span>
+  </div>
+  <div class="section__body">
+    <div class="link-grid">
+      <a class="link-card link-card--warn" href="https://github.com/poshlin/oa-schedule" target="_blank">
+        <div class="link-card__title">🐙 GitHub repo</div>
+        <div class="link-card__desc">所有 HTML / Apps Script / 文件。改前先 pull。</div>
+      </a>
+      <a class="link-card link-card--warn" href="https://script.google.com/home" target="_blank">
+        <div class="link-card__title">⚙️ Apps Script 控制台</div>
+        <div class="link-card__desc">找 ai-feedback 專案、改 code.gs、跑 runSelfTest。</div>
+      </a>
+      <a class="link-card" href="https://github.com/poshlin/oa-schedule/blob/main/README.md" target="_blank">
+        <div class="link-card__title">📖 專案 README</div>
+        <div class="link-card__desc">整體架構、部署、scraper 說明。</div>
+      </a>
+      <a class="link-card" href="https://github.com/poshlin/oa-schedule/blob/main/team-photo-prompts.md" target="_blank">
+        <div class="link-card__title">🎨 照片 Prompt 原始檔</div>
+        <div class="link-card__desc">改 prompt 風格、加新職務時編這個。</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="footer">
+  <p>🔒 這頁<b>沒有公開連結指向</b>、也加了 <code>noindex</code> 不會被 Google 收錄。<br>
+  但任何人知道網址都進得來、所以<b>別把 URL 貼到群組或公開地方</b>。<br>
+  忘記網址：去 GitHub repo 找 <code>console.html</code>。</p>
+</div>
+
+<script>
+async function copyPrompt(btn, contentId) {
+  try {
+    const text = document.getElementById(contentId).textContent.trim();
+    await navigator.clipboard.writeText(text);
+    const orig = btn.textContent;
+    btn.textContent = "✓ 已複製";
+    btn.classList.add("ok");
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.classList.remove("ok");
+    }, 2000);
+  } catch (e) {
+    alert("複製失敗、請手動全選 + Cmd+C：\n" + e.message);
+  }
+}
+
+document.querySelectorAll(".prompt-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    const job = tab.dataset.job;
+    document.querySelectorAll(".prompt-tab").forEach(t => t.classList.toggle("active", t === tab));
+    document.querySelectorAll(".prompt-pane").forEach(p => p.classList.toggle("active", p.dataset.job === job));
+  });
+});
+</script>
+
+</body>
+</html>
