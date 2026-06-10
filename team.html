@@ -56,7 +56,27 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 .card {
   background: var(--white); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
   display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s;
-  position: relative;
+  position: relative; border-top: 4px solid var(--orange);
+}
+.card[data-job="總監"]      { border-top-color: #E89400; }
+.card[data-job="課程顧問"]  { border-top-color: #5588B5; }
+.card[data-job="課務"]      { border-top-color: #5FAA7A; }
+.card[data-job="電銷"]      { border-top-color: #FF7A2E; }
+.card[data-job="總監"]     .card__photo-placeholder { background: linear-gradient(135deg, #E89400 0%, #FFC04D 100%); }
+.card[data-job="課程顧問"] .card__photo-placeholder { background: linear-gradient(135deg, #5588B5 0%, #87AFD0 100%); }
+.card[data-job="課務"]     .card__photo-placeholder { background: linear-gradient(135deg, #5FAA7A 0%, #8BC8A1 100%); }
+.card[data-job="電銷"]     .card__photo-placeholder { background: linear-gradient(135deg, #FF7A2E 0%, #FFA66E 100%); }
+.card__job-icon {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  background: rgba(255,255,255,.92); width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 15px; box-shadow: 0 2px 6px rgba(0,0,0,.12);
+}
+.card__positioning {
+  font-size: 13px; font-weight: 700; color: var(--orange-dk); line-height: 1.5;
+  margin-top: 8px; padding: 6px 10px;
+  background: linear-gradient(135deg, #FFF7E0 0%, #FFEAB8 100%);
+  border-left: 3px solid var(--orange); border-radius: 0 6px 6px 0;
 }
 .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 .card__photo {
@@ -227,6 +247,13 @@ function fmtJoinDate(s) {
   return t ? "加入 " + t : "";
 }
 
+const JOB_ICON = {
+  "總監": "👑",
+  "課程顧問": "📚",
+  "課務": "📅",
+  "電銷": "💬"
+};
+
 function renderCard(p) {
   const photoSrc = driveImg(p.photo_url);
   const init = escapeHtml(initials(p.chinese_name, p.english_name));
@@ -235,7 +262,10 @@ function renderCard(p) {
     ? `<img src="${escapeHtml(photoSrc)}" alt="${escapeHtml(p.chinese_name)}" data-init="${init}" onerror="this.outerHTML='<div class=&quot;card__photo-placeholder&quot;>'+this.dataset.init+'</div>'">`
     : placeholder;
   const roleTag = p.role_tag ? `<span class="card__role-tag">${escapeHtml(p.role_tag)}</span>` : "";
-  return `<div class="card">
+  const jobIcon = JOB_ICON[p.job] ? `<span class="card__job-icon" title="${escapeHtml(p.job)}">${JOB_ICON[p.job]}</span>` : "";
+  const positioning = p.positioning ? `<div class="card__positioning">${escapeHtml(p.positioning)}</div>` : "";
+  return `<div class="card" data-job="${escapeHtml(p.job)}">
+    ${jobIcon}
     <div class="card__photo">
       ${photoHtml}
       ${roleTag}
@@ -244,6 +274,7 @@ function renderCard(p) {
       <div class="card__name">${escapeHtml(p.chinese_name)}<span class="card__name-en">${escapeHtml(p.english_name)}</span></div>
       <div class="card__title">${escapeHtml(p.title)}</div>
       <div class="card__meta">${escapeHtml(fmtJoinDate(p.join_date))}</div>
+      ${positioning}
       ${p.bio ? `<div class="card__bio">${escapeHtml(p.bio)}</div>` : ""}
     </div>
   </div>`;
@@ -345,6 +376,7 @@ async function load() {
         job: get("職務") || get("部門") || get("department"),
         title: titleVal,
         role_tag: get("標籤") || get("role_tag") || deriveTag(titleVal),
+        positioning: get("角色定位") || get("positioning"),
         photo_url: get("照片URL") || get("photo_url"),
         join_date: get("加入日期") || get("join_date"),
         bio: get("一句話介紹") || get("bio"),
