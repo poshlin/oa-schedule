@@ -128,6 +128,15 @@ html, body { font-family: var(--font-zh); color: var(--dark); background: var(--
 .test-badge--demo { background: var(--orange-lt); color: var(--orange-dk); }
 .test-badge--checklist { background: var(--bg); color: var(--gray); }
 
+/* Role cards */
+.role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 10px; }
+.role-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.role-card__icon { font-size: 20px; margin-bottom: 6px; }
+.role-card__title { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
+.role-card__tagline { font-size: 11.5px; color: var(--orange-dk); font-weight: 700; margin-bottom: 8px; }
+.role-card__duties { margin: 0; padding-left: 16px; }
+.role-card__duties li { font-size: 12px; color: var(--gray); margin-bottom: 3px; line-height: 1.5; }
+
 /* Gap placeholder */
 .gap { background: #FFFAE0; border: 1px dashed var(--yellow); border-radius: 6px; padding: 10px 14px; font-size: 12.5px; color: var(--dark); }
 .gap__label { font-weight: 700; color: #B98400; margin-right: 4px; }
@@ -485,6 +494,14 @@ const CHAPTERS = [
     objectives: ["認識主管群、課程顧問、課務專員、電銷專員的職務分工"],
     resources: [
       { type: "web", title: "👥 團隊介紹（照片 + 簡介卡片）", url: "team.html", note: "資料由團隊主檔 Sheet 即時同步" }
+    ],
+    roles: [
+      { icon: "🎯", title: "總監", tagline: "部門整體策略與目標", duties: ["設定每月業績目標與部門方向", "制定規範、確保營運順暢與績效達標", "最終裁決特殊案件"] },
+      { icon: "🎓", title: "課務主管", tagline: "班級管理 & 課務團隊領導", duties: ["統籌開關班排程、確保滿班率", "管理課務專員與顧班人員", "協調師資排班、處理特殊個案"] },
+      { icon: "📞", title: "課程顧問", tagline: "銷售課程 & 售後服務", duties: ["外撥邀約 → 說明會 → 協助成交", "售後關懷：降低退課率、提高續班率", "接聽客戶來電、維持客戶滿意度"] },
+      { icon: "📅", title: "課務專員", tagline: "顧班 & 日常課程管理", duties: ["每日監控班級人數、預防爆班", "顧班：監控師生在線狀況確保順暢", "學生請假、調課、進度調整", "接聽客服電話、寄送課本講義"] },
+      { icon: "📲", title: "電銷組長", tagline: "電銷團隊管理 & 客服", duties: ["管理電銷正職與兼職", "回覆客服管道（信箱／LINE／電話）", "話術指導與服務品質訓練"] },
+      { icon: "📣", title: "電銷專員", tagline: "外撥邀約，產生試聽預約", duties: ["電話外撥介紹課程資訊", "協助安排體驗試聽場次"] }
     ],
     checklist: [
       "認識總監 Posh 林保旭",
@@ -911,6 +928,21 @@ function toggleDone(chId, idx) {
 // ───── 渲染 ─────
 function $(id) { return document.getElementById(id); }
 
+function renderRoles(roles) {
+  if (!roles || roles.length === 0) return "";
+  return `<div class="section">
+    <div class="section__label">👥 職務分工一覽</div>
+    <div class="role-grid">
+      ${roles.map(r => `<div class="role-card">
+        <div class="role-card__icon">${r.icon}</div>
+        <div class="role-card__title">${r.title}</div>
+        <div class="role-card__tagline">${r.tagline}</div>
+        <ul class="role-card__duties">${r.duties.map(d => `<li>${d}</li>`).join("")}</ul>
+      </div>`).join("")}
+    </div>
+  </div>`;
+}
+
 function renderResource(r) {
   const icon = { doc: "📄", pdf: "📕", ppt: "📊", web: "🔗", sheet: "📊", folder: "📁", form: "📝" }[r.type] || "🔗";
   if (!r.url) {
@@ -998,6 +1030,7 @@ function renderChapter(c) {
       </div>
       <div class="chapter__body">
         ${objectivesHtml}
+        ${renderRoles(c.roles)}
         ${resourcesHtml}
         ${checklistHtml}
         ${testHtml}
