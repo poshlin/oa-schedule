@@ -516,30 +516,28 @@ const CHAPTERS = [
   },
   // ────────────────────────────────────────────────
   {
-    id: "ch02", no: 2, title: "課程顧問職責 / 合約 / 獎金",
-    time: 30, owner: "Posh", last_review: "2026-05-23",
+    id: "ch02", no: 2, title: "課程體系（各項產品）",
+    time: 120, owner: "教學主管 + Posh", last_review: "2026-05-23",
     objectives: [
-      "理解課程顧問職務說明書內容",
-      "理解 2026 獎金抽成計算方式",
-      "明確區分受訓期 vs 試用期的不同規則"
+      "熟悉橘子蘋果全部課程體系（Scratch / Python / JavaScript / Minecraft / Roblox / 麥思 / 艾伯特 / 創意機械積木）",
+      "了解各課程適合的年齡層與學習階段",
+      "理解學費級距與升階邏輯"
     ],
     resources: [
-      { type: "doc", title: "線上《課程顧問》職務說明書", url: "https://docs.google.com/document/d/1-BEnR0eiADQwD9GqzPQ4jIUmMMF_7P1pjdSvxqJLXWY/edit" },
-      { type: "ppt", title: "[蘋果芽] 2026 年線上課程顧問獎金制度", url: "https://docs.google.com/presentation/d/16_8LdlbhzwMOYfx-Qa4j3rRHq2-KvMLspy9KRioXZZ0/edit" }
+      { type: "pdf", title: "[全體] 課程體系及學費.pdf", url: "https://drive.google.com/file/d/1YVABFEDdgRlZ_2BrDk_GQQZDfXiA1ZKh/view" }
     ],
     checklist: [
-      "讀完職務說明書",
-      "讀完獎金制度文件",
-      "了解試用期業績計算方式（含跨月計算規則）",
-      "了解試用期 vs 受訓期獎金差異"
+      "讀完課程體系及學費 PDF",
+      "能背出各課程適合年級與週數",
+      "理解每個課程的階段（初階 / 中階 / 高階 / 進階等）"
     ],
     test_type: "form",
     gaps: [
-      { label: "缺口 #1", text: "獎金制度詳細書面化標準（新人反饋：規則需更一致）" },
-      { label: "缺口 #2", text: "試用期通過業績計算方式 / 條件規範詳細說明（新人反饋：考核標準混亂）" },
-      { label: "缺口 #3", text: "試用期獎金計算模式 — 受訓期 vs 試用期差異" }
-    ],
-    notice: ""  // 「主管最近說明」內容；目前空白等 Posh 釐清業績目標方向後填入
+      { label: "缺口 #1", text: "跳級與調課方式詳細說明（跳級標準流程、調課權限分工）" },
+      { label: "缺口 #2", text: "特例可申請的條件條列指引" },
+      { label: "缺口 #3", text: "證照班 vs 常態班的教學差異與銷售重點" },
+      { label: "缺口 #4", text: "課程移轉 / 退費制度（含實際案例 + 完整作業流程）" }
+    ]
   },
   // ────────────────────────────────────────────────
   {
@@ -564,28 +562,30 @@ const CHAPTERS = [
   },
   // ────────────────────────────────────────────────
   {
-    id: "ch04", no: 4, title: "課程體系（各項產品）",
-    time: 120, owner: "教學主管 + Posh", last_review: "2026-05-23",
+    id: "ch04", no: 4, title: "課程顧問職責 / 合約 / 獎金",
+    time: 30, owner: "Posh", last_review: "2026-05-23",
     objectives: [
-      "熟悉橘子蘋果全部課程體系（Scratch / Python / JavaScript / Minecraft / Roblox / 麥思 / 艾伯特 / 創意機械積木）",
-      "了解各課程適合的年齡層與學習階段",
-      "理解學費級距與升階邏輯"
+      "理解課程顧問職務說明書內容",
+      "理解 2026 獎金抽成計算方式",
+      "明確區分受訓期 vs 試用期的不同規則"
     ],
     resources: [
-      { type: "pdf", title: "[全體] 課程體系及學費.pdf", url: "https://drive.google.com/file/d/1YVABFEDdgRlZ_2BrDk_GQQZDfXiA1ZKh/view" }
+      { type: "doc", title: "線上《課程顧問》職務說明書", url: "https://docs.google.com/document/d/1-BEnR0eiADQwD9GqzPQ4jIUmMMF_7P1pjdSvxqJLXWY/edit" },
+      { type: "ppt", title: "[蘋果芽] 2026 年線上課程顧問獎金制度", url: "https://docs.google.com/presentation/d/16_8LdlbhzwMOYfx-Qa4j3rRHq2-KvMLspy9KRioXZZ0/edit" }
     ],
     checklist: [
-      "讀完課程體系及學費 PDF",
-      "能背出各課程適合年級與週數",
-      "理解每個課程的階段（初階 / 中階 / 高階 / 進階等）"
+      "讀完職務說明書",
+      "讀完獎金制度文件",
+      "了解試用期業績計算方式（含跨月計算規則）",
+      "了解試用期 vs 受訓期獎金差異"
     ],
     test_type: "form",
     gaps: [
-      { label: "缺口 #4", text: "跳級與調課方式詳細說明（跳級標準流程、調課權限分工）" },
-      { label: "缺口 #5", text: "特例可申請的條件條列指引" },
-      { label: "缺口 #6", text: "證照班 vs 常態班的教學差異與銷售重點" },
-      { label: "缺口 #7", text: "課程移轉 / 退費制度（含實際案例 + 完整作業流程）" }
-    ]
+      { label: "缺口 #1", text: "獎金制度詳細書面化標準（新人反饋：規則需更一致）" },
+      { label: "缺口 #2", text: "試用期通過業績計算方式 / 條件規範詳細說明（新人反饋：考核標準混亂）" },
+      { label: "缺口 #3", text: "試用期獎金計算模式 — 受訓期 vs 試用期差異" }
+    ],
+    notice: ""  // 「主管最近說明」內容；目前空白等 Posh 釐清業績目標方向後填入
   },
   // ────────────────────────────────────────────────
   {
