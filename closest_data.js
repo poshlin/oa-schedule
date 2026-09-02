@@ -121,16 +121,6 @@ window.OA_GEO = {
       "_imprecise": true
     },
     {
-      "id": "xike",
-      "name": "汐科教室",
-      "city": "新北市",
-      "district": "汐止區",
-      "address": "汐止區大同路二段240號4樓",
-      "lat": 25.0641586,
-      "lon": 121.6587475,
-      "_imprecise": true
-    },
-    {
       "id": "xindian",
       "name": "新店教室",
       "city": "新北市",
@@ -281,16 +271,6 @@ window.OA_GEO = {
       "_imprecise": true
     },
     {
-      "id": "xitun",
-      "name": "西屯教室",
-      "city": "臺中市",
-      "district": "西屯區",
-      "address": "西屯區福泰街98號",
-      "lat": 24.1653026,
-      "lon": 120.633655,
-      "_imprecise": true
-    },
-    {
       "id": "nantun",
       "name": "南屯教室",
       "city": "臺中市",
@@ -308,16 +288,6 @@ window.OA_GEO = {
       "address": "大里區東榮路237號3樓",
       "lat": 24.0994173,
       "lon": 120.67786,
-      "_imprecise": true
-    },
-    {
-      "id": "wufeng",
-      "name": "霧峰教室",
-      "city": "臺中市",
-      "district": "霧峰區",
-      "address": "霧峰區中正路737號",
-      "lat": 24.0616984,
-      "lon": 120.7002721,
       "_imprecise": true
     },
     {
