@@ -23,16 +23,27 @@ SCHEDULE_HTML = HERE.parent / "index.html"
 OUT = Path.home() / "Documents" / "oa-page-classroom" / "content" / "shared" / "course_offerings.json"
 SSOT_HTML = Path.home() / "Documents" / "oa-page-classroom" / "index.html"
 
-# 對外顯示名稱。elite 依知識庫是「菁英系列」9 階段主線，不是三種語言三選一。
+# 對外顯示名稱，一律以知識庫 OA_課程體系.md 為準。
+# 🔴 elite ＝「菁英系列」9 階段主線，不是三種語言三選一。
+# 🔴 roblox 必須寫「Roblox AI 遊戲設計」：「舊版 Roblox 遊戲設計課」是已停辦課程的名字
+#    （OA_課程體系.md:463 的「已停辦／暫不開班」清單），且 :95 明文「三者不可混寫」
+#    （常態 Roblox AI／Roblox 營隊／規劃中的 Lua 三階段）。
 FAMILY = {
     "elite": "菁英系列（程式主線）",
     "minecraft": "麥塊程式班",
-    "roblox": "Roblox 遊戲設計",
+    "roblox": "Roblox AI 遊戲設計",
     "creative_blocks": "STEAM 創意機械積木",
     "math": "麥思數學",
     "aibot": "頑皮艾伯特",
 }
 ORDER = ["elite", "minecraft", "roblox", "creative_blocks", "math", "aibot"]
+
+# 🔴 只在線上開課的課程，一律不寫進實體教室卡（依知識庫 OA_課程體系.md）：
+#   - 頑皮艾伯特：「現售＝線上版；實體版已停售」（:40）。排程裡 19 筆 aibot 有 18 筆掛
+#     online，唯一的實體筆是台南東寧西——那是安親班專案的特例，記憶
+#     project_oa_course_age_matrix 明寫「勿寫進常態課文案」。寫上去家長會以為能報名。
+#   - 麥思數學：availability = online。
+ONLINE_ONLY = {"aibot", "math"}
 
 
 def js_object(html, var):
@@ -122,6 +133,8 @@ def main():
     for s in S["schedules"]:
         hit = id_to_frag.get(s["classroom_id"])
         if not hit or s["course_id"] not in FAMILY:
+            continue
+        if s["course_id"] in ONLINE_ONLY:
             continue
         offerings.setdefault(hit["frag"], set()).add(s["course_id"])
 
