@@ -42,6 +42,9 @@ body { font-family: var(--font-zh); background: var(--bg); color: var(--dark); l
 
 /* 欄位 */
 .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.optline { display: flex; align-items: flex-start; gap: 8px; margin-top: 14px; padding: 10px 12px; background: #FFF6E5; border-radius: 8px; font-size: 13px; line-height: 1.6; cursor: pointer; }
+.optline input { margin-top: 3px; flex: none; }
+.optline[hidden] { display: none; }
 .field label { display: block; font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 4px; }
 .field input { width: 100%; font-family: inherit; font-size: 13.5px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 6px; background: var(--white); color: var(--dark); }
 .field input:focus, .field select:focus { outline: none; border-color: var(--teal); }
@@ -98,6 +101,10 @@ pre.out mark { background: var(--red-lt); color: var(--red); font-weight: 700; p
     <h2>2　填這個孩子的資料</h2>
     <p class="hint">沒填的欄位會留成紅字，貼出去前記得補完。家長登入帳號固定是「您報名時登記的 Email」，不用填。</p>
     <div class="fields" id="fields"></div>
+    <label class="optline" id="bookline" hidden>
+      <input type="checkbox" id="bookdone">
+      <span>這個孩子的 7-11 取貨資料已經有了（兄弟姊妹或先前的檢定班給過），訊息裡就不再跟家長要</span>
+    </label>
   </div>
 
   <div class="card">
@@ -135,7 +142,19 @@ var RB = "上課前有三樣要先準備：\n1. 幫孩子申請一個他自己�
 
 var FIN = "另外提醒一下，財商的教材是跟著課上進度開的，每上完一堂才會開下一堂，所以平台裡看不到後面的單元是正常的。";
 
-var CERT = "課本我們會寄給您，寄出後您會收到一封取貨簡訊，帶著取貨人的身分證到簡訊寫的 7-11 門市領取就可以。\n\n考試日期、報名時間，還有大考中心寄的考前通知信與應試通知信，我都會在這裡提醒您，您只要留意信箱就好。";
+var BOOK_ASK = "課本是實體的，開課前一週我們會用 7-11 店到店寄給您。麻煩您把下面四項回傳給我，我才能幫您寄出：\n\n【7-11 取貨資訊】\n取貨人姓名：\n取貨人手機：\n取貨人 email：\n取貨 7-11 門市名稱及門市地址：\n門市查詢：https://emap.pcsc.com.tw/";
+
+var BOOK_SENT = "寄出後您會收到一封取貨簡訊，帶著取貨人的身分證到簡訊寫的 7-11 門市領取就可以。";
+
+var CERT_EXAM = "考試日期、報名時間，還有大考中心寄的考前通知信與應試通知信，我都會在這裡提醒您，您只要留意信箱就好。";
+
+function certBlock() {
+  var skip = document.getElementById("bookdone") && document.getElementById("bookdone").checked;
+  var book = skip
+    ? "課本是實體的，開課前一週我們會用 7-11 店到店寄到您之前給的門市。" + BOOK_SENT
+    : BOOK_ASK + "\n\n" + BOOK_SENT;
+  return book + "\n\n" + CERT_EXAM;
+}
 
 var COURSES = [
   { slug: "albert",           name: "頑皮艾伯特",         note: "用電腦要裝 AnyDesk",       extra: ANYDESK_PC },
@@ -147,8 +166,8 @@ var COURSES = [
   { slug: "minecraft",        name: "麥塊程式班",         note: "麥塊教育版＋AnyDesk",      extra: MC },
   { slug: "minecraft-python", name: "麥塊 Python",        note: "麥塊教育版＋AnyDesk",      extra: MC },
   { slug: "roblox-ai",        name: "Roblox AI 遊戲設計班", note: "Roblox＋Studio＋AnyDesk", extra: RB },
-  { slug: "its",              name: "ITS 全球認證班",     note: "有課本、考試通知",         extra: CERT },
-  { slug: "apcs",             name: "APCS 程式檢定班",    note: "有課本、考試通知",         extra: CERT }
+  { slug: "its",              name: "ITS 全球認證班",     note: "有課本、考試通知",         extra: certBlock, book: true },
+  { slug: "apcs",             name: "APCS 程式檢定班",    note: "有課本、考試通知",         extra: certBlock, book: true }
 ];
 
 var FIELDS = [
@@ -183,7 +202,8 @@ function v(id, label) {
 
 function build() {
   var c = cur;
-  var extra = c.extra ? "\n" + c.extra + "\n" : "";
+  var ex = typeof c.extra === "function" ? c.extra() : c.extra;
+  var extra = ex ? "\n" + ex + "\n" : "";
   return v("call", "家長稱呼") + "您好，我是 " + me.en + " 老師，恭喜完成報名！以下是孩子的上課資訊：\n\n"
     + "【開課日期】" + v("start", "開課日期與時段") + "\n"
     + "之後每週" + v("weekday", "星期") + "同一時段。"
@@ -209,6 +229,8 @@ function build() {
 function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
 function render() {
+  var bl = document.getElementById("bookline");
+  if (cur.book) { bl.removeAttribute("hidden"); } else { bl.setAttribute("hidden", ""); }
   var txt = build();
   document.getElementById("out").innerHTML =
     esc(txt).replace(/【[^】]+】/g, function (m) {
@@ -232,6 +254,7 @@ COURSES.forEach(function (c, i) {
   b.innerHTML = "<b>" + c.name + "</b><span>" + c.note + "</span>";
   b.addEventListener("click", function () {
     cur = c;
+    document.getElementById("bookdone").checked = false;
     Array.prototype.forEach.call(cbox.children, function (x) { x.classList.remove("on"); });
     b.classList.add("on");
     render();
@@ -252,6 +275,8 @@ FIELDS.forEach(function (f) {
     render();
   });
 });
+
+document.getElementById("bookdone").addEventListener("change", render);
 
 /* 複製 */
 document.getElementById("copy").addEventListener("click", function () {
