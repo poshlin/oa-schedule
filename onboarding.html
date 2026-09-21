@@ -155,7 +155,7 @@ var FIELDS = [
   { id: "call",    label: "家長稱呼",         ph: "小明媽咪" },
   { id: "start",   label: "開課日期與時段",   ph: "2026/10/08（週三）19:00" },
   { id: "weekday", label: "之後固定星期",     ph: "三" },
-  { id: "off",     label: "沒有課的日期",     ph: "10/29、11/05" },
+  { id: "off",     label: "沒有課的日期（沒有就留空）", ph: "10/29、11/05", opt: true },
   { id: "sacc",    label: "學生帳號",         ph: "0912345678" },
   { id: "spwd",    label: "學生密碼",         ph: "" },
   { id: "ppwd",    label: "家長密碼",         ph: "" },
@@ -186,7 +186,8 @@ function build() {
   var extra = c.extra ? "\n" + c.extra + "\n" : "";
   return v("call", "家長稱呼") + "您好，我是 " + me.en + " 老師，恭喜完成報名！以下是孩子的上課資訊：\n\n"
     + "【開課日期】" + v("start", "開課日期與時段") + "\n"
-    + "之後每週" + v("weekday", "星期") + "同一時段。沒有課的日期：" + v("off", "沒有課的日期") + "\n\n"
+    + "之後每週" + v("weekday", "星期") + "同一時段。"
+    + ((vals.off || "").trim() ? "沒有課的日期：" + vals.off.trim() : "") + "\n\n"
     + "【學生登入】上課與複習教材用\n"
     + "網址：https://learn.orangeapple.co/\n"
     + "帳號：" + v("sacc", "學生帳號") + "\n"
@@ -216,7 +217,7 @@ function render() {
       return keep.indexOf(m) > -1 ? m : "<mark>" + m + "</mark>";
     });
   var left = 0;
-  FIELDS.forEach(function (f) { if (!(vals[f.id] || "").trim()) left++; });
+  FIELDS.forEach(function (f) { if (!f.opt && !(vals[f.id] || "").trim()) left++; });
   var el = document.getElementById("left");
   if (left === 0) { el.className = "left done"; el.innerHTML = "<b>全部填完了</b>，可以複製了。"; }
   else { el.className = "left"; el.innerHTML = "還有 <b>" + left + "</b> 個欄位沒填（下面紅色的部分）。"; }
