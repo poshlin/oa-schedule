@@ -34,6 +34,7 @@ GitHub Pages：<https://poshlin.github.io/oa-schedule>
 | `closest.html` | 電銷 | 輸入家長地址、找最近實體教室 + 線上推薦話術 |
 | `rules.html` | 內部 | 42 條業務規則索引、按角色 filter |
 | `sms.html` | 電銷 | SMS 字數計算、含 maac.io 短網址換算 + 自動加【橘子蘋果】prefix |
+| `onboarding.html` | 線上課程顧問 | 成交訊息公版：選 11 個課別之一、填孩子資料，一鍵複製要傳給家長的第一則訊息。內容對應 `orangeapple.co/campaigns/online/guide/s-f3f1dd0/`，兩邊口徑要同步 |
 | `training.html` | 新人 | 17 章節新人訓練、checklist + 健康度監測 |
 | `team.html` | 新人 | 團隊介紹卡片牆、4 個職務分組、Sheet 即時同步 |
 | `review.html` | Posh | AI feedback 審核台、訓練內容改進建議的審核介面 |

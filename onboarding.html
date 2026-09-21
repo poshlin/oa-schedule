@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>成交訊息公版 — 橘子蘋果</title>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-dk: #D48500; --orange-lt: #FFF4DD;
+  --red: #FF5859;    --red-lt: #FFEBEB;
+  --teal: #00C4B3;   --teal-dk: #008F83;   --teal-lt: #DFFAF6;
+  --green: #4CAF50;  --green-lt: #E8F5E9;
+  --gray: #646569;   --dark: #2D2D2D;
+  --bg: #F5F5F5;     --white: #FFFFFF;
+  --border: #E5E5E5;
+  --shadow: 0 1px 3px rgba(45,45,45,.06);
+  --shadow-md: 0 2px 8px rgba(45,45,45,.08);
+  --font-zh: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-zh); background: var(--bg); color: var(--dark); line-height: 1.7; padding: 24px 16px 60px; }
+.wrap { max-width: 1060px; margin: 0 auto; }
+
+.head { margin-bottom: 22px; }
+.head h1 { font-size: 22px; font-weight: 800; }
+.head p { font-size: 13px; color: var(--gray); margin-top: 6px; }
+
+.card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 20px; margin-bottom: 18px; }
+.card h2 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+.card .hint { font-size: 12.5px; color: var(--gray); margin-bottom: 14px; }
+
+/* 課別 */
+.courses { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.course { font-family: inherit; text-align: left; background: var(--white); border: 2px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+.course:hover { border-color: var(--orange); }
+.course.on { border-color: var(--orange); background: var(--orange-lt); }
+.course b { display: block; font-size: 13.5px; font-weight: 800; }
+.course span { display: block; font-size: 11.5px; color: var(--gray); margin-top: 2px; }
+
+/* 欄位 */
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.field label { display: block; font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 4px; }
+.field input { width: 100%; font-family: inherit; font-size: 13.5px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 6px; background: var(--white); color: var(--dark); }
+.field input:focus { outline: none; border-color: var(--teal); }
+
+/* 輸出 */
+.outbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.btn { font-family: inherit; padding: 9px 18px; border-radius: 6px; border: 2px solid var(--border); background: var(--white); color: var(--dark); font-size: 13px; font-weight: 700; cursor: pointer; transition: border-color .15s, background .15s; }
+.btn:hover { border-color: var(--orange); }
+/* 亮橘配深字（不用白字，對比才夠） */
+.btn--primary { background: var(--orange); border-color: var(--orange); color: var(--dark); }
+.btn--primary:hover { background: #FFB733; border-color: #FFB733; }
+.btn.ok { background: var(--green-lt); border-color: var(--green); color: #2E7D32; }
+.left { font-size: 12.5px; color: var(--gray); }
+.left b { color: var(--red); }
+.left.done b { color: #2E7D32; }
+
+pre.out { background: #FAFAFA; border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-family: var(--font-zh); font-size: 13.5px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; max-height: 560px; overflow: auto; }
+pre.out mark { background: var(--red-lt); color: var(--red); font-weight: 700; padding: 0 2px; border-radius: 3px; }
+
+.warn { background: var(--red-lt); border-left: 4px solid var(--red); border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; margin-top: 14px; }
+.warn b { color: var(--red); }
+.footer { text-align: center; font-size: 12px; color: var(--gray); padding: 24px 0 0; }
+.footer a { color: var(--teal-dk); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <h1>成交訊息公版</h1>
+    <p>體驗生付款成為正式生後，傳給家長的第一則訊息。選課別 → 填欄位 → 一鍵複製 → 貼到 LINE。</p>
+  </div>
+
+  <div class="card">
+    <h2>1　孩子上的是哪一門課？</h2>
+    <p class="hint">不同課別要講的準備事項不一樣，選對了下面會自動帶進去。</p>
+    <div class="courses" id="courses"></div>
+  </div>
+
+  <div class="card">
+    <h2>2　填這個孩子的資料</h2>
+    <p class="hint">沒填的欄位會留成紅字，貼出去前記得補完。家長登入帳號固定是「您報名時登記的 Email」，不用填。</p>
+    <div class="fields" id="fields"></div>
+  </div>
+
+  <div class="card">
+    <h2>3　複製後貼到 LINE</h2>
+    <div class="outbar">
+      <button class="btn btn--primary" id="copy" type="button">複製訊息</button>
+      <span class="left" id="left"></span>
+    </div>
+    <pre class="out" id="out"></pre>
+    <div class="warn">
+      <b>不要自己加「病假可以補課」「可以加課」這類話。</b>
+      那是看狀況口頭處理的服務，寫成文字家長會當成保證，之後要收就收不回來了。
+    </div>
+  </div>
+
+  <div class="footer">
+    上課須知頁：<a href="https://orangeapple.co/campaigns/online/guide/s-f3f1dd0/" target="_blank" rel="noopener">orangeapple.co/campaigns/online/guide/s-f3f1dd0/</a><br>
+    內容有誤或要補充，跟 Posh 說。
+  </div>
+
+</div>
+
+<script>
+var BASE = "https://orangeapple.co/campaigns/online/guide/s-f3f1dd0/";
+var GUIDE = "https://orangeapple.co/campaigns/online/guide/";
+var ANYDESK = "https://anydesk.com/zh-tw/downloads";
+
+var ANYDESK_PC = "孩子如果是用電腦上課，再麻煩先安裝遠端軟體 AnyDesk，裝好後把畫面中間那組 9～10 位數的代碼傳給我。上課中孩子電腦有狀況時，老師可以直接連線協助，不用佔用課堂時間。（用 iPad 上課就不用裝）\n下載：" + ANYDESK;
+
+var ANYDESK_ALL = "再麻煩先安裝遠端軟體 AnyDesk，裝好後把畫面中間那組 9～10 位數的代碼傳給我。上課中孩子電腦有狀況時，老師可以直接連線協助，不用佔用課堂時間。孩子會用來上課的每一台設備都要各給一組。\n下載：" + ANYDESK;
+
+var MC = "上課前再麻煩幫孩子裝好 Minecraft 教育版（帳號我們在上課期間提供，您不用自己買）。安裝步驟在這裡：" + GUIDE + "\n\n" + ANYDESK_ALL;
+
+var RB = "上課前有三樣要先準備：\n1. 幫孩子申請一個他自己的 Roblox 帳號（註冊時生日請填您的，使用者名稱不要用孩子的真實姓名）\n2. 安裝 Roblox\n3. 安裝 Roblox Studio（上課用的創作工具）\n安裝步驟在這裡：" + GUIDE + "\n\n" + ANYDESK_ALL;
+
+var FIN = "另外提醒一下，財商的教材是跟著課上進度開的，每上完一堂才會開下一堂，所以平台裡看不到後面的單元是正常的。";
+
+var CERT = "課本我們會寄給您，寄出後您會收到一封取貨簡訊，帶著取貨人的身分證到簡訊寫的 7-11 門市領取就可以。\n\n考試日期、報名時間，還有大考中心寄的考前通知信與應試通知信，我都會在這裡提醒您，您只要留意信箱就好。";
+
+var COURSES = [
+  { slug: "albert",           name: "頑皮艾伯特",         note: "用電腦要裝 AnyDesk",       extra: ANYDESK_PC },
+  { slug: "math",             name: "橘蘋麥思數學",       note: "用電腦要裝 AnyDesk",       extra: ANYDESK_PC },
+  { slug: "finance",          name: "橘蘋財商素養",       note: "零安裝，教材逐堂開",       extra: FIN },
+  { slug: "scratch",          name: "菁英 Scratch",       note: "零安裝",                   extra: "" },
+  { slug: "python",           name: "菁英 Python",        note: "零安裝",                   extra: "" },
+  { slug: "javascript",       name: "菁英 JavaScript 以上", note: "零安裝",                 extra: "" },
+  { slug: "minecraft",        name: "麥塊程式班",         note: "麥塊教育版＋AnyDesk",      extra: MC },
+  { slug: "minecraft-python", name: "麥塊 Python",        note: "麥塊教育版＋AnyDesk",      extra: MC },
+  { slug: "roblox-ai",        name: "Roblox AI 遊戲設計班", note: "Roblox＋Studio＋AnyDesk", extra: RB },
+  { slug: "its",              name: "ITS 全球認證班",     note: "有課本、考試通知",         extra: CERT },
+  { slug: "apcs",             name: "APCS 程式檢定班",    note: "有課本、考試通知",         extra: CERT }
+];
+
+var FIELDS = [
+  { id: "call",    label: "家長稱呼",         ph: "小明媽咪" },
+  { id: "start",   label: "開課日期與時段",   ph: "2026/10/08（週三）19:00" },
+  { id: "weekday", label: "之後固定星期",     ph: "三" },
+  { id: "off",     label: "沒有課的日期",     ph: "10/29、11/05" },
+  { id: "sacc",    label: "學生帳號",         ph: "0912345678" },
+  { id: "spwd",    label: "學生密碼",         ph: "" },
+  { id: "ppwd",    label: "家長密碼",         ph: "" },
+  { id: "ext",     label: "你的直撥分機",     ph: "1033" },
+  { id: "receipt", label: "電子收據連結",     ph: "https://orangeapple.co/payments/..." }
+];
+
+var cur = COURSES[0];
+var vals = {};
+
+/* 沒填的欄位保留成【欄位名】，複製出去一眼就看得到 */
+function v(id, label) {
+  var t = (vals[id] || "").trim();
+  return t ? t : "【" + label + "】";
+}
+
+function build() {
+  var c = cur;
+  var extra = c.extra ? "\n" + c.extra + "\n" : "";
+  return v("call", "家長稱呼") + "您好，恭喜完成報名！以下是孩子的上課資訊：\n\n"
+    + "【開課日期】" + v("start", "開課日期與時段") + "\n"
+    + "之後每週" + v("weekday", "星期") + "同一時段。沒有課的日期：" + v("off", "沒有課的日期") + "\n\n"
+    + "【學生登入】上課與複習教材用\n"
+    + "網址：https://learn.orangeapple.co/\n"
+    + "帳號：" + v("sacc", "學生帳號") + "\n"
+    + "密碼：" + v("spwd", "學生密碼") + "\n\n"
+    + "【家長登入】查課表、調課、看學習週報\n"
+    + "網址：https://orangeapple.co/\n"
+    + "帳號：您報名時登記的 Email\n"
+    + "密碼：" + v("ppwd", "家長密碼") + "\n\n"
+    + "上課須知我整理成一頁了，調課、臨時請假、上課卡住怎麼處理都在裡面，建議存到 LINE Keep：\n"
+    + BASE + "#" + c.slug + "\n"
+    + extra
+    + "\n第一堂課前我會先打電話給您，帶孩子一起進教室，不用擔心。\n\n"
+    + "另外先提醒一下：如果上課時間到了孩子還沒上線，系統會自動打 +1 (559) 399-4194 給您。它會顯示成美國號碼，但不是詐騙，看到請放心接聽。\n\n"
+    + "有問題隨時在這裡留言，我的直撥分機是" + v("ext", "分機") + "。\n"
+    + v("receipt", "電子收據連結");
+}
+
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+function render() {
+  var txt = build();
+  document.getElementById("out").innerHTML =
+    esc(txt).replace(/【[^】]+】/g, function (m) {
+      /* 標題用的【學生登入】這類不算未填 */
+      var keep = ["【開課日期】", "【學生登入】", "【家長登入】"];
+      return keep.indexOf(m) > -1 ? m : "<mark>" + m + "</mark>";
+    });
+  var left = 0;
+  FIELDS.forEach(function (f) { if (!(vals[f.id] || "").trim()) left++; });
+  var el = document.getElementById("left");
+  if (left === 0) { el.className = "left done"; el.innerHTML = "<b>全部填完了</b>，可以複製了。"; }
+  else { el.className = "left"; el.innerHTML = "還有 <b>" + left + "</b> 個欄位沒填（下面紅色的部分）。"; }
+}
+
+/* 課別按鈕 */
+var cbox = document.getElementById("courses");
+COURSES.forEach(function (c, i) {
+  var b = document.createElement("button");
+  b.type = "button";
+  b.className = "course" + (i === 0 ? " on" : "");
+  b.innerHTML = "<b>" + c.name + "</b><span>" + c.note + "</span>";
+  b.addEventListener("click", function () {
+    cur = c;
+    Array.prototype.forEach.call(cbox.children, function (x) { x.classList.remove("on"); });
+    b.classList.add("on");
+    render();
+  });
+  cbox.appendChild(b);
+});
+
+/* 欄位 */
+var fbox = document.getElementById("fields");
+FIELDS.forEach(function (f) {
+  var d = document.createElement("div");
+  d.className = "field";
+  d.innerHTML = '<label for="f-' + f.id + '">' + f.label + '</label>'
+              + '<input id="f-' + f.id + '" type="text" placeholder="' + f.ph + '" autocomplete="off">';
+  fbox.appendChild(d);
+  d.querySelector("input").addEventListener("input", function (e) {
+    vals[f.id] = e.target.value;
+    render();
+  });
+});
+
+/* 複製 */
+document.getElementById("copy").addEventListener("click", function () {
+  var btn = this;
+  var text = build();
+  function done() {
+    var orig = btn.textContent;
+    btn.textContent = "✓ 已複製";
+    btn.classList.add("ok");
+    setTimeout(function () { btn.textContent = orig; btn.classList.remove("ok"); }, 2000);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });
+  } else { fallback(text, done); }
+});
+function fallback(text, done) {
+  var ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); }
+  catch (e) { alert("複製失敗，請手動全選下面的文字再 Cmd+C"); }
+  document.body.removeChild(ta);
+}
+
+render();
+</script>
+</body>
+</html>
