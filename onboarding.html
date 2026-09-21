@@ -159,7 +159,7 @@ var FIELDS = [
   { id: "sacc",    label: "學生帳號",         ph: "0912345678" },
   { id: "spwd",    label: "學生密碼",         ph: "" },
   { id: "ppwd",    label: "家長密碼",         ph: "" },
-  { id: "receipt", label: "電子收據連結",     ph: "https://orangeapple.co/payments/..." }
+  { id: "receipt", label: "電子收據連結（另外傳就留空）", ph: "https://orangeapple.co/payments/...", opt: true }
 ];
 
 var STAFF = [
@@ -202,8 +202,8 @@ function build() {
     + "\n第一堂課前我會先打電話給您，帶孩子一起進教室，不用擔心。\n\n"
     + "另外先提醒一下：如果上課時間到了孩子還沒上線，系統會自動打 +1 (559) 399-4194 給您。它會顯示成美國號碼，但不是詐騙，看到請放心接聽。\n\n"
     + "有問題隨時在這裡留言，我看到會回您。\n"
-    + "需要打電話的話，總機是 (02) 7709-8229，我的直撥分機是 " + me.ext + "；上課當下進不去教室、或進去沒有老師，請轉分機 11。\n"
-    + v("receipt", "電子收據連結");
+    + "需要打電話的話，總機是 (02) 7709-8229，我的直撥分機是 " + me.ext + "；上課當下進不去教室、或進去沒有老師，請轉分機 11。"
+    + ((vals.receipt || "").trim() ? "\n\n電子收據：" + vals.receipt.trim() : "");
 }
 
 function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
