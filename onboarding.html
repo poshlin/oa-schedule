@@ -44,7 +44,11 @@ body { font-family: var(--font-zh); background: var(--bg); color: var(--dark); l
 .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
 .field label { display: block; font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 4px; }
 .field input { width: 100%; font-family: inherit; font-size: 13.5px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 6px; background: var(--white); color: var(--dark); }
-.field input:focus { outline: none; border-color: var(--teal); }
+.field input:focus, .field select:focus { outline: none; border-color: var(--teal); }
+.field select { width: 100%; font-family: inherit; font-size: 13.5px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 6px; background: var(--white); color: var(--dark); }
+.me { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.me select { font-family: inherit; font-size: 14px; font-weight: 700; padding: 9px 12px; border: 2px solid var(--orange); border-radius: 6px; background: var(--orange-lt); color: var(--dark); }
+.me span { font-size: 12.5px; color: var(--gray); }
 
 /* 輸出 */
 .outbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -73,6 +77,15 @@ pre.out mark { background: var(--red-lt); color: var(--red); font-weight: 700; p
   <div class="head">
     <h1>成交訊息公版</h1>
     <p>體驗生付款成為正式生後，傳給家長的第一則訊息。選課別 → 填欄位 → 一鍵複製 → 貼到 LINE。</p>
+  </div>
+
+  <div class="card">
+    <h2>你是哪一位老師？</h2>
+    <p class="hint">選一次就好，這台電腦會記住。名字和分機會自動帶進訊息裡。</p>
+    <div class="me">
+      <select id="me"></select>
+      <span id="me-info"></span>
+    </div>
   </div>
 
   <div class="card">
@@ -146,9 +159,18 @@ var FIELDS = [
   { id: "sacc",    label: "學生帳號",         ph: "0912345678" },
   { id: "spwd",    label: "學生密碼",         ph: "" },
   { id: "ppwd",    label: "家長密碼",         ph: "" },
-  { id: "ext",     label: "你的直撥分機",     ph: "1033" },
   { id: "receipt", label: "電子收據連結",     ph: "https://orangeapple.co/payments/..." }
 ];
+
+var STAFF = [
+  { zh: "江珮誼", en: "Vina",      ext: "1033" },
+  { zh: "周君樺", en: "Wanda",     ext: "1031" },
+  { zh: "謝伯戎", en: "Peter",     ext: "1032" },
+  { zh: "段蒔呈", en: "Voight",    ext: "1029" },
+  { zh: "謝欣宸", en: "Caesar",    ext: "1030" },
+  { zh: "趙柔瑄", en: "Catherine", ext: "1048" }
+];
+var me = STAFF[0];
 
 var cur = COURSES[0];
 var vals = {};
@@ -162,7 +184,7 @@ function v(id, label) {
 function build() {
   var c = cur;
   var extra = c.extra ? "\n" + c.extra + "\n" : "";
-  return v("call", "家長稱呼") + "您好，恭喜完成報名！以下是孩子的上課資訊：\n\n"
+  return v("call", "家長稱呼") + "您好，我是 " + me.en + " 老師，恭喜完成報名！以下是孩子的上課資訊：\n\n"
     + "【開課日期】" + v("start", "開課日期與時段") + "\n"
     + "之後每週" + v("weekday", "星期") + "同一時段。沒有課的日期：" + v("off", "沒有課的日期") + "\n\n"
     + "【學生登入】上課與複習教材用\n"
@@ -178,7 +200,8 @@ function build() {
     + extra
     + "\n第一堂課前我會先打電話給您，帶孩子一起進教室，不用擔心。\n\n"
     + "另外先提醒一下：如果上課時間到了孩子還沒上線，系統會自動打 +1 (559) 399-4194 給您。它會顯示成美國號碼，但不是詐騙，看到請放心接聽。\n\n"
-    + "有問題隨時在這裡留言，我的直撥分機是" + v("ext", "分機") + "。\n"
+    + "有問題隨時在這裡留言，我看到會回您。\n"
+    + "需要打電話的話，總機是 (02) 7709-8229，我的直撥分機是 " + me.ext + "；上課當下進不去教室、或進去沒有老師，請轉分機 11。\n"
     + v("receipt", "電子收據連結");
 }
 
@@ -252,7 +275,24 @@ function fallback(text, done) {
   document.body.removeChild(ta);
 }
 
-render();
+var meSel = document.getElementById("me");
+STAFF.forEach(function (p, i) {
+  var o = document.createElement("option");
+  o.value = String(i);
+  o.textContent = p.en + " 老師（" + p.zh + "）";
+  meSel.appendChild(o);
+});
+function setMe(i) {
+  me = STAFF[i];
+  meSel.value = String(i);
+  document.getElementById("me-info").textContent = "直撥分機 " + me.ext + "　訊息開頭會寫「我是 " + me.en + " 老師」";
+  try { localStorage.setItem("oa-onboarding-me", String(i)); } catch (e) {}
+  render();
+}
+meSel.addEventListener("change", function () { setMe(parseInt(this.value, 10)); });
+var saved = null;
+try { saved = localStorage.getItem("oa-onboarding-me"); } catch (e) {}
+setMe(saved !== null && STAFF[parseInt(saved, 10)] ? parseInt(saved, 10) : 0);
 </script>
 </body>
 </html>
