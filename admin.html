@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>行政執行台 — 橘子蘋果線上事業部</title>
+<!-- Google 登入是唯一的外部資源：業務端的每一筆送出都要帶 Google 驗證過的公司信箱 -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-dk: #D48500; --orange-lt: #FFF4DD;
+  --red: #FF5859;    --red-dk: #CC3344;    --red-lt: #FFEBEB;
+  --teal: #00C4B3;   --teal-dk: #008F83;   --teal-lt: #DFFAF6;
+  --green: #4CAF50;  --green-lt: #E8F5E9;
+  --gray: #646569;   --dark: #2D2D2D;
+  --bg: #F5F5F5;     --white: #FFFFFF;
+  --border: #E5E5E5;
+  --shadow: 0 1px 3px rgba(45,45,45,.06);
+  --shadow-lg: 0 4px 16px rgba(45,45,45,.12);
+  --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-zh); background: var(--bg); color: var(--dark); font-size: 14px; line-height: 1.55; }
+header { background: var(--white); border-bottom: 3px solid var(--orange); padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+header h1 { font-size: 17px; }
+header .spacer { flex: 1; }
+.me { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.me select { font-family: inherit; font-size: 13px; font-weight: 700; padding: 6px 10px; border: 2px solid var(--orange); border-radius: 6px; background: var(--white); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 16px; }
+.banner { background: var(--orange-lt); border: 1px solid var(--orange); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+.banner.err { background: var(--red-lt); border-color: var(--red); }
+.banner.ok { background: var(--green-lt); border-color: var(--green); }
+section { background: var(--white); border-radius: 10px; box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 16px; }
+section h2 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+section h2 .cnt { background: var(--dark); color: #fff; border-radius: 10px; font-size: 12px; padding: 1px 8px; }
+section .hint { color: var(--gray); font-size: 12.5px; margin-bottom: 10px; }
+.item { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: start; }
+.item .who { font-weight: 700; }
+.item .who a { color: var(--teal-dk); text-decoration: none; font-size: 12px; margin-left: 6px; }
+.item .msg { color: var(--dark); font-size: 13px; margin-top: 2px; }
+.item .sug { color: var(--teal-dk); font-size: 12.5px; margin-top: 2px; }
+.item .done { grid-column: 1 / -1; color: var(--green); font-size: 12.5px; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+button { font-family: inherit; font-size: 13px; padding: 7px 12px; border-radius: 6px; border: 2px solid var(--border); background: var(--white); cursor: pointer; }
+button.pri { background: var(--orange); border-color: var(--orange); color: var(--dark); font-weight: 700; }
+button.pri:hover { background: var(--orange-dk); border-color: var(--orange-dk); }
+button.sec { border-color: var(--teal); color: var(--teal-dk); }
+button:disabled { opacity: .5; cursor: default; }
+.empty { color: var(--gray); font-size: 13px; padding: 8px 0; }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form .full { grid-column: 1 / -1; }
+.form label { display: block; font-size: 12.5px; color: var(--gray); margin-bottom: 3px; }
+.form input, .form select, .form textarea { width: 100%; font-family: inherit; font-size: 13.5px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 6px; }
+.form textarea { min-height: 64px; }
+pre.tpl { background: #FAFAFA; border: 1px dashed var(--border); border-radius: 8px; padding: 12px; white-space: pre-wrap; font-family: inherit; font-size: 13px; margin-top: 10px; }
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; z-index: 50; }
+.mask.on { display: flex; }
+.modal { background: var(--white); border-radius: 12px; box-shadow: var(--shadow-lg); width: min(560px, 92vw); padding: 18px; }
+.modal h3 { font-size: 15px; margin-bottom: 8px; }
+.modal .row { font-size: 13px; color: var(--gray); margin-bottom: 8px; }
+.modal textarea { width: 100%; min-height: 80px; font-family: inherit; font-size: 13.5px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 6px; }
+.modal .btns { margin-top: 12px; }
+footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px; }
+@media (max-width: 640px) { .item { grid-template-columns: 1fr; } .btns { justify-content: flex-start; } .form { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>行政執行台</h1>
+  <div class="spacer"></div>
+  <div class="me" id="me-box">
+    <div id="g-signin"></div>
+    <span id="me-email" style="display:none"></span>
+    <select id="me" style="display:none"></select>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="banner" class="banner">請先用公司 Google 帳號登入。</div>
+
+  <section id="sec-quick">
+    <h2>① 可一鍵完成 <span class="cnt" id="cnt-quick">0</span></h2>
+    <div class="hint">程式已經把要寫的內容擬好了，你看過沒問題就按「確認寫入」。保旭核准後由執行器寫進 Corp。</div>
+    <div id="list-quick"></div>
+  </section>
+
+  <section id="sec-judge">
+    <h2>② 要你判斷 <span class="cnt" id="cnt-judge">0</span></h2>
+    <div class="hint">程式算出來跟前一筆訂單不連續，但可能有正當理由（預先加購、跳級…）。按「確認無誤」寫理由，明天就不會再出現；值被改掉時會重新跳出來。</div>
+    <div id="list-judge"></div>
+  </section>
+
+  <section id="sec-todo">
+    <h2>③ 其他待辦 <span class="cnt" id="cnt-todo">0</span></h2>
+    <div class="hint">退費未刪除、停課備註、檢定班前置。到 Corp 處理完後按「已處理」；隔天掃描會自動驗收，沒處理好會再報。</div>
+    <div id="list-todo"></div>
+  </section>
+
+  <section id="sec-kiku">
+    <h2>④ 申請（補課／暫停）— 一鍵生成 Kiku 公版</h2>
+    <div class="hint">選學生、填理由，其餘欄位程式從 Corp 帶。複製後貼進 Kiku 送出（送件人必須是你本人）。保旭在 Kiku 核准後，補課會由執行器自動 +1 並備註。</div>
+    <div class="form">
+      <div><label>學生（我的名冊）</label><select id="k-student"><option value="">— 選擇 —</option></select></div>
+      <div><label>項目</label><select id="k-type"><option value="request_makeup">補課（可補課次數 +1）</option><option value="request_suspend">暫停</option></select></div>
+      <div id="k-dates" class="full" style="display:none"><label>暫停起訖（例：2026/10/01 ~ 2026/11/30，2026/12/01 復課）</label><input id="k-date" placeholder="起日 ~ 迄日，復課日"></div>
+      <div class="full"><label>理由（會原樣進 Kiku）</label><textarea id="k-reason" placeholder="例：家長來電，10/4 因校外教學無法出席，申請補課一次"></textarea></div>
+      <div class="full btns" style="justify-content:flex-start"><button class="pri" id="k-gen">產生公版並留紀錄</button></div>
+    </div>
+    <pre class="tpl" id="k-out" style="display:none"></pre>
+    <div class="btns" id="k-copy-row" style="display:none;justify-content:flex-start;margin-top:8px"><button class="sec" id="k-copy">一鍵複製</button><a id="k-link" href="#" target="_blank" style="align-self:center;font-size:13px;color:var(--teal-dk)">開 Kiku</a></div>
+  </section>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <h3 id="m-title">確認</h3>
+    <div class="row" id="m-desc"></div>
+    <textarea id="m-reason" placeholder="理由（必填）"></textarea>
+    <div class="btns"><button id="m-cancel">取消</button><button class="pri" id="m-ok">送出</button></div>
+  </div>
+</div>
+
+<footer>唯讀顯示來自每日掃描；你按的每一筆都會記錄你的公司信箱、時間與理由，經保旭核准後才會寫進 Corp。</footer>
+
+<script>
+// ─── 配置（部署後修改） ───────────────────────────────────────────────────────
+const APPS_SCRIPT_URL = "REPLACE_WITH_APPS_SCRIPT_URL";
+const TODO_CSV_URL    = "PASTE_PUBLISHED_CSV_URL_HERE";
+const OAUTH_CLIENT_ID = "PASTE_OAUTH_CLIENT_ID_HERE.apps.googleusercontent.com";
+const KIKU_URL        = "https://kikuflow.com/";
+const CORP            = "https://corp.orangeapple.co";
+
+// 跟 onboarding.html 同一份名單。Google 登入負責「你是誰」（寫進紀錄的是驗證過的信箱），
+// 這份名單只負責「哪些列是我的」（掃描器報的是中文名）。
+const STAFF = [
+  { zh: "江珮誼", en: "Vina" }, { zh: "周君樺", en: "Wanda" }, { zh: "謝伯戎", en: "Peter" },
+  { zh: "段蒔呈", en: "Voight" }, { zh: "謝欣宸", en: "Caesar" }, { zh: "趙柔瑄", en: "Catherine" }
+];
+
+// ─── 登入 ─────────────────────────────────────────────────────────────────────
+let idToken = sessionStorage.getItem("oa_admin_token") || "";
+let meEmail = sessionStorage.getItem("oa_admin_email") || "";
+let meName  = sessionStorage.getItem("oa_admin_name") || "";
+let me = null;   // STAFF 裡的哪一位
+
+function decodeJwt(t) {
+  try { return JSON.parse(decodeURIComponent(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""))); }
+  catch (e) { return {}; }
+}
+function onCredential(resp) {
+  idToken = resp.credential;
+  const p = decodeJwt(idToken);
+  meEmail = p.email || ""; meName = p.name || "";
+  sessionStorage.setItem("oa_admin_token", idToken);
+  sessionStorage.setItem("oa_admin_email", meEmail);
+  sessionStorage.setItem("oa_admin_name", meName);
+  afterLogin();
+}
+window.addEventListener("load", () => {
+  const tryInit = () => {
+    if (!window.google || !google.accounts) { setTimeout(tryInit, 200); return; }
+    if (OAUTH_CLIENT_ID.startsWith("PASTE_")) {
+      setBanner("⚙️ 尚未設定 Google 登入（OAUTH_CLIENT_ID），請聯絡 Posh。", "err"); return;
+    }
+    google.accounts.id.initialize({ client_id: OAUTH_CLIENT_ID, callback: onCredential, auto_select: true });
+    google.accounts.id.renderButton(document.getElementById("g-signin"), { theme: "outline", size: "medium", text: "signin_with" });
+    if (idToken) {
+      const p = decodeJwt(idToken);
+      if (p.exp && p.exp * 1000 > Date.now()) afterLogin(); else idToken = "";
+    }
+  };
+  tryInit();
+});
+
+function afterLogin() {
+  document.getElementById("g-signin").style.display = "none";
+  const el = document.getElementById("me-email"); el.style.display = ""; el.textContent = meEmail;
+  // 自動對到名單：Google 名字含中文名或英文名就是他；對不到就讓他選一次、記住
+  const sel = document.getElementById("me"); sel.style.display = ""; sel.innerHTML = "";
+  STAFF.forEach((p, i) => { const o = document.createElement("option"); o.value = i; o.textContent = p.en + "（" + p.zh + "）"; sel.appendChild(o); });
+  let idx = STAFF.findIndex(p => meName.includes(p.zh) || meName.toLowerCase().includes(p.en.toLowerCase()));
+  const saved = localStorage.getItem("oa_admin_me_" + meEmail);
+  if (idx === -1 && saved !== null) idx = parseInt(saved, 10);
+  if (idx === -1) idx = 0;
+  sel.value = String(idx); me = STAFF[idx];
+  sel.addEventListener("change", () => { me = STAFF[parseInt(sel.value, 10)]; localStorage.setItem("oa_admin_me_" + meEmail, sel.value); render(); });
+  setBanner("已登入 " + meEmail + "。清單只顯示掛在你名下的項目。", "ok");
+  loadTodo();
+}
+function setBanner(msg, cls) { const b = document.getElementById("banner"); b.textContent = msg; b.className = "banner " + (cls || ""); }
+
+// ─── 讀「今日待辦」CSV（跟 team.html 同一套） ────────────────────────────────
+function parseCSV(text) {
+  const rows = []; let row = [], field = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; }
+    else if (c === '"') q = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+    else if (c !== "\r") field += c;
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+let todo = [];      // 今日待辦（含 roster）
+let submitted = {}; // 本次瀏覽已送出的 admission_id|check → row_id
+
+async function loadTodo() {
+  if (TODO_CSV_URL.startsWith("PASTE_")) { setBanner("⚙️ 尚未設定今日待辦資料來源（TODO_CSV_URL），請聯絡 Posh。", "err"); return; }
+  try {
+    const sep = TODO_CSV_URL.includes("?") ? "&" : "?";
+    const r = await fetch(TODO_CSV_URL + sep + "cb=" + Math.floor(Date.now() / 60000), { cache: "no-cache" });
+    const rows = parseCSV(await r.text());
+    const h = rows[0].map(x => x.trim());
+    todo = rows.slice(1).filter(x => x.length > 2).map(x => { const o = {}; h.forEach((k, i) => o[k] = (x[i] || "").trim()); return o; });
+    render();
+  } catch (e) { setBanner("載入今日待辦失敗：" + e.message, "err"); }
+}
+
+function mine(x) { return me && (x.owner === me.zh || x.salesperson === me.zh); }
+function corpLink(x) { return x.kind === "cert" ? `${CORP}/stages/${x.stage_id}` : `${CORP}/dt_admissions/${x.admission_id}`; }
+function key(x) { return x.admission_id + "|" + x.check; }
+
+function itemHtml(x, buttons) {
+  const done = submitted[key(x)];
+  return `<div class="item">
+    <div><div class="who">${esc(x.student)}<a href="${corpLink(x)}" target="_blank">開 Corp ↗</a>
+      <span style="color:var(--gray);font-weight:400;font-size:12px">　${esc(x.check)}${x.class_room ? "　" + esc(x.class_room.slice(0, 26)) : ""}</span></div>
+      <div class="msg">${esc(x.message)}</div>${x.suggested ? `<div class="sug">→ ${esc(x.suggested)}</div>` : ""}</div>
+    <div class="btns">${done ? "" : buttons}</div>
+    ${done ? `<div class="done">✓ 已送出（${done}），等保旭核准</div>` : ""}
+  </div>`;
+}
+function esc(s) { return String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function render() {
+  const rows = todo.filter(x => x.kind !== "roster" && mine(x));
+  const quick = rows.filter(x => x.check === "小綠點備註" && x.verdict === "todo");
+  const judge = rows.filter(x => x.check === "起始堂次" && x.verdict === "review");
+  const other = rows.filter(x => ["退費未刪除", "停課備註", "檢定班前置"].includes(x.check) && x.verdict === "todo");
+  fill("quick", quick, x => `<button class="pri" onclick="act('write_teacher_note', ${JSON.stringify(key(x))})">確認寫入</button>`);
+  fill("judge", judge, x => `<button class="pri" onclick="act('mark_confirmed', ${JSON.stringify(key(x))})">確認無誤</button>`);
+  fill("todo",  other, x => `<button class="sec" onclick="act('mark_done', ${JSON.stringify(key(x))})">已處理</button>`);
+  // Kiku 公版的學生下拉：我的名冊
+  const sel = document.getElementById("k-student"); sel.innerHTML = '<option value="">— 選擇 —</option>';
+  todo.filter(x => x.kind === "roster" && mine(x)).sort((a, b) => a.student.localeCompare(b.student, "zh-Hant"))
+    .forEach(x => { const o = document.createElement("option"); o.value = x.admission_id; o.textContent = `${x.student}　${x.course_code || ""}　${(x.class_room || "").slice(0, 18)}`; sel.appendChild(o); });
+}
+function fill(id, list, btn) {
+  document.getElementById("cnt-" + id).textContent = list.length;
+  document.getElementById("list-" + id).innerHTML = list.length ? list.map(x => itemHtml(x, btn(x))).join("") : '<div class="empty">目前沒有。</div>';
+}
+
+// ─── 送出判斷 ────────────────────────────────────────────────────────────────
+let pending = null;
+function act(action, k) {
+  const x = todo.find(y => key(y) === k); if (!x) return;
+  const extra = safeJson(x.extra_json);
+  pending = { action, x, extra };
+  const desc = { write_teacher_note: `小綠點將追加：「${extra.teacher_note || x.suggested}」`,
+                 mark_confirmed: `小紅點將追加：「【系統確認 ${me.en}】${x.check}=${extra.value ?? ""} <你的理由>」`,
+                 mark_done: `記錄你已在 Corp 處理完這一項；隔天掃描若仍不合格會再報。` }[action];
+  document.getElementById("m-title").textContent = `${x.student}｜${x.check}`;
+  document.getElementById("m-desc").textContent = desc;
+  const ta = document.getElementById("m-reason");
+  ta.value = ""; ta.placeholder = action === "write_teacher_note" ? "備註（可留空）" : "理由（必填）";
+  document.getElementById("mask").classList.add("on"); ta.focus();
+}
+function safeJson(s) { try { return s ? JSON.parse(s) : {}; } catch (e) { return {}; } }
+document.getElementById("m-cancel").onclick = () => document.getElementById("mask").classList.remove("on");
+document.getElementById("m-ok").onclick = async () => {
+  const { action, x, extra } = pending;
+  const reason = document.getElementById("m-reason").value.trim();
+  if (action !== "write_teacher_note" && !reason) { alert("請填理由"); return; }
+  const payload = { action, admission_id: x.admission_id, student: x.student, check: x.check, reason,
+    display_name: me.en, kind: x.kind, stage_id: x.stage_id || "",
+    target_value: action === "write_teacher_note" ? (extra.teacher_note || x.suggested) : (extra.value ?? "") };
+  const res = await submit(payload);
+  if (res) { submitted[key(x)] = res.row_id; document.getElementById("mask").classList.remove("on"); render(); }
+};
+async function submit(payload) {
+  if (!idToken) { alert("請先登入 Google"); return null; }
+  if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { alert("⚙️ APPS_SCRIPT_URL 尚未設定，請聯絡 Posh。"); return null; }
+  const btn = document.getElementById("m-ok"); btn.disabled = true;
+  try {
+    const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "submit", id_token: idToken, payload }) });   // text/plain 避免 CORS preflight
+    const d = await r.json();
+    if (d.error) { if (/登入|憑證/.test(d.error)) { idToken = ""; sessionStorage.removeItem("oa_admin_token"); } alert("送出失敗：" + d.error); return null; }
+    return d;
+  } catch (e) { alert("連線錯誤：" + e.message); return null; }
+  finally { btn.disabled = false; }
+}
+
+// ─── Kiku 公版 ───────────────────────────────────────────────────────────────
+document.getElementById("k-type").addEventListener("change", e => { document.getElementById("k-dates").style.display = e.target.value === "request_suspend" ? "" : "none"; });
+document.getElementById("k-gen").onclick = async () => {
+  const aid = document.getElementById("k-student").value; const type = document.getElementById("k-type").value;
+  const reason = document.getElementById("k-reason").value.trim(); const dates = document.getElementById("k-date").value.trim();
+  if (!aid) { alert("請選學生"); return; } if (!reason) { alert("請填理由"); return; }
+  if (type === "request_suspend" && !dates) { alert("請填暫停起訖"); return; }
+  const x = todo.find(y => y.kind === "roster" && y.admission_id === aid); const ex = safeJson(x.extra_json);
+  const subject = "線上_" + x.student;
+  const res = await submitDirect({ action: type, admission_id: aid, student: x.student, check: type === "request_makeup" ? "補課" : "暫停",
+    reason: reason + (dates ? "　暫停：" + dates : ""), kiku_subject: subject, display_name: me.en, target_value: dates });
+  if (!res) return;
+  const lines = [
+    `主旨：${subject}`, `個案姓名：${x.student}`,
+    `報名連結：${CORP}/dt_admissions/${aid}`, `報名編號：${aid}`,
+    `課程：${ex.course_name || x.course_code || ""}　${x.class_room || ""}`,
+    `可補課次數（現值）：${ex.rest_times ?? "—"}　起始堂次：${ex.start_at ?? "—"}`,
+    `申請項目：${type === "request_makeup" ? "補課（可補課次數 +1）" : "暫停　" + dates}`,
+    `申請理由：${reason}`, ``, `執行台編號：${res.row_id}（請保留這行，Kiku 核准後系統靠它自動完成 Corp 設定）`
+  ];
+  document.getElementById("k-out").textContent = lines.join("\n"); document.getElementById("k-out").style.display = "";
+  document.getElementById("k-copy-row").style.display = ""; document.getElementById("k-link").href = KIKU_URL;
+};
+async function submitDirect(payload) {
+  if (!idToken) { alert("請先登入 Google"); return null; }
+  try {
+    const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "submit", id_token: idToken, payload }) });
+    const d = await r.json(); if (d.error) { alert("送出失敗：" + d.error); return null; } return d;
+  } catch (e) { alert("連線錯誤：" + e.message); return null; }
+}
+document.getElementById("k-copy").onclick = function () {
+  const text = document.getElementById("k-out").textContent; const btn = this;
+  const done = () => { const o = btn.textContent; btn.textContent = "✓ 已複製"; setTimeout(() => btn.textContent = o, 2000); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => fallback(text, done)); else fallback(text, done);
+};
+function fallback(text, done) { const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); done(); } catch (e) { alert("複製失敗，請手動全選再 Cmd+C"); } document.body.removeChild(ta); }
+</script>
+</body>
+</html>

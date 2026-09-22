@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>核准台 — 行政執行台</title>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-dk: #D48500; --orange-lt: #FFF4DD;
+  --red: #FF5859;    --red-dk: #CC3344;    --red-lt: #FFEBEB;
+  --teal: #00C4B3;   --teal-dk: #008F83;   --teal-lt: #DFFAF6;
+  --green: #4CAF50;  --green-lt: #E8F5E9;
+  --gray: #646569;   --dark: #2D2D2D;
+  --bg: #F5F5F5;     --white: #FFFFFF;
+  --border: #E5E5E5;
+  --shadow: 0 1px 3px rgba(45,45,45,.06);
+  --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-zh); background: var(--bg); color: var(--dark); font-size: 14px; line-height: 1.55; }
+header { background: var(--white); border-bottom: 3px solid var(--orange); padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+header h1 { font-size: 17px; }
+header .spacer { flex: 1; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { font-family: inherit; font-size: 13px; padding: 6px 12px; border-radius: 16px; border: 2px solid var(--border); background: var(--white); cursor: pointer; }
+.tabs button.on { background: var(--dark); color: #fff; border-color: var(--dark); }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.banner { background: var(--orange-lt); border: 1px solid var(--orange); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; }
+.banner.err { background: var(--red-lt); border-color: var(--red); }
+.card { background: var(--white); border-radius: 10px; box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 12px; display: grid; grid-template-columns: 1fr 260px; gap: 10px 16px; }
+.card .head { font-weight: 700; font-size: 15px; }
+.card .head a { color: var(--teal-dk); text-decoration: none; font-size: 12px; margin-left: 8px; }
+.card .meta { color: var(--gray); font-size: 12.5px; margin-top: 2px; }
+.card .reason { background: var(--orange-lt); border-radius: 6px; padding: 8px 10px; margin-top: 8px; font-size: 13.5px; }
+.card .reason b { display: block; font-size: 12px; color: var(--gray); margin-bottom: 2px; }
+.lights { display: flex; flex-direction: column; gap: 6px; }
+.light { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; }
+.light .dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.dot.g { background: var(--green); } .dot.y { background: var(--orange); } .dot.r { background: var(--red); } .dot.x { background: #BBB; }
+.btns { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button.act { font-family: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px; border: 2px solid var(--border); background: var(--white); cursor: pointer; }
+button.ok { background: var(--green); border-color: var(--green); color: #fff; font-weight: 700; }
+button.no { border-color: var(--red); color: var(--red-dk); }
+button:disabled { opacity: .5; cursor: default; }
+.status { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #EEE; }
+.status.approved { background: var(--green-lt); color: #2E7D32; } .status.done { background: var(--teal-lt); color: var(--teal-dk); }
+.status.failed, .status.rejected { background: var(--red-lt); color: var(--red-dk); } .status.kiku_pending { background: var(--orange-lt); color: var(--orange-dk); }
+.empty { color: var(--gray); padding: 16px; text-align: center; }
+.evi { grid-column: 1 / -1; font-size: 12px; color: var(--gray); white-space: pre-wrap; }
+@media (max-width: 720px) { .card { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>核准台</h1>
+  <div class="tabs" id="tabs">
+    <button data-s="pending" class="on">待核准 <span id="n-pending">0</span></button>
+    <button data-s="kiku_pending">Kiku 待核 <span id="n-kiku_pending">0</span></button>
+    <button data-s="approved">已核准待執行 <span id="n-approved">0</span></button>
+    <button data-s="failed">執行失敗 <span id="n-failed">0</span></button>
+    <button data-s="review">待複核 <span id="n-review">0</span></button>
+    <button data-s="done">已完成 <span id="n-done">0</span></button>
+    <button data-s="rejected">已退回 <span id="n-rejected">0</span></button>
+  </div>
+  <div class="spacer"></div>
+  <button class="act" onclick="load()">重新整理</button>
+</header>
+<div class="wrap">
+  <div class="banner" id="banner">載入中…</div>
+  <div id="list"></div>
+</div>
+
+<script>
+// ─── 配置（部署後修改） ───────────────────────────────────────────────────────
+const APPS_SCRIPT_URL = "REPLACE_WITH_APPS_SCRIPT_URL";
+const TODO_CSV_URL    = "PASTE_PUBLISHED_CSV_URL_HERE";
+const CORP = "https://corp.orangeapple.co";
+
+// 密鑰：?key=XXX 或 localStorage（跟 review.html 一樣）
+function getSecret() { return new URLSearchParams(location.search).get("key") || localStorage.getItem("oa_admin_secret") || ""; }
+function setSecret(s) { localStorage.setItem("oa_admin_secret", s); }
+
+let items = [], todo = {}, cur = "pending";
+
+function parseCSV(text) {
+  const rows = []; let row = [], field = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; }
+    else if (c === '"') q = true; else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; } else if (c !== "\r") field += c;
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+async function loadTodo() {
+  if (TODO_CSV_URL.startsWith("PASTE_")) return;
+  try {
+    const sep = TODO_CSV_URL.includes("?") ? "&" : "?";
+    const r = await fetch(TODO_CSV_URL + sep + "cb=" + Math.floor(Date.now() / 60000), { cache: "no-cache" });
+    const rows = parseCSV(await r.text()); const h = rows[0].map(x => x.trim());
+    todo = {};
+    rows.slice(1).filter(x => x.length > 2).forEach(x => { const o = {}; h.forEach((k, i) => o[k] = (x[i] || "").trim()); todo[o.admission_id + "|" + o.check] = o; if (o.kind === "roster") todo["roster|" + o.admission_id] = o; });
+  } catch (e) { /* 燈號會顯示「今日待辦讀不到」 */ }
+}
+
+async function load() {
+  let s = getSecret();
+  if (!s) { s = prompt("請輸入核准台密鑰（之後會記住）："); if (!s) return; setSecret(s); }
+  if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { banner("⚙️ APPS_SCRIPT_URL 尚未設定。", "err"); return; }
+  banner("載入中…");
+  try {
+    await loadTodo();
+    const r = await fetch(`${APPS_SCRIPT_URL}?action=list&status=all&secret=${encodeURIComponent(s)}`);
+    const d = await r.json();
+    if (d.error) { if (d.error === "unauthorized") { localStorage.removeItem("oa_admin_secret"); alert("密鑰錯誤"); return load(); } throw new Error(d.error); }
+    items = d.items || [];
+    items.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
+    counts(); render();
+    banner(`共 ${items.length} 筆紀錄。今日待辦${Object.keys(todo).length ? "已載入，燈號可用" : "讀不到（燈號會標灰）"}。`);
+  } catch (e) { banner("載入失敗：" + e.message, "err"); }
+}
+function banner(m, c) { const b = document.getElementById("banner"); b.textContent = m; b.className = "banner " + (c || ""); }
+function counts() { ["pending", "kiku_pending", "approved", "failed", "review", "done", "rejected"].forEach(s => document.getElementById("n-" + s).textContent = items.filter(x => x.status === s).length); }
+document.getElementById("tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; cur = b.dataset.s; [...e.currentTarget.children].forEach(x => x.classList.toggle("on", x === b)); render(); });
+
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function raw(x) { try { return JSON.parse(x.raw_json || "{}"); } catch (e) { return {}; } }
+
+// ─── 驗算燈號：把今日待辦（掃描器算的）跟業務送的東西擺在一起看 ─────────────────
+function lights(x) {
+  const p = raw(x); const t = todo[x.admission_id + "|" + x.check] || todo[x.admission_id + "|" + (p.check || "")];
+  const ro = todo["roster|" + x.admission_id];
+  const ex = t && t.extra_json ? (() => { try { return JSON.parse(t.extra_json); } catch (e) { return {}; } })() : {};
+  const L = [];
+  const add = (c, m) => L.push({ c, m });
+  if (!Object.keys(todo).length) { add("x", "今日待辦讀不到，無法驗算"); return L; }
+  if (t) add("g", `掃描器今天仍列此項：${t.message.slice(0, 60)}`); else if (["mark_confirmed", "write_teacher_note", "mark_done"].includes(x.action)) add("y", "掃描器今天沒列這項（可能已處理、或值被改過）");
+  if (x.action === "mark_confirmed") {
+    add(t && String(ex.value) === String(x.target_value) ? "g" : "r", `要標記的值 ${x.target_value}｜Corp 現值 ${ex.value ?? "?"}｜系統推算 ${ex.expected ?? "?"}`);
+    add(x.reason && x.reason.length >= 4 ? "g" : "r", `理由：${x.reason || "（空）"}`);
+  }
+  if (x.action === "write_teacher_note") add(ex.teacher_note ? "g" : "y", `將寫入小綠點：「${x.target_value}」`);
+  if (x.action === "request_makeup") { add(ro ? "g" : "y", `可補課次數現值 ${ex.rest_times ?? (ro ? "見 Corp" : "?")} → 執行後 +1`); add("g", `Kiku 主旨：${x.kiku_subject}`); }
+  if (x.action === "request_suspend") add("y", "暫停：第一版執行器不動 Corp，核准後請你手動設定長期停課");
+  if (x.action === "mark_done") add("g", "不寫 Corp；隔天掃描自動驗收");
+  if (x.status === "kiku_unmatched" || x.action === "kiku_unmatched") add("r", "Kiku 核准了一張單但對不到 REQ 編號，請人工比對");
+  return L;
+}
+
+function render() {
+  const list = items.filter(x => x.status === cur);
+  const el = document.getElementById("list");
+  if (!list.length) { el.innerHTML = '<div class="empty">這個分類目前沒有。</div>'; return; }
+  el.innerHTML = list.map(x => {
+    const p = raw(x); const link = p.kind === "cert" && p.stage_id ? `${CORP}/stages/${p.stage_id}` : `${CORP}/dt_admissions/${x.admission_id}`;
+    const L = lights(x);
+    const canAct = cur === "pending" || cur === "review";
+    return `<div class="card">
+      <div>
+        <div class="head">${esc(x.student)}<a href="${link}" target="_blank">開 Corp ↗</a> <span class="status ${esc(x.status)}">${esc(x.status)}</span></div>
+        <div class="meta">${esc(x.row_id)}　${esc(x.check)}／${esc(x.action)}　由 ${esc(x.name)}（${esc(x.email)}）於 ${esc(String(x.timestamp).replace("T", " ").slice(0, 16))}</div>
+        <div class="reason"><b>業務寫的理由</b>${esc(x.reason) || "（無）"}</div>
+        ${x.posh_note ? `<div class="meta">你的備註：${esc(x.posh_note)}</div>` : ""}
+      </div>
+      <div class="lights">${L.map(l => `<div class="light"><span class="dot ${l.c}"></span><span>${esc(l.m)}</span></div>`).join("")}</div>
+      ${canAct ? `<div class="btns"><button class="act ok" onclick="decide('approve','${esc(x.row_id)}')">核准</button><button class="act no" onclick="decide('reject','${esc(x.row_id)}')">退回</button></div>` : ""}
+      ${(x.evidence || x.error) ? `<div class="evi">${esc(x.error ? "❌ " + x.error : "✓ " + x.evidence)}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+async function decide(action, rowId) {
+  let note = "";
+  if (action === "reject") { note = prompt("退回原因（業務看得到）："); if (note === null) return; }
+  const btns = document.querySelectorAll("button.act"); btns.forEach(b => b.disabled = true);
+  try {
+    const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action, secret: getSecret(), row_id: rowId, note }) });
+    const d = await r.json(); if (d.error) { alert("失敗：" + d.error); return; }
+    await load();
+  } catch (e) { alert("錯誤：" + e.message); }
+  finally { btns.forEach(b => b.disabled = false); }
+}
+load();
+</script>
+</body>
+</html>
