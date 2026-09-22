@@ -99,6 +99,7 @@ function doGet(e) {
   try {
     const p = e.parameter || {};
     if (p.action === "list") { requireSecret_(p.secret); return json_(list_(p.status)); }
+    if (p.action === "init") { requireSecret_(p.secret); sheet_(TODO_TAB, TODO_HEADERS); sheet_(JUDGE_TAB, JUDGE_HEADERS); return json_({ ok: true, tabs: [TODO_TAB, JUDGE_TAB] }); }
     if (p.action === "claim") { requireSecret_(p.secret); return json_(claim_()); }
     return json_({ ok: true, service: "OA 行政執行台 Apps Script v1" });
   } catch (err) {
@@ -110,7 +111,12 @@ function doGet(e) {
 
 function publish_(body) {
   const items = body.items || [];
+  // 🔴 空清單一律拒絕：掃描失敗時把今日待辦清空，業務會以為「今天沒事」。
+  //    真的要清空請帶 force:true。
+  if (!items.length && !body.force) throw new Error("items 為空，拒絕清空今日待辦（要清空請帶 force:true）");
   const sh = sheet_(TODO_TAB, TODO_HEADERS);
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
   // 整批覆寫：只留當天。歷史在掃描器的 runs/ 裡，不需要在 Sheet 累積。
   if (sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1);
   if (!items.length) return { ok: true, written: 0 };
@@ -124,6 +130,7 @@ function publish_(body) {
   ]);
   sh.getRange(2, 1, rows.length, TODO_HEADERS.length).setValues(rows);
   return { ok: true, written: rows.length, date: today };
+  } finally { lock.releaseLock(); }
 }
 
 // ─── submit：業務留紀錄（必須 Google 登入） ─────────────────────────────────────
@@ -155,15 +162,17 @@ function submit_(body) {
     throw new Error("請填理由");
   }
   const sh = sheet_(JUDGE_TAB, JUDGE_HEADERS);
-  const rowId = "REQ-" + Date.now().toString(36).toUpperCase();
+  // 🔴 同毫秒兩筆會撞號；撞號的第二列永遠停在 approved、每天被執行一次（稽核 2026-09-23）
+  const rowId = "REQ-" + Date.now().toString(36).toUpperCase() + "-" + Utilities.getUuid().slice(0, 4).toUpperCase();
   const status = DIRECT_REVIEW.indexOf(p.action) !== -1 ? "pending" : "kiku_pending";
-  sh.appendRow([
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try { sh.appendRow([
     new Date().toISOString(), rowId, who.email, who.name,
     String(p.admission_id), p.student || "", p.check || "", p.action,
     p.target_value != null ? String(p.target_value) : "", p.reason || "",
     p.kiku_subject || "", status, "", "", "", "", "",
     JSON.stringify(p)
-  ]);
+  ]); } finally { lock.releaseLock(); }
   return { ok: true, row_id: rowId, status: status, email: who.email };
 }
 
@@ -203,10 +212,16 @@ function setStatus_(rowId, status, note) {
 // ─── claim / done：執行器 ─────────────────────────────────────────────────────
 
 function claim_() {
-  const { items } = rows_();
-  const out = items.filter(x => x.status === "approved");
-  out.forEach(x => delete x._row);
-  return { ok: true, items: out };
+  // approved → executing：核准台看得到「執行中」；執行器當掉的話列會停在 executing 而不是消失。
+  // executing 的列也回傳：執行器有本地帳本，已寫過的只補回報、不會重做。
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const { sh, headers, items } = rows_();
+    const out = items.filter(x => x.status === "approved" || x.status === "executing");
+    const now = new Date().toISOString();
+    out.forEach(x => { if (x.status === "approved") { sh.getRange(x._row, COL(headers, "status")).setValue("executing"); sh.getRange(x._row, COL(headers, "exec_at")).setValue(now); x.status = "executing"; } delete x._row; });
+    return { ok: true, items: out };
+  } finally { lock.releaseLock(); }
 }
 
 function done_(body) {
@@ -230,6 +245,17 @@ function kikuApproved_(body) {
   if (m) {
     const it = items.find(x => x.row_id === m[0]);
     if (it) {
+      // 🔴 交叉驗證：Kiku 那張單的內容必須含這列的學生姓名或報名編號，
+      //    否則業務在理由欄貼到別人的 REQ 編號，會核准到別人的申請。
+      const consistent = (it.student && flat.indexOf(String(it.student)) !== -1)
+                      || (it.admission_id && flat.indexOf(String(it.admission_id)) !== -1);
+      if (!consistent) {
+        sh.appendRow([new Date().toISOString(), "KIKU-" + Date.now().toString(36).toUpperCase(),
+          "kiku", "Kiku API 節點", it.admission_id, it.student, it.check, "kiku_mismatch", "",
+          "Kiku 核准的單帶著 " + m[0] + "，但內容裡沒有該列的學生姓名或報名編號，未自動核准",
+          "", "review", "", "", "", "", "", flat.slice(0, 4000)]);
+        return { ok: true, matched: m[0], status: "review", note: "student/admission mismatch" };
+      }
       if (it.status === "kiku_pending") {
         sh.getRange(it._row, COL(headers, "status")).setValue("approved");
         sh.getRange(it._row, COL(headers, "posh_at")).setValue(new Date().toISOString());

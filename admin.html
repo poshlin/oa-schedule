@@ -83,7 +83,7 @@ footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px;
 
   <section id="sec-quick">
     <h2>① 可一鍵完成 <span class="cnt" id="cnt-quick">0</span></h2>
-    <div class="hint">程式已經把要寫的內容擬好了，你看過沒問題就按「確認寫入」。保旭核准後由執行器寫進 Corp。</div>
+    <div class="hint">起始堂次不是第 1 堂、但小綠點還沒告訴老師從第幾堂開始。程式已擬好那一行，你看過沒問題就按「確認寫入」，保旭核准後由執行器寫進小綠點。</div>
     <div id="list-quick"></div>
   </section>
 
@@ -95,8 +95,15 @@ footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px;
 
   <section id="sec-todo">
     <h2>③ 其他待辦 <span class="cnt" id="cnt-todo">0</span></h2>
-    <div class="hint">退費未刪除、停課備註、檢定班前置。到 Corp 處理完後按「已處理」；隔天掃描會自動驗收，沒處理好會再報。</div>
+    <div class="hint">退費未刪除、停課備註、檢定班前置、班級人數。到 Corp 處理完後按「已處理」；隔天掃描會自動驗收，沒處理好會再報。</div>
     <div id="list-todo"></div>
+  </section>
+
+  <section id="sec-rest">
+    <h2>⑤ 其他未分類 <span class="cnt" id="cnt-rest">0</span></h2>
+    <div class="hint">掃描器新增的檢查項、或這頁還沒特別處理的。看過到 Corp 處理後按「已處理」。</div>
+    <div id="list-rest"></div>
+    <div class="banner err" id="orphan" style="display:none;margin-top:10px"></div>
   </section>
 
   <section id="sec-kiku">
@@ -183,12 +190,18 @@ function afterLogin() {
   STAFF.forEach((p, i) => { const o = document.createElement("option"); o.value = i; o.textContent = p.en + "（" + p.zh + "）"; sel.appendChild(o); });
   let idx = STAFF.findIndex(p => meName.includes(p.zh) || meName.toLowerCase().includes(p.en.toLowerCase()));
   const saved = localStorage.getItem("oa_admin_me_" + meEmail);
-  if (idx === -1 && saved !== null) idx = parseInt(saved, 10);
-  if (idx === -1) idx = 0;
-  sel.value = String(idx); me = STAFF[idx];
-  sel.addEventListener("change", () => { me = STAFF[parseInt(sel.value, 10)]; localStorage.setItem("oa_admin_me_" + meEmail, sel.value); render(); });
-  setBanner("已登入 " + meEmail + "。清單只顯示掛在你名下的項目。", "ok");
+  if (idx === -1 && saved !== null && STAFF[parseInt(saved, 10)]) idx = parseInt(saved, 10);
+  // 🔴 對不到就是對不到，不預設成第一位（會用別人的名字寫進 Corp）。加一個「請選擇」逼他選一次。
+  const ph = document.createElement("option"); ph.value = ""; ph.textContent = "— 請選你是誰 —"; sel.insertBefore(ph, sel.firstChild);
+  sel.value = idx === -1 ? "" : String(idx); me = idx === -1 ? null : STAFF[idx];
+  sel.addEventListener("change", () => { me = sel.value === "" ? null : STAFF[parseInt(sel.value, 10)]; if (me) localStorage.setItem("oa_admin_me_" + meEmail, sel.value); render(); });
+  setBanner(me ? "已登入 " + meEmail + "。清單只顯示掛在你名下的項目。" : "已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", me ? "ok" : "err");
   loadTodo();
+}
+function relogin() {
+  idToken = ""; sessionStorage.removeItem("oa_admin_token");
+  document.getElementById("g-signin").style.display = "";
+  setBanner("登入已過期，請重新登入 Google 後再送出。", "err");
 }
 function setBanner(msg, cls) { const b = document.getElementById("banner"); b.textContent = msg; b.className = "banner " + (cls || ""); }
 
@@ -207,7 +220,10 @@ function parseCSV(text) {
   return rows;
 }
 let todo = [];      // 今日待辦（含 roster）
-let submitted = {}; // 本次瀏覽已送出的 admission_id|check → row_id
+let submitted = {}; // 已送出的 admission_id|check → row_id（存 localStorage，按待辦日期）
+let todoDate = "";
+function loadSubmitted() { try { submitted = JSON.parse(localStorage.getItem("oa_admin_submitted_" + todoDate) || "{}"); } catch (e) { submitted = {}; } }
+function saveSubmitted() { try { localStorage.setItem("oa_admin_submitted_" + todoDate, JSON.stringify(submitted)); } catch (e) {} }
 
 async function loadTodo() {
   if (TODO_CSV_URL.startsWith("PASTE_")) { setBanner("⚙️ 尚未設定今日待辦資料來源（TODO_CSV_URL），請聯絡 Posh。", "err"); return; }
@@ -217,6 +233,8 @@ async function loadTodo() {
     const rows = parseCSV(await r.text());
     const h = rows[0].map(x => x.trim());
     todo = rows.slice(1).filter(x => x.length > 2).map(x => { const o = {}; h.forEach((k, i) => o[k] = (x[i] || "").trim()); return o; });
+    todoDate = (todo[0] && todo[0].date) || new Date().toISOString().slice(0, 10);
+    loadSubmitted();
     render();
   } catch (e) { setBanner("載入今日待辦失敗：" + e.message, "err"); }
 }
@@ -229,22 +247,56 @@ function itemHtml(x, buttons) {
   const done = submitted[key(x)];
   return `<div class="item">
     <div><div class="who">${esc(x.student)}<a href="${corpLink(x)}" target="_blank">開 Corp ↗</a>
-      <span style="color:var(--gray);font-weight:400;font-size:12px">　${esc(x.check)}${x.class_room ? "　" + esc(x.class_room.slice(0, 26)) : ""}</span></div>
+      <span style="color:var(--gray);font-weight:400;font-size:12px">　${esc(x.check)}${x.verdict === "review" ? "（待複核）" : ""}${x.class_room ? "　" + esc(x.class_room.slice(0, 26)) : ""}</span></div>
       <div class="msg">${esc(x.message)}</div>${x.suggested ? `<div class="sug">→ ${esc(x.suggested)}</div>` : ""}</div>
     <div class="btns">${done ? "" : buttons}</div>
-    ${done ? `<div class="done">✓ 已送出（${done}），等保旭核准</div>` : ""}
+    ${done ? `<div class="done">✓ 已送出（${esc(done)}），等保旭核准</div>` : ""}
   </div>`;
 }
+// 🔴 按鈕一律用 data-* ＋ 事件委派。把 key 塞進 onclick="…" 會被字串裡的雙引號提早關掉屬性
+//    （稽核 2026-09-23 實測三個按鈕全部沒反應、且沒有錯誤訊息）。
+function btn(action, x, label, cls) {
+  return `<button class="${cls}" data-act="${esc(action)}" data-key="${esc(key(x))}">${esc(label)}</button>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  act(b.dataset.act, b.dataset.key);
+});
 function esc(s) { return String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
+const STAFF_ZH = STAFF.map(p => p.zh);
+const CHECK_TEACHER = "小綠點備註首堂";   // 🔴 必須跟 rules.py 的 check 名稱一字不差
+const CHECK_START = "起始堂次";
+const CHECK_OTHER = ["退費未刪除", "停課備註", "檢定班前置", "班級人數"];
+
 function render() {
-  const rows = todo.filter(x => x.kind !== "roster" && mine(x));
-  const quick = rows.filter(x => x.check === "小綠點備註" && x.verdict === "todo");
-  const judge = rows.filter(x => x.check === "起始堂次" && x.verdict === "review");
-  const other = rows.filter(x => ["退費未刪除", "停課備註", "檢定班前置"].includes(x.check) && x.verdict === "todo");
-  fill("quick", quick, x => `<button class="pri" onclick="act('write_teacher_note', ${JSON.stringify(key(x))})">確認寫入</button>`);
-  fill("judge", judge, x => `<button class="pri" onclick="act('mark_confirmed', ${JSON.stringify(key(x))})">確認無誤</button>`);
-  fill("todo",  other, x => `<button class="sec" onclick="act('mark_done', ${JSON.stringify(key(x))})">已處理</button>`);
+  if (!me) { setBanner("已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", "err"); return; }
+  const rows = todo.filter(x => x.kind !== "roster");
+  const mineRows = rows.filter(mine);
+  // 系統預建（todo）與已設定但小綠點空白（review）都是「要寫小綠點」，一起列
+  const quick = mineRows.filter(x => x.check === CHECK_TEACHER);
+  const judge = mineRows.filter(x => x.check === CHECK_START);
+  const other = mineRows.filter(x => CHECK_OTHER.includes(x.check));
+  const rest  = mineRows.filter(x => ![CHECK_TEACHER, CHECK_START, ...CHECK_OTHER].includes(x.check));
+  // 🔴 掛在名單外業務名下的列，所有人都看得到，不能靜默消失
+  const orphan = rows.filter(x => !STAFF_ZH.includes(x.owner) && !STAFF_ZH.includes(x.salesperson));
+
+  fill("quick", quick, x => safeJson(x.extra_json).teacher_note
+      ? btn("write_teacher_note", x, "確認寫入", "pri")
+      : btn("mark_done", x, "已處理", "sec") + `<span style="font-size:12px;color:var(--gray)">起始堂次空白，程式擬不出內容</span>`);
+  fill("judge", judge, x => {
+    const ex = safeJson(x.extra_json);
+    if (x.verdict === "review" && ex.value != null && ex.value !== "")
+      return btn("mark_confirmed", x, "確認無誤", "pri") + btn("mark_done", x, "已照建議修正", "sec");
+    return btn("mark_done", x, "已處理", "sec") + `<span style="font-size:12px;color:var(--gray)">${x.verdict === "todo" ? "系統預建尚未設定，請到 Corp 設好起始堂次" : "起始堂次空白，請先到 Corp 填值"}</span>`;
+  });
+  fill("todo",  other, x => btn("mark_done", x, "已處理", "sec"));
+  fill("rest",  rest,  x => btn("mark_done", x, "已處理", "sec"));
+  const ob = document.getElementById("orphan");
+  if (orphan.length) {
+    const by = {}; orphan.forEach(x => { const k = x.owner || x.salesperson || "（空白）"; by[k] = (by[k] || 0) + 1; });
+    ob.style.display = ""; ob.textContent = `另有 ${orphan.length} 筆掛在名單外的業務名下（${Object.entries(by).map(([k, v]) => k + " " + v).join("、")}），請告知保旭。`;
+  } else ob.style.display = "none";
   // Kiku 公版的學生下拉：我的名冊
   const sel = document.getElementById("k-student"); sel.innerHTML = '<option value="">— 選擇 —</option>';
   todo.filter(x => x.kind === "roster" && mine(x)).sort((a, b) => a.student.localeCompare(b.student, "zh-Hant"))
@@ -258,6 +310,7 @@ function fill(id, list, btn) {
 // ─── 送出判斷 ────────────────────────────────────────────────────────────────
 let pending = null;
 function act(action, k) {
+  if (!me) { alert("請先在右上角選你是誰"); return; }
   const x = todo.find(y => key(y) === k); if (!x) return;
   const extra = safeJson(x.extra_json);
   pending = { action, x, extra };
@@ -274,13 +327,14 @@ function safeJson(s) { try { return s ? JSON.parse(s) : {}; } catch (e) { return
 document.getElementById("m-cancel").onclick = () => document.getElementById("mask").classList.remove("on");
 document.getElementById("m-ok").onclick = async () => {
   const { action, x, extra } = pending;
-  const reason = document.getElementById("m-reason").value.trim();
+  const reason = document.getElementById("m-reason").value.replace(/\s+/g, " ").trim();   // 換行會讓執行器讀回比對失敗
   if (action !== "write_teacher_note" && !reason) { alert("請填理由"); return; }
+  if (action === "mark_confirmed" && (extra.value == null || extra.value === "")) { alert("這筆的欄位現值是空的，沒有東西可確認，請先到 Corp 填值"); return; }
   const payload = { action, admission_id: x.admission_id, student: x.student, check: x.check, reason,
     display_name: me.en, kind: x.kind, stage_id: x.stage_id || "",
     target_value: action === "write_teacher_note" ? (extra.teacher_note || x.suggested) : (extra.value ?? "") };
   const res = await submit(payload);
-  if (res) { submitted[key(x)] = res.row_id; document.getElementById("mask").classList.remove("on"); render(); }
+  if (res) { submitted[key(x)] = res.row_id; saveSubmitted(); document.getElementById("mask").classList.remove("on"); render(); }
 };
 async function submit(payload) {
   if (!idToken) { alert("請先登入 Google"); return null; }
@@ -290,7 +344,7 @@ async function submit(payload) {
     const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action: "submit", id_token: idToken, payload }) });   // text/plain 避免 CORS preflight
     const d = await r.json();
-    if (d.error) { if (/登入|憑證/.test(d.error)) { idToken = ""; sessionStorage.removeItem("oa_admin_token"); } alert("送出失敗：" + d.error); return null; }
+    if (d.error) { if (/登入|憑證/.test(d.error)) relogin(); alert("送出失敗：" + d.error); return null; }
     return d;
   } catch (e) { alert("連線錯誤：" + e.message); return null; }
   finally { btn.disabled = false; }
@@ -298,9 +352,11 @@ async function submit(payload) {
 
 // ─── Kiku 公版 ───────────────────────────────────────────────────────────────
 document.getElementById("k-type").addEventListener("change", e => { document.getElementById("k-dates").style.display = e.target.value === "request_suspend" ? "" : "none"; });
-document.getElementById("k-gen").onclick = async () => {
+document.getElementById("k-gen").onclick = async function () {
+  if (this.disabled) return; this.disabled = true; setTimeout(() => { this.disabled = false; }, 4000);   // 防連點：兩下＝兩張 REQ
   const aid = document.getElementById("k-student").value; const type = document.getElementById("k-type").value;
   const reason = document.getElementById("k-reason").value.trim(); const dates = document.getElementById("k-date").value.trim();
+  if (!me) { alert("請先在右上角選你是誰"); return; }
   if (!aid) { alert("請選學生"); return; } if (!reason) { alert("請填理由"); return; }
   if (type === "request_suspend" && !dates) { alert("請填暫停起訖"); return; }
   const x = todo.find(y => y.kind === "roster" && y.admission_id === aid); const ex = safeJson(x.extra_json);
@@ -324,7 +380,7 @@ async function submitDirect(payload) {
   try {
     const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action: "submit", id_token: idToken, payload }) });
-    const d = await r.json(); if (d.error) { alert("送出失敗：" + d.error); return null; } return d;
+    const d = await r.json(); if (d.error) { if (/登入|憑證/.test(d.error)) relogin(); alert("送出失敗：" + d.error); return null; } return d;
   } catch (e) { alert("連線錯誤：" + e.message); return null; }
 }
 document.getElementById("k-copy").onclick = function () {

@@ -47,7 +47,7 @@ button.no { border-color: var(--red); color: var(--red-dk); }
 button:disabled { opacity: .5; cursor: default; }
 .status { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #EEE; }
 .status.approved { background: var(--green-lt); color: #2E7D32; } .status.done { background: var(--teal-lt); color: var(--teal-dk); }
-.status.failed, .status.rejected { background: var(--red-lt); color: var(--red-dk); } .status.kiku_pending { background: var(--orange-lt); color: var(--orange-dk); }
+.status.failed, .status.rejected { background: var(--red-lt); color: var(--red-dk); } .status.kiku_pending { background: var(--orange-lt); color: var(--dark); } .status.executing { background: #EEE; color: var(--dark); }
 .empty { color: var(--gray); padding: 16px; text-align: center; }
 .evi { grid-column: 1 / -1; font-size: 12px; color: var(--gray); white-space: pre-wrap; }
 @media (max-width: 720px) { .card { grid-template-columns: 1fr; } }
@@ -60,6 +60,7 @@ button:disabled { opacity: .5; cursor: default; }
     <button data-s="pending" class="on">待核准 <span id="n-pending">0</span></button>
     <button data-s="kiku_pending">Kiku 待核 <span id="n-kiku_pending">0</span></button>
     <button data-s="approved">已核准待執行 <span id="n-approved">0</span></button>
+    <button data-s="executing">執行中 <span id="n-executing">0</span></button>
     <button data-s="failed">執行失敗 <span id="n-failed">0</span></button>
     <button data-s="review">待複核 <span id="n-review">0</span></button>
     <button data-s="done">已完成 <span id="n-done">0</span></button>
@@ -114,7 +115,8 @@ async function load() {
   banner("載入中…");
   try {
     await loadTodo();
-    const r = await fetch(`${APPS_SCRIPT_URL}?action=list&status=all&secret=${encodeURIComponent(s)}`);
+    const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "list", status: "all", secret: s }) });   // 密鑰不放網址
     const d = await r.json();
     if (d.error) { if (d.error === "unauthorized") { localStorage.removeItem("oa_admin_secret"); alert("密鑰錯誤"); return load(); } throw new Error(d.error); }
     items = d.items || [];
@@ -124,7 +126,7 @@ async function load() {
   } catch (e) { banner("載入失敗：" + e.message, "err"); }
 }
 function banner(m, c) { const b = document.getElementById("banner"); b.textContent = m; b.className = "banner " + (c || ""); }
-function counts() { ["pending", "kiku_pending", "approved", "failed", "review", "done", "rejected"].forEach(s => document.getElementById("n-" + s).textContent = items.filter(x => x.status === s).length); }
+function counts() { ["pending", "kiku_pending", "approved", "executing", "failed", "review", "done", "rejected"].forEach(s => document.getElementById("n-" + s).textContent = items.filter(x => x.status === s).length); }
 document.getElementById("tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; cur = b.dataset.s; [...e.currentTarget.children].forEach(x => x.classList.toggle("on", x === b)); render(); });
 
 function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
@@ -144,7 +146,12 @@ function lights(x) {
     add(x.reason && x.reason.length >= 4 ? "g" : "r", `理由：${x.reason || "（空）"}`);
   }
   if (x.action === "write_teacher_note") add(ex.teacher_note ? "g" : "y", `將寫入小綠點：「${x.target_value}」`);
-  if (x.action === "request_makeup") { add(ro ? "g" : "y", `可補課次數現值 ${ex.rest_times ?? (ro ? "見 Corp" : "?")} → 執行後 +1`); add("g", `Kiku 主旨：${x.kiku_subject}`); }
+  if (x.action === "request_makeup") {
+    const rx = ro && ro.extra_json ? (() => { try { return JSON.parse(ro.extra_json); } catch (e) { return {}; } })() : {};
+    add(ro ? "g" : "y", `可補課次數現值 ${rx.rest_times ?? "?"} → 執行後 +1（執行器會在備註留「（執行台 ${x.row_id}）」，同一張申請不會 +1 兩次）`);
+    add("g", `Kiku 主旨：${x.kiku_subject}`);
+    if (x.status === "kiku_pending") add("y", "等 Kiku 核准（API 節點）；若你已在 Kiku 核准，可在此直接放行");
+  }
   if (x.action === "request_suspend") add("y", "暫停：第一版執行器不動 Corp，核准後請你手動設定長期停課");
   if (x.action === "mark_done") add("g", "不寫 Corp；隔天掃描自動驗收");
   if (x.status === "kiku_unmatched" || x.action === "kiku_unmatched") add("r", "Kiku 核准了一張單但對不到 REQ 編號，請人工比對");
@@ -158,7 +165,9 @@ function render() {
   el.innerHTML = list.map(x => {
     const p = raw(x); const link = p.kind === "cert" && p.stage_id ? `${CORP}/stages/${p.stage_id}` : `${CORP}/dt_admissions/${x.admission_id}`;
     const L = lights(x);
-    const canAct = cur === "pending" || cur === "review";
+    // kiku_pending：CEO 的 API 節點建好前，保旭在 Kiku 核准後可以在這裡手動放行
+    // failed：看過原因後可重新核准（執行器有本地帳本，已寫過的不會重做）
+    const canAct = ["pending", "review", "kiku_pending", "failed"].includes(cur);
     return `<div class="card">
       <div>
         <div class="head">${esc(x.student)}<a href="${link}" target="_blank">開 Corp ↗</a> <span class="status ${esc(x.status)}">${esc(x.status)}</span></div>
