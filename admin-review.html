@@ -42,11 +42,11 @@ header .spacer { flex: 1; }
 .dot.g { background: var(--green); } .dot.y { background: var(--orange); } .dot.r { background: var(--red); } .dot.x { background: #BBB; }
 .btns { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 button.act { font-family: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px; border: 2px solid var(--border); background: var(--white); cursor: pointer; }
-button.ok { background: var(--green); border-color: var(--green); color: #fff; font-weight: 700; }
+button.ok { background: var(--green-lt); border-color: var(--green); color: var(--dark); font-weight: 700; }
 button.no { border-color: var(--red); color: var(--red-dk); }
 button:disabled { opacity: .5; cursor: default; }
 .status { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #EEE; }
-.status.approved { background: var(--green-lt); color: #2E7D32; } .status.done { background: var(--teal-lt); color: var(--teal-dk); }
+.status.approved { background: var(--green-lt); color: #1B5E20; } .status.done { background: var(--teal-lt); color: #00564F; }
 .status.failed, .status.rejected { background: var(--red-lt); color: var(--red-dk); } .status.kiku_pending { background: var(--orange-lt); color: var(--dark); } .status.executing { background: #EEE; color: var(--dark); }
 .empty { color: var(--gray); padding: 16px; text-align: center; }
 .evi { grid-column: 1 / -1; font-size: 12px; color: var(--gray); white-space: pre-wrap; }
@@ -76,7 +76,7 @@ button:disabled { opacity: .5; cursor: default; }
 
 <script>
 // ─── 配置（部署後修改） ───────────────────────────────────────────────────────
-const APPS_SCRIPT_URL = "REPLACE_WITH_APPS_SCRIPT_URL";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQmG8FN0wfD-KzOLcJFNndEeQjwMjMGkyjOojobXw0OEdkYGGNxmOi35FRsjZ6YOiN/exec";
 const TODO_CSV_URL    = "PASTE_PUBLISHED_CSV_URL_HERE";
 const CORP = "https://corp.orangeapple.co";
 
@@ -111,7 +111,7 @@ async function loadTodo() {
 async function load() {
   let s = getSecret();
   if (!s) { s = prompt("請輸入核准台密鑰（之後會記住）："); if (!s) return; setSecret(s); }
-  if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { banner("⚙️ APPS_SCRIPT_URL 尚未設定。", "err"); return; }
+  if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { banner("▸ APPS_SCRIPT_URL 尚未設定。", "err"); return; }
   banner("載入中…");
   try {
     await loadTodo();
@@ -167,7 +167,8 @@ function render() {
     const L = lights(x);
     // kiku_pending：CEO 的 API 節點建好前，保旭在 Kiku 核准後可以在這裡手動放行
     // failed：看過原因後可重新核准（執行器有本地帳本，已寫過的不會重做）
-    const canAct = ["pending", "review", "kiku_pending", "failed"].includes(cur);
+    // executing：執行器當掉、或列卡住時，保旭可退回或重新核准（執行器有本地帳本＋Corp 標記，不會重做）
+    const canAct = ["pending", "review", "kiku_pending", "failed", "executing"].includes(cur);
     return `<div class="card">
       <div>
         <div class="head">${esc(x.student)}<a href="${link}" target="_blank">開 Corp ↗</a> <span class="status ${esc(x.status)}">${esc(x.status)}</span></div>
@@ -177,7 +178,7 @@ function render() {
       </div>
       <div class="lights">${L.map(l => `<div class="light"><span class="dot ${l.c}"></span><span>${esc(l.m)}</span></div>`).join("")}</div>
       ${canAct ? `<div class="btns"><button class="act ok" onclick="decide('approve','${esc(x.row_id)}')">核准</button><button class="act no" onclick="decide('reject','${esc(x.row_id)}')">退回</button></div>` : ""}
-      ${(x.evidence || x.error) ? `<div class="evi">${esc(x.error ? "❌ " + x.error : "✓ " + x.evidence)}</div>` : ""}
+      ${(x.evidence || x.error) ? `<div class="evi">${esc(x.error ? "✕ " + x.error : "✓ " + x.evidence)}</div>` : ""}
     </div>`;
   }).join("");
 }

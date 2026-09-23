@@ -111,12 +111,12 @@ kikuflow 手冊對應頁：<https://kikuflow.com/manual/workflow/api-ai-node-beh
 
 ## 第一次端到端測試
 
-1. Mac mini：`python3 scan.py --limit 3 --publish` → Sheet「今日待辦」有資料
+1. Mac mini：等 07:00 全掃自動發布（或手動跑一次全掃 `cd ~/oa-admin-scan && sh daily_scan.sh`，約 25 分鐘）→ Sheet「今日待辦」有資料。🔴 `--limit 3 --publish` 不會發布（部分掃描一律拒絕，避免洗掉完整清單）
 2. 你用公司 Google 帳號開 `admin.html` → 登入 → 選「我是誰」→ 看到清單 → 對一筆按「確認無誤」填理由 → Sheet「判斷區」多一列，email 是你的
 3. 開 `admin-review.html?key=<REVIEW_SECRET>` → 看到那列 → 按核准 → status 變 `approved`
 4. Mac mini：`python3 executor.py`（預設 dry-run）→ 印出「我會做什麼」，**包括每張表單會回送幾個欄位、有沒有多值欄位** → 你看過沒問題 → `python3 executor.py --apply` → Corp 小紅點多一行、判斷區 status 變 `done`、evidence 有時間與內容
 
-核准台會多看到「執行中」分頁：執行器一 claim 就把列標成 executing，執行完才變 done／failed。停在 executing 超過一天＝執行器沒跑完，去看 `runs/executor_last.json`。
+核准台會多看到「執行中」分頁：執行器**真寫入模式**（`EXECUTOR_APPLY=1`）一 claim 就把列標成 executing，執行完才變 done／failed；**dry-run 只看不翻狀態**，列會留在「已核准待執行」。真寫入模式下停在 executing 超過一天＝執行器沒跑完，去看 `runs/executor_last.json`；核准台在「執行中」分頁也能退回或重新核准。
 
 `run_log.tsv` 最後一欄有 `exec=N`（執行器退出碼：0 成功／2 有失敗／4 沒跑起來）。
 

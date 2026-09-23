@@ -85,7 +85,7 @@ function doPost(e) {
       case "list":          requireSecret_(secret); return json_(list_(body.status));
       case "approve":       requireSecret_(secret); return json_(setStatus_(body.row_id, "approved", body.note));
       case "reject":        requireSecret_(secret); return json_(setStatus_(body.row_id, "rejected", body.note));
-      case "claim":         requireSecret_(secret); return json_(claim_());
+      case "claim":         requireSecret_(secret); return json_(claim_(body.peek === true));
       case "done":          requireSecret_(secret); return json_(done_(body));
       case "kiku_approved": requireSecret_(secret); return json_(kikuApproved_(body));
       default: return json_({ error: "unknown action: " + action });
@@ -100,7 +100,7 @@ function doGet(e) {
     const p = e.parameter || {};
     if (p.action === "list") { requireSecret_(p.secret); return json_(list_(p.status)); }
     if (p.action === "init") { requireSecret_(p.secret); sheet_(TODO_TAB, TODO_HEADERS); sheet_(JUDGE_TAB, JUDGE_HEADERS); return json_({ ok: true, tabs: [TODO_TAB, JUDGE_TAB] }); }
-    if (p.action === "claim") { requireSecret_(p.secret); return json_(claim_()); }
+    if (p.action === "claim") { requireSecret_(p.secret); return json_(claim_(true)); }   // GET 一律只看不翻
     return json_({ ok: true, service: "OA 行政執行台 Apps Script v1" });
   } catch (err) {
     return json_({ error: err.message });
@@ -211,16 +211,20 @@ function setStatus_(rowId, status, note) {
 
 // ─── claim / done：執行器 ─────────────────────────────────────────────────────
 
-function claim_() {
+function claim_(peek) {
   // approved → executing：核准台看得到「執行中」；執行器當掉的話列會停在 executing 而不是消失。
   // executing 的列也回傳：執行器有本地帳本，已寫過的只補回報、不會重做。
+  // 🔴 peek=true（執行器 dry-run 用）：只讀不翻狀態，否則 dry-run 週所有核准列都會卡在「執行中」（複審 N8）
   const lock = LockService.getScriptLock(); lock.waitLock(10000);
   try {
     const { sh, headers, items } = rows_();
     const out = items.filter(x => x.status === "approved" || x.status === "executing");
     const now = new Date().toISOString();
-    out.forEach(x => { if (x.status === "approved") { sh.getRange(x._row, COL(headers, "status")).setValue("executing"); sh.getRange(x._row, COL(headers, "exec_at")).setValue(now); x.status = "executing"; } delete x._row; });
-    return { ok: true, items: out };
+    out.forEach(x => {
+      if (!peek && x.status === "approved") { sh.getRange(x._row, COL(headers, "status")).setValue("executing"); sh.getRange(x._row, COL(headers, "exec_at")).setValue(now); x.status = "executing"; }
+      delete x._row;
+    });
+    return { ok: true, items: out, peek: !!peek };
   } finally { lock.releaseLock(); }
 }
 
@@ -240,7 +244,8 @@ function done_(body) {
 function kikuApproved_(body) {
   // Kiku 的 bodyMapping 帶哪些欄位我們不控制，所以把整包字串化找 REQ 編號
   const flat = JSON.stringify(body);
-  const m = flat.match(/REQ-[A-Z0-9]{6,}/);
+  // 🔴 row_id 格式是 REQ-<時間36進位>-<4碼uuid>，正則必須吃到第二段，否則永遠對不上（複審 N1）
+  const m = flat.match(/REQ-[A-Z0-9]{6,}(?:-[A-Z0-9]{4})?/);
   const { sh, headers, items } = rows_();
   if (m) {
     const it = items.find(x => x.row_id === m[0]);

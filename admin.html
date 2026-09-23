@@ -41,13 +41,13 @@ section .hint { color: var(--gray); font-size: 12.5px; margin-bottom: 10px; }
 .item .who { font-weight: 700; }
 .item .who a { color: var(--teal-dk); text-decoration: none; font-size: 12px; margin-left: 6px; }
 .item .msg { color: var(--dark); font-size: 13px; margin-top: 2px; }
-.item .sug { color: var(--teal-dk); font-size: 12.5px; margin-top: 2px; }
+.item .sug { color: #006B62; font-size: 12.5px; margin-top: 2px; }
 .item .done { grid-column: 1 / -1; color: var(--green); font-size: 12.5px; }
 .btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 button { font-family: inherit; font-size: 13px; padding: 7px 12px; border-radius: 6px; border: 2px solid var(--border); background: var(--white); cursor: pointer; }
 button.pri { background: var(--orange); border-color: var(--orange); color: var(--dark); font-weight: 700; }
 button.pri:hover { background: var(--orange-dk); border-color: var(--orange-dk); }
-button.sec { border-color: var(--teal); color: var(--teal-dk); }
+button.sec { border-color: var(--teal); color: var(--dark); }
 button:disabled { opacity: .5; cursor: default; }
 .empty { color: var(--gray); font-size: 13px; padding: 8px 0; }
 .form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -95,7 +95,7 @@ footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px;
 
   <section id="sec-todo">
     <h2>③ 其他待辦 <span class="cnt" id="cnt-todo">0</span></h2>
-    <div class="hint">退費未刪除、停課備註、檢定班前置、班級人數。到 Corp 處理完後按「已處理」；隔天掃描會自動驗收，沒處理好會再報。</div>
+    <div class="hint">退費未刪除、停課備註、檢定班前置。到 Corp 處理完後按「已處理」；隔天掃描會自動驗收，沒處理好會再報。</div>
     <div id="list-todo"></div>
   </section>
 
@@ -134,9 +134,9 @@ footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px;
 
 <script>
 // ─── 配置（部署後修改） ───────────────────────────────────────────────────────
-const APPS_SCRIPT_URL = "REPLACE_WITH_APPS_SCRIPT_URL";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQmG8FN0wfD-KzOLcJFNndEeQjwMjMGkyjOojobXw0OEdkYGGNxmOi35FRsjZ6YOiN/exec";
 const TODO_CSV_URL    = "PASTE_PUBLISHED_CSV_URL_HERE";
-const OAUTH_CLIENT_ID = "PASTE_OAUTH_CLIENT_ID_HERE.apps.googleusercontent.com";
+const OAUTH_CLIENT_ID = "293734002703-8a7u88eqhsc0bjm5ket7cligfb380ie2.apps.googleusercontent.com";
 const KIKU_URL        = "https://kikuflow.com/";
 const CORP            = "https://corp.orangeapple.co";
 
@@ -170,7 +170,7 @@ window.addEventListener("load", () => {
   const tryInit = () => {
     if (!window.google || !google.accounts) { setTimeout(tryInit, 200); return; }
     if (OAUTH_CLIENT_ID.startsWith("PASTE_")) {
-      setBanner("⚙️ 尚未設定 Google 登入（OAUTH_CLIENT_ID），請聯絡 Posh。", "err"); return;
+      setBanner("▸ 尚未設定 Google 登入（OAUTH_CLIENT_ID），請聯絡 Posh。", "err"); return;
     }
     google.accounts.id.initialize({ client_id: OAUTH_CLIENT_ID, callback: onCredential, auto_select: true });
     google.accounts.id.renderButton(document.getElementById("g-signin"), { theme: "outline", size: "medium", text: "signin_with" });
@@ -189,12 +189,12 @@ function afterLogin() {
   const sel = document.getElementById("me"); sel.style.display = ""; sel.innerHTML = "";
   STAFF.forEach((p, i) => { const o = document.createElement("option"); o.value = i; o.textContent = p.en + "（" + p.zh + "）"; sel.appendChild(o); });
   let idx = STAFF.findIndex(p => meName.includes(p.zh) || meName.toLowerCase().includes(p.en.toLowerCase()));
-  const saved = localStorage.getItem("oa_admin_me_" + meEmail);
-  if (idx === -1 && saved !== null && STAFF[parseInt(saved, 10)]) idx = parseInt(saved, 10);
+  const saved = localStorage.getItem("oa_admin_me_" + meEmail);   // 存中文名，不存索引（名單插人會錯位，複審 N5）
+  if (idx === -1 && saved) idx = STAFF.findIndex(p => p.zh === saved);
   // 🔴 對不到就是對不到，不預設成第一位（會用別人的名字寫進 Corp）。加一個「請選擇」逼他選一次。
   const ph = document.createElement("option"); ph.value = ""; ph.textContent = "— 請選你是誰 —"; sel.insertBefore(ph, sel.firstChild);
   sel.value = idx === -1 ? "" : String(idx); me = idx === -1 ? null : STAFF[idx];
-  sel.addEventListener("change", () => { me = sel.value === "" ? null : STAFF[parseInt(sel.value, 10)]; if (me) localStorage.setItem("oa_admin_me_" + meEmail, sel.value); render(); });
+  sel.addEventListener("change", () => { me = sel.value === "" ? null : STAFF[parseInt(sel.value, 10)]; if (me) localStorage.setItem("oa_admin_me_" + meEmail, me.zh); render(); });
   setBanner(me ? "已登入 " + meEmail + "。清單只顯示掛在你名下的項目。" : "已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", me ? "ok" : "err");
   loadTodo();
 }
@@ -220,26 +220,45 @@ function parseCSV(text) {
   return rows;
 }
 let todo = [];      // 今日待辦（含 roster）
-let submitted = {}; // 已送出的 admission_id|check → row_id（存 localStorage，按待辦日期）
+let submitted = {}; // 已送出的 admission_id|check → row_id（存 localStorage，保留 7 天：保旭隔天才核准時該列會再出現，不能再送一次）
 let todoDate = "";
-function loadSubmitted() { try { submitted = JSON.parse(localStorage.getItem("oa_admin_submitted_" + todoDate) || "{}"); } catch (e) { submitted = {}; } }
-function saveSubmitted() { try { localStorage.setItem("oa_admin_submitted_" + todoDate, JSON.stringify(submitted)); } catch (e) {} }
+const SUBMITTED_KEY = "oa_admin_submitted_v2";
+function loadSubmitted() {
+  try {
+    const all = JSON.parse(localStorage.getItem(SUBMITTED_KEY) || "{}"); const cut = Date.now() - 7 * 86400000;
+    submitted = {}; for (const [k, v] of Object.entries(all)) if (v && v.at > cut) submitted[k] = v.row_id;
+    localStorage.setItem(SUBMITTED_KEY, JSON.stringify(Object.fromEntries(Object.entries(all).filter(([, v]) => v && v.at > cut))));
+  } catch (e) { submitted = {}; }
+}
+function saveSubmitted() {
+  try { const all = JSON.parse(localStorage.getItem(SUBMITTED_KEY) || "{}"); for (const [k, rid] of Object.entries(submitted)) if (!all[k]) all[k] = { row_id: rid, at: Date.now() }; localStorage.setItem(SUBMITTED_KEY, JSON.stringify(all)); } catch (e) {}
+}
 
 async function loadTodo() {
-  if (TODO_CSV_URL.startsWith("PASTE_")) { setBanner("⚙️ 尚未設定今日待辦資料來源（TODO_CSV_URL），請聯絡 Posh。", "err"); return; }
+  if (TODO_CSV_URL.startsWith("PASTE_")) { setBanner("▸ 尚未設定今日待辦資料來源（TODO_CSV_URL），請聯絡 Posh。", "err"); return; }
   try {
     const sep = TODO_CSV_URL.includes("?") ? "&" : "?";
     const r = await fetch(TODO_CSV_URL + sep + "cb=" + Math.floor(Date.now() / 60000), { cache: "no-cache" });
     const rows = parseCSV(await r.text());
     const h = rows[0].map(x => x.trim());
     todo = rows.slice(1).filter(x => x.length > 2).map(x => { const o = {}; h.forEach((k, i) => o[k] = (x[i] || "").trim()); return o; });
-    todoDate = (todo[0] && todo[0].date) || new Date().toISOString().slice(0, 10);
+    todoDate = (todo[0] && todo[0].date) || "";
     loadSubmitted();
     render();
+    // 🔴 掃描失敗時會保留前一份清單；業務必須看得出這是哪一天的（複審 N3）
+    const todayTW = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+    if (todoDate && todoDate !== todayTW) setBanner(`⚠ 這份待辦是 ${todoDate} 的（不是今天）——今天的掃描可能沒完成，請先告知保旭。`, "err");
+    else if (me) setBanner(`已登入 ${meEmail}｜今日待辦：${todoDate || "（無日期）"}｜清單只顯示掛在你名下的項目。`, "ok");
   } catch (e) { setBanner("載入今日待辦失敗：" + e.message, "err"); }
 }
 
-function mine(x) { return me && (x.owner === me.zh || x.salesperson === me.zh); }
+// 🔴 以「負責業務」為準（保旭：一個學生只有一位負責業務）；負責業務不在名單內才退回看訂單業務。
+//    用 OR 會讓 owner≠salesperson 的列同時出現在兩個人的清單、各送一次（複審 N10）。
+function mine(x) {
+  if (!me) return false;
+  if (STAFF_ZH.includes(x.owner)) return x.owner === me.zh;
+  return x.salesperson === me.zh;
+}
 function corpLink(x) { return x.kind === "cert" ? `${CORP}/stages/${x.stage_id}` : `${CORP}/dt_admissions/${x.admission_id}`; }
 function key(x) { return x.admission_id + "|" + x.check; }
 
@@ -267,7 +286,7 @@ function esc(s) { return String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;"
 const STAFF_ZH = STAFF.map(p => p.zh);
 const CHECK_TEACHER = "小綠點備註首堂";   // 🔴 必須跟 rules.py 的 check 名稱一字不差
 const CHECK_START = "起始堂次";
-const CHECK_OTHER = ["退費未刪除", "停課備註", "檢定班前置", "班級人數"];
+const CHECK_OTHER = ["退費未刪除", "停課備註", "檢定班前置"];
 
 function render() {
   if (!me) { setBanner("已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", "err"); return; }
@@ -338,7 +357,7 @@ document.getElementById("m-ok").onclick = async () => {
 };
 async function submit(payload) {
   if (!idToken) { alert("請先登入 Google"); return null; }
-  if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { alert("⚙️ APPS_SCRIPT_URL 尚未設定，請聯絡 Posh。"); return null; }
+  if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { alert("▸ APPS_SCRIPT_URL 尚未設定，請聯絡 Posh。"); return null; }
   const btn = document.getElementById("m-ok"); btn.disabled = true;
   try {
     const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
@@ -355,7 +374,7 @@ document.getElementById("k-type").addEventListener("change", e => { document.get
 document.getElementById("k-gen").onclick = async function () {
   if (this.disabled) return; this.disabled = true; setTimeout(() => { this.disabled = false; }, 4000);   // 防連點：兩下＝兩張 REQ
   const aid = document.getElementById("k-student").value; const type = document.getElementById("k-type").value;
-  const reason = document.getElementById("k-reason").value.trim(); const dates = document.getElementById("k-date").value.trim();
+  const reason = document.getElementById("k-reason").value.replace(/\s+/g, " ").trim(); const dates = document.getElementById("k-date").value.trim();
   if (!me) { alert("請先在右上角選你是誰"); return; }
   if (!aid) { alert("請選學生"); return; } if (!reason) { alert("請填理由"); return; }
   if (type === "request_suspend" && !dates) { alert("請填暫停起訖"); return; }
