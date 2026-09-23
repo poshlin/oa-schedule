@@ -39,14 +39,14 @@ section h2 .cnt { background: var(--dark); color: #fff; border-radius: 10px; fon
 section .hint { color: var(--gray); font-size: 12.5px; margin-bottom: 10px; }
 .item { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: start; }
 .item .who { font-weight: 700; }
-.item .who a { color: var(--teal-dk); text-decoration: none; font-size: 12px; margin-left: 6px; }
+.item .who a { color: #00695C; text-decoration: none; font-size: 12px; margin-left: 6px; }
 .item .msg { color: var(--dark); font-size: 13px; margin-top: 2px; }
 .item .sug { color: #006B62; font-size: 12.5px; margin-top: 2px; }
-.item .done { grid-column: 1 / -1; color: var(--green); font-size: 12.5px; }
+.item .done { grid-column: 1 / -1; color: #2E7D32; font-size: 12.5px; }
 .btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 button { font-family: inherit; font-size: 13px; padding: 7px 12px; border-radius: 6px; border: 2px solid var(--border); background: var(--white); cursor: pointer; }
 button.pri { background: var(--orange); border-color: var(--orange); color: var(--dark); font-weight: 700; }
-button.pri:hover { background: var(--orange-dk); border-color: var(--orange-dk); }
+button.pri:hover { box-shadow: 0 0 0 3px rgba(45,45,45,.25); }   /* 紅線：亮橘不變暗，hover 用外框 */
 button.sec { border-color: var(--teal); color: var(--dark); }
 button:disabled { opacity: .5; cursor: default; }
 .empty { color: var(--gray); font-size: 13px; padding: 8px 0; }
@@ -99,13 +99,6 @@ footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px;
     <div id="list-todo"></div>
   </section>
 
-  <section id="sec-rest">
-    <h2>⑤ 其他未分類 <span class="cnt" id="cnt-rest">0</span></h2>
-    <div class="hint">掃描器新增的檢查項、或這頁還沒特別處理的。看過到 Corp 處理後按「已處理」。</div>
-    <div id="list-rest"></div>
-    <div class="banner err" id="orphan" style="display:none;margin-top:10px"></div>
-  </section>
-
   <section id="sec-kiku">
     <h2>④ 申請（補課／暫停）— 一鍵生成 Kiku 公版</h2>
     <div class="hint">選學生、填理由，其餘欄位程式從 Corp 帶。複製後貼進 Kiku 送出（送件人必須是你本人）。保旭在 Kiku 核准後，補課會由執行器自動 +1 並備註。</div>
@@ -119,6 +112,13 @@ footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px;
     <pre class="tpl" id="k-out" style="display:none"></pre>
     <div class="btns" id="k-copy-row" style="display:none;justify-content:flex-start;margin-top:8px"><button class="sec" id="k-copy">一鍵複製</button><a id="k-link" href="#" target="_blank" style="align-self:center;font-size:13px;color:var(--teal-dk)">開 Kiku</a></div>
   </section>
+  <section id="sec-rest">
+    <h2>⑤ 其他未分類 <span class="cnt" id="cnt-rest">0</span></h2>
+    <div class="hint">掃描器新增的檢查項、或這頁還沒特別處理的。看過到 Corp 處理後按「已處理」。</div>
+    <div id="list-rest"></div>
+    <div class="banner err" id="orphan" style="display:none;margin-top:10px"></div>
+  </section>
+
 </div>
 
 <div class="mask" id="mask">
@@ -135,7 +135,6 @@ footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px;
 <script>
 // ─── 配置（部署後修改） ───────────────────────────────────────────────────────
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQmG8FN0wfD-KzOLcJFNndEeQjwMjMGkyjOojobXw0OEdkYGGNxmOi35FRsjZ6YOiN/exec";
-const TODO_CSV_URL    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTg67dCxsqvuavLZk923-d0wEdYDB-j0fJ-JsONIO0bnfUyqMyg5GZ-LNRbNzsI5mECVix7o-hi9gO_/pub?gid=99568546&single=true&output=csv";
 const OAUTH_CLIENT_ID = "293734002703-8a7u88eqhsc0bjm5ket7cligfb380ie2.apps.googleusercontent.com";
 const KIKU_URL        = "https://kikuflow.com/";
 const CORP            = "https://corp.orangeapple.co";
@@ -195,7 +194,6 @@ function afterLogin() {
   const ph = document.createElement("option"); ph.value = ""; ph.textContent = "— 請選你是誰 —"; sel.insertBefore(ph, sel.firstChild);
   sel.value = idx === -1 ? "" : String(idx); me = idx === -1 ? null : STAFF[idx];
   sel.addEventListener("change", () => { me = sel.value === "" ? null : STAFF[parseInt(sel.value, 10)]; if (me) localStorage.setItem("oa_admin_me_" + meEmail, me.zh); render(); });
-  setBanner(me ? "已登入 " + meEmail + "。清單只顯示掛在你名下的項目。" : "已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", me ? "ok" : "err");
   loadTodo();
 }
 function relogin() {
@@ -205,20 +203,6 @@ function relogin() {
 }
 function setBanner(msg, cls) { const b = document.getElementById("banner"); b.textContent = msg; b.className = "banner " + (cls || ""); }
 
-// ─── 讀「今日待辦」CSV（跟 team.html 同一套） ────────────────────────────────
-function parseCSV(text) {
-  const rows = []; let row = [], field = "", q = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (q) { if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; }
-    else if (c === '"') q = true;
-    else if (c === ",") { row.push(field); field = ""; }
-    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
-    else if (c !== "\r") field += c;
-  }
-  if (field !== "" || row.length) { row.push(field); rows.push(row); }
-  return rows;
-}
 let todo = [];      // 今日待辦（含 roster）
 let submitted = {}; // 已送出的 admission_id|check → row_id（存 localStorage，保留 7 天：保旭隔天才核准時該列會再出現，不能再送一次）
 let todoDate = "";
@@ -235,25 +219,27 @@ function saveSubmitted() {
 }
 
 async function loadTodo() {
-  if (TODO_CSV_URL.startsWith("PASTE_")) { setBanner("▸ 尚未設定今日待辦資料來源（TODO_CSV_URL），請聯絡 Posh。", "err"); return; }
+  // 🔴 第三輪稽核：發布成 CSV 等於全體學生姓名公開可讀（repo 是公開的，網址寫在原始碼裡）。
+  //    改成向 Apps Script 要資料、帶 Google 登入憑證，讀取也要驗身分。
+  if (!idToken) return;
+  setBanner("載入今日待辦…");
   try {
-    const sep = TODO_CSV_URL.includes("?") ? "&" : "?";
-    const r = await fetch(TODO_CSV_URL + sep + "cb=" + Math.floor(Date.now() / 60000), { cache: "no-cache" });
-    const rows = parseCSV(await r.text());
-    const h = rows[0].map(x => x.trim());
-    todo = rows.slice(1).filter(x => x.length > 2).map(x => { const o = {}; h.forEach((k, i) => o[k] = (x[i] || "").trim()); return o; });
+    const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "todo", id_token: idToken }) });
+    const d = await r.json();
+    if (d.error) { if (/登入|憑證/.test(d.error)) relogin(); else setBanner("載入今日待辦失敗：" + d.error, "err"); return; }
+    todo = (d.items || []).map(o => { const x = {}; for (const k in o) x[k] = String(o[k] ?? "").trim(); return x; });
     todoDate = (todo[0] && todo[0].date) || "";
     loadSubmitted();
     render();
-    // 🔴 掃描失敗時會保留前一份清單；業務必須看得出這是哪一天的（複審 N3）
+    // 🔴 空清單／過期清單都要紅：掃描或發布掛掉時，畫面絕不能長得像「今天沒事」
     const todayTW = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
-    if (todoDate && todoDate !== todayTW) setBanner(`⚠ 這份待辦是 ${todoDate} 的（不是今天）——今天的掃描可能沒完成，請先告知保旭。`, "err");
-    else if (me) setBanner(`已登入 ${meEmail}｜今日待辦：${todoDate || "（無日期）"}｜清單只顯示掛在你名下的項目。`, "ok");
+    if (!todo.length) setBanner("⚠ 今日待辦是空的——今天的掃描沒有發布資料，不是「沒事」。請先告知保旭。", "err");
+    else if (todoDate !== todayTW) setBanner(`⚠ 這份待辦是 ${todoDate} 的（不是今天）——今天的掃描可能沒完成，請先告知保旭。`, "err");
+    else if (me) setBanner(`已登入 ${meEmail}｜今日待辦：${todoDate}｜清單只顯示掛在你名下的項目。`, "ok");
   } catch (e) { setBanner("載入今日待辦失敗：" + e.message, "err"); }
 }
 
-// 🔴 以「負責業務」為準（保旭：一個學生只有一位負責業務）；負責業務不在名單內才退回看訂單業務。
-//    用 OR 會讓 owner≠salesperson 的列同時出現在兩個人的清單、各送一次（複審 N10）。
 function mine(x) {
   if (!me) return false;
   if (STAFF_ZH.includes(x.owner)) return x.owner === me.zh;
@@ -289,7 +275,7 @@ const CHECK_START = "起始堂次";
 const CHECK_OTHER = ["退費未刪除", "停課備註", "檢定班前置"];
 
 function render() {
-  if (!me) { setBanner("已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", "err"); return; }
+  if (!me) { if (todo.length) setBanner("已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", "err"); return; }
   const rows = todo.filter(x => x.kind !== "roster");
   const mineRows = rows.filter(mine);
   // 系統預建（todo）與已設定但小綠點空白（review）都是「要寫小綠點」，一起列

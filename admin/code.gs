@@ -82,6 +82,8 @@ function doPost(e) {
     switch (action) {
       case "publish":       requireSecret_(secret); return json_(publish_(body));
       case "submit":        return json_(submit_(body));
+      case "todo":          return json_(todoForUser_(body));
+      case "todo_admin":    requireSecret_(secret); return json_({ ok: true, items: readTodo_() });
       case "list":          requireSecret_(secret); return json_(list_(body.status));
       case "approve":       requireSecret_(secret); return json_(setStatus_(body.row_id, "approved", body.note));
       case "reject":        requireSecret_(secret); return json_(setStatus_(body.row_id, "rejected", body.note));
@@ -101,7 +103,7 @@ function doGet(e) {
     if (p.action === "list") { requireSecret_(p.secret); return json_(list_(p.status)); }
     if (p.action === "init") { requireSecret_(p.secret); sheet_(TODO_TAB, TODO_HEADERS); sheet_(JUDGE_TAB, JUDGE_HEADERS); return json_({ ok: true, tabs: [TODO_TAB, JUDGE_TAB] }); }
     if (p.action === "claim") { requireSecret_(p.secret); return json_(claim_(true)); }   // GET 一律只看不翻
-    return json_({ ok: true, service: "OA 行政執行台 Apps Script v1" });
+    return json_({ ok: true, service: "OA 行政執行台 Apps Script v1.2" });
   } catch (err) {
     return json_({ error: err.message });
   }
@@ -117,20 +119,43 @@ function publish_(body) {
   const sh = sheet_(TODO_TAB, TODO_HEADERS);
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
-  // 整批覆寫：只留當天。歷史在掃描器的 runs/ 裡，不需要在 Sheet 累積。
-  if (sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1);
-  if (!items.length) return { ok: true, written: 0 };
-  const today = body.date || Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
-  const rows = items.map(it => [
-    today, it.kind || "dt", String(it.admission_id || ""), it.student || "",
-    it.salesperson || "", it.owner || "", it.check || "", it.verdict || "",
-    it.message || "", it.suggested || "", it.course_code || "",
-    String(it.class_id || ""), it.class_room || "", String(it.stage_id || ""),
-    it.stage_name || "", it.extra ? JSON.stringify(it.extra) : ""
-  ]);
-  sh.getRange(2, 1, rows.length, TODO_HEADERS.length).setValues(rows);
-  return { ok: true, written: rows.length, date: today };
+    const today = body.date || Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+    const rows = items.map(it => [
+      today, it.kind || "dt", String(it.admission_id || ""), it.student || "",
+      it.salesperson || "", it.owner || "", it.check || "", it.verdict || "",
+      it.message || "", it.suggested || "", it.course_code || "",
+      String(it.class_id || ""), it.class_room || "", String(it.stage_id || ""),
+      it.stage_name || "", it.extra ? JSON.stringify(it.extra) : ""
+    ]);
+    // 🔴 第三輪稽核：insertSheet 預設只有 1,000 列，全掃約 1,378 列會爆；
+    //    而且舊版先 deleteRows 再 setValues，爆掉時分頁已被清空。
+    //    改成：先把列數補夠 → 寫入 → 再清掉舊資料多出來的部分。順序保證任何一步失敗都不會留下空表。
+    const need = rows.length + 1;
+    if (sh.getMaxRows() < need) sh.insertRowsAfter(sh.getMaxRows(), need - sh.getMaxRows());
+    if (rows.length) sh.getRange(2, 1, rows.length, TODO_HEADERS.length).setValues(rows);
+    const last = sh.getLastRow();
+    if (last > need) sh.getRange(need + 1, 1, last - need, TODO_HEADERS.length).clearContent();
+    if (!rows.length && last > 1) sh.getRange(2, 1, last - 1, TODO_HEADERS.length).clearContent();
+    return { ok: true, written: rows.length, date: today };
   } finally { lock.releaseLock(); }
+}
+
+// ─── todo：讀「今日待辦」（取代發布 CSV：不再公開可讀，讀取也要驗身分） ──────────
+
+function readTodo_() {
+  const sh = sheet_(TODO_TAB, TODO_HEADERS);
+  const data = sh.getDataRange().getValues();
+  if (data.length < 2) return [];
+  const headers = data[0];
+  return data.slice(1).filter(r => r.some(c => c !== "")).map(r => {
+    const o = {}; headers.forEach((h, i) => o[h] = r[i] instanceof Date ? Utilities.formatDate(r[i], "Asia/Taipei", "yyyy-MM-dd") : String(r[i] ?? "")); return o;
+  });
+}
+
+function todoForUser_(body) {
+  // 業務端：要 Google 登入；回全部列，過濾在前端做（名單外的列大家都要看得到）
+  const who = verifyGoogleToken_(body.id_token);
+  return { ok: true, email: who.email, name: who.name, items: readTodo_() };
 }
 
 // ─── submit：業務留紀錄（必須 Google 登入） ─────────────────────────────────────
@@ -232,7 +257,9 @@ function done_(body) {
   const { sh, headers, items } = rows_();
   const it = items.find(x => x.row_id === body.row_id);
   if (!it) throw new Error("找不到 " + body.row_id);
-  sh.getRange(it._row, COL(headers, "status")).setValue(body.ok ? "done" : "failed");
+  // 🔴 status 可指定 manual：執行器沒動 Corp、要保旭手動處理的（暫停），不能標成 done 就消失
+  const st = body.status === "manual" ? "manual" : (body.ok ? "done" : "failed");
+  sh.getRange(it._row, COL(headers, "status")).setValue(st);
   sh.getRange(it._row, COL(headers, "exec_at")).setValue(new Date().toISOString());
   sh.getRange(it._row, COL(headers, "evidence")).setValue(String(body.evidence || ""));
   sh.getRange(it._row, COL(headers, "error")).setValue(String(body.error || ""));

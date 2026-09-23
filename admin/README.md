@@ -55,20 +55,20 @@
 4. 複製 **用戶端 ID**（`xxxx.apps.googleusercontent.com`）
 5. 填回兩處：Apps Script 指令碼屬性 `OAUTH_CLIENT_ID`、`admin.html` 的 `OAUTH_CLIENT_ID` 常數
 
-### ④ 發布「今日待辦」成 CSV（2 分鐘）
+### ④ 建分頁（30 秒）
 
-先讓兩個分頁長出來：瀏覽器開 `<Web App URL>?action=init&secret=<你的REVIEW_SECRET>` → 回 `{"ok":true,"tabs":[…]}`。
+瀏覽器開 `<Web App URL>?action=init&secret=<你的REVIEW_SECRET>` → 回 `{"ok":true,"tabs":[…]}`。
 
-然後跟 team.html 一樣：Sheet **檔案 → 共用 → 發布到網路** → 分頁選「今日待辦」、格式「逗號分隔值 (.csv)」→ 發布 → 複製 URL → 填進 `admin.html` 與 `admin-review.html` 的 `TODO_CSV_URL`。
-
-🔴 `--publish` **只在全掃時生效**（`--limit`／`--class`／`--cert-only` 會拒絕發布），掃描有失敗項或一筆都沒掃到時也不發布、保留上一份——避免把業務的清單洗成不完整的版本。
+🔴 **不要**把「今日待辦」發布到網路成 CSV。第三輪稽核指出：repo 是公開的、網址寫在原始碼裡，
+發布 CSV 等於全體學生姓名＋報名編號匿名可讀。頁面現在改成向 Apps Script 要資料
+（業務端帶 Google 登入憑證 `todo`、核准台帶密鑰 `todo_admin`），讀取也要驗身分。
 
 ### ⑤ 把 URL 填回頁面
 
 | 檔案 | 常數 |
 |---|---|
-| `admin.html` | `APPS_SCRIPT_URL`、`TODO_CSV_URL`、`OAUTH_CLIENT_ID` |
-| `admin-review.html` | `APPS_SCRIPT_URL`、`TODO_CSV_URL` |
+| `admin.html` | `APPS_SCRIPT_URL`、`OAUTH_CLIENT_ID` |
+| `admin-review.html` | `APPS_SCRIPT_URL` |
 
 改完 commit → push → 1 分鐘後 Pages 更新。
 
@@ -118,18 +118,23 @@ kikuflow 手冊對應頁：<https://kikuflow.com/manual/workflow/api-ai-node-beh
 
 核准台會多看到「執行中」分頁：執行器**真寫入模式**（`EXECUTOR_APPLY=1`）一 claim 就把列標成 executing，執行完才變 done／failed；**dry-run 只看不翻狀態**，列會留在「已核准待執行」。真寫入模式下停在 executing 超過一天＝執行器沒跑完，去看 `runs/executor_last.json`；核准台在「執行中」分頁也能退回或重新核准。
 
-`run_log.tsv` 最後一欄有 `exec=N`（執行器退出碼：0 成功／2 有失敗／4 沒跑起來）。
+`run_log.tsv` 最後一欄有 `exec=N`（執行器退出碼：0 成功／2 有失敗／4 沒跑起來／5 另一個執行器正在跑、這次略過）。
+
+核准台還有「需你手動」分頁：暫停申請核准後執行器不動 Corp，會停在這裡提醒你到班級頁設定長期停課；做完按「退回」並註明已手動完成即可結案。
 
 ## 安全模型
 
 | 端點 | 誰能用 | 防護 |
 |---|---|---|
-| `submit` | 登入公司 Google 帳號的人 | Google ID token（驗網域，有設 OAUTH_CLIENT_ID 時再驗 aud） |
+| `submit`、`todo`（讀今日待辦） | 登入公司 Google 帳號的人 | Google ID token（驗網域＋aud） |
+| `todo_admin` | 你 | `REVIEW_SECRET` |
 | `publish` `claim` `done` | Mac mini | `REVIEW_SECRET`（在 .env） |
 | `list` `approve` `reject` | 你 | `REVIEW_SECRET`（`?key=`，存 localStorage） |
 | `kiku_approved` | Kiku API 節點 | `REVIEW_SECRET`（在 URL 上） |
 
 執行器只做三種 Corp 動作（追加小紅點標記／補課 +1 ＋備註／追加小綠點備註），全部「只追加不覆蓋」，寫完讀回驗證；`assessments/delete` 永遠在黑名單。
+
+程式自己的問題（解析失敗、梯次掛錯課程、沒見過的狀態值）只進每日報告給你，**不會**派給業務。
 
 補課 +1 的冪等鍵：執行器會在備註多留一行「（執行台 REQ-xxxx）」，同一張申請絕不 +1 兩次；本地還有一份帳本 `runs/executed_ledger.json`，Corp 寫成功但回報失敗時只補回報、不重做。
 

@@ -27,3 +27,4 @@ scraper/debug_*.png
 
 # Geocoding cache（避免重複呼叫 Nominatim API；closest_data.js 會 commit）
 scraper/geo_cache.json
+.claude/

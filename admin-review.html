@@ -47,7 +47,7 @@ button.no { border-color: var(--red); color: var(--red-dk); }
 button:disabled { opacity: .5; cursor: default; }
 .status { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #EEE; }
 .status.approved { background: var(--green-lt); color: #1B5E20; } .status.done { background: var(--teal-lt); color: #00564F; }
-.status.failed, .status.rejected { background: var(--red-lt); color: var(--red-dk); } .status.kiku_pending { background: var(--orange-lt); color: var(--dark); } .status.executing { background: #EEE; color: var(--dark); }
+.status.failed, .status.rejected { background: var(--red-lt); color: var(--red-dk); } .status.manual { background: var(--orange-lt); color: var(--dark); } .status.kiku_pending { background: var(--orange-lt); color: var(--dark); } .status.executing { background: #EEE; color: var(--dark); }
 .empty { color: var(--gray); padding: 16px; text-align: center; }
 .evi { grid-column: 1 / -1; font-size: 12px; color: var(--gray); white-space: pre-wrap; }
 @media (max-width: 720px) { .card { grid-template-columns: 1fr; } }
@@ -61,6 +61,7 @@ button:disabled { opacity: .5; cursor: default; }
     <button data-s="kiku_pending">Kiku 待核 <span id="n-kiku_pending">0</span></button>
     <button data-s="approved">已核准待執行 <span id="n-approved">0</span></button>
     <button data-s="executing">執行中 <span id="n-executing">0</span></button>
+    <button data-s="manual">需你手動 <span id="n-manual">0</span></button>
     <button data-s="failed">執行失敗 <span id="n-failed">0</span></button>
     <button data-s="review">待複核 <span id="n-review">0</span></button>
     <button data-s="done">已完成 <span id="n-done">0</span></button>
@@ -77,7 +78,6 @@ button:disabled { opacity: .5; cursor: default; }
 <script>
 // ─── 配置（部署後修改） ───────────────────────────────────────────────────────
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQmG8FN0wfD-KzOLcJFNndEeQjwMjMGkyjOojobXw0OEdkYGGNxmOi35FRsjZ6YOiN/exec";
-const TODO_CSV_URL    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTg67dCxsqvuavLZk923-d0wEdYDB-j0fJ-JsONIO0bnfUyqMyg5GZ-LNRbNzsI5mECVix7o-hi9gO_/pub?gid=99568546&single=true&output=csv";
 const CORP = "https://corp.orangeapple.co";
 
 // 密鑰：?key=XXX 或 localStorage（跟 review.html 一樣）
@@ -86,27 +86,17 @@ function setSecret(s) { localStorage.setItem("oa_admin_secret", s); }
 
 let items = [], todo = {}, cur = "pending";
 
-function parseCSV(text) {
-  const rows = []; let row = [], field = "", q = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (q) { if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; }
-    else if (c === '"') q = true; else if (c === ",") { row.push(field); field = ""; }
-    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; } else if (c !== "\r") field += c;
-  }
-  if (field !== "" || row.length) { row.push(field); rows.push(row); }
-  return rows;
+async function loadTodo(secret) {
+  // 讀「今日待辦」改走 Apps Script（帶密鑰），不再用公開 CSV
+  todo = {};
+  const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ action: "todo_admin", secret }) });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error);
+  (d.items || []).forEach(o => { const x = {}; for (const k in o) x[k] = String(o[k] ?? "").trim(); todo[x.admission_id + "|" + x.check] = x; if (x.kind === "roster") todo["roster|" + x.admission_id] = x; });
+  todoCount = (d.items || []).length;
 }
-async function loadTodo() {
-  if (TODO_CSV_URL.startsWith("PASTE_")) return;
-  try {
-    const sep = TODO_CSV_URL.includes("?") ? "&" : "?";
-    const r = await fetch(TODO_CSV_URL + sep + "cb=" + Math.floor(Date.now() / 60000), { cache: "no-cache" });
-    const rows = parseCSV(await r.text()); const h = rows[0].map(x => x.trim());
-    todo = {};
-    rows.slice(1).filter(x => x.length > 2).forEach(x => { const o = {}; h.forEach((k, i) => o[k] = (x[i] || "").trim()); todo[o.admission_id + "|" + o.check] = o; if (o.kind === "roster") todo["roster|" + o.admission_id] = o; });
-  } catch (e) { /* 燈號會顯示「今日待辦讀不到」 */ }
-}
+let todoCount = 0;
 
 async function load() {
   let s = getSecret();
@@ -114,7 +104,7 @@ async function load() {
   if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { banner("▸ APPS_SCRIPT_URL 尚未設定。", "err"); return; }
   banner("載入中…");
   try {
-    await loadTodo();
+    await loadTodo(s);
     const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action: "list", status: "all", secret: s }) });   // 密鑰不放網址
     const d = await r.json();
@@ -122,11 +112,11 @@ async function load() {
     items = d.items || [];
     items.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
     counts(); render();
-    banner(`共 ${items.length} 筆紀錄。今日待辦${Object.keys(todo).length ? "已載入，燈號可用" : "讀不到（燈號會標灰）"}。`);
+    banner(`共 ${items.length} 筆紀錄。今日待辦 ${todoCount} 列${todoCount ? "，燈號可用" : "——是空的！掃描沒發布，業務端會看到紅字"}。`, todoCount ? "" : "err");
   } catch (e) { banner("載入失敗：" + e.message, "err"); }
 }
 function banner(m, c) { const b = document.getElementById("banner"); b.textContent = m; b.className = "banner " + (c || ""); }
-function counts() { ["pending", "kiku_pending", "approved", "executing", "failed", "review", "done", "rejected"].forEach(s => document.getElementById("n-" + s).textContent = items.filter(x => x.status === s).length); }
+function counts() { ["pending", "kiku_pending", "approved", "executing", "manual", "failed", "review", "done", "rejected"].forEach(s => document.getElementById("n-" + s).textContent = items.filter(x => x.status === s).length); }
 document.getElementById("tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; cur = b.dataset.s; [...e.currentTarget.children].forEach(x => x.classList.toggle("on", x === b)); render(); });
 
 function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
@@ -152,7 +142,7 @@ function lights(x) {
     add("g", `Kiku 主旨：${x.kiku_subject}`);
     if (x.status === "kiku_pending") add("y", "等 Kiku 核准（API 節點）；若你已在 Kiku 核准，可在此直接放行");
   }
-  if (x.action === "request_suspend") add("y", "暫停：第一版執行器不動 Corp，核准後請你手動設定長期停課");
+  if (x.action === "request_suspend") add("y", "暫停：第一版執行器不動 Corp；核准後會進「需你手動」分頁，請你到班級頁設定長期停課，做完在該分頁按「退回」並註明已手動完成");
   if (x.action === "mark_done") add("g", "不寫 Corp；隔天掃描自動驗收");
   if (x.status === "kiku_unmatched" || x.action === "kiku_unmatched") add("r", "Kiku 核准了一張單但對不到 REQ 編號，請人工比對");
   return L;
@@ -168,7 +158,7 @@ function render() {
     // kiku_pending：CEO 的 API 節點建好前，保旭在 Kiku 核准後可以在這裡手動放行
     // failed：看過原因後可重新核准（執行器有本地帳本，已寫過的不會重做）
     // executing：執行器當掉、或列卡住時，保旭可退回或重新核准（執行器有本地帳本＋Corp 標記，不會重做）
-    const canAct = ["pending", "review", "kiku_pending", "failed", "executing"].includes(cur);
+    const canAct = ["pending", "review", "kiku_pending", "failed", "executing", "manual"].includes(cur);   // manual：你在 Corp 做完後按「核准」不會再執行（執行器帳本擋），按「退回」結案
     return `<div class="card">
       <div>
         <div class="head">${esc(x.student)}<a href="${link}" target="_blank">開 Corp ↗</a> <span class="status ${esc(x.status)}">${esc(x.status)}</span></div>
