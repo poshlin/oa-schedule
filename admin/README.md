@@ -3,7 +3,7 @@
 三個角色、一份 Sheet、一支 Apps Script、兩個靜態頁：
 
 ```
-掃描器（Mac mini 07:00）──publish──▶ Sheet「今日待辦」──CSV──▶ admin.html（業務，Google 登入）
+掃描器（Mac mini 07:00）──publish──▶ Sheet「今日待辦」──todo（驗 Google 登入）──▶ admin.html（業務）
                                                                     │ submit（帶 Google token）
                                                                     ▼
                                                             Sheet「判斷區」

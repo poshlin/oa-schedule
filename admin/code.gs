@@ -103,7 +103,7 @@ function doGet(e) {
     if (p.action === "list") { requireSecret_(p.secret); return json_(list_(p.status)); }
     if (p.action === "init") { requireSecret_(p.secret); sheet_(TODO_TAB, TODO_HEADERS); sheet_(JUDGE_TAB, JUDGE_HEADERS); return json_({ ok: true, tabs: [TODO_TAB, JUDGE_TAB] }); }
     if (p.action === "claim") { requireSecret_(p.secret); return json_(claim_(true)); }   // GET 一律只看不翻
-    return json_({ ok: true, service: "OA 行政執行台 Apps Script v1.2" });
+    return json_({ ok: true, service: "OA 行政執行台 Apps Script v1.3" });
   } catch (err) {
     return json_({ error: err.message });
   }
@@ -144,7 +144,10 @@ function publish_(body) {
 
 function readTodo_() {
   const sh = sheet_(TODO_TAB, TODO_HEADERS);
-  const data = sh.getDataRange().getValues();
+  // 🔴 跟 publish_ 拿同一把鎖：不會讀到「前半今天、後半昨天」的混合清單（第四輪 N-E）
+  const lock = LockService.getScriptLock(); lock.waitLock(25000);
+  let data;
+  try { data = sh.getDataRange().getValues(); } finally { lock.releaseLock(); }
   if (data.length < 2) return [];
   const headers = data[0];
   return data.slice(1).filter(r => r.some(c => c !== "")).map(r => {
@@ -171,6 +174,7 @@ function verifyGoogleToken_(idToken) {
   if (clientId && info.aud !== clientId) throw new Error("憑證不是給這個執行台用的");
   const domain = getProp("ALLOWED_DOMAIN") || "orangeapple.co";
   const email = String(info.email || "").toLowerCase();
+  if (String(info.email_verified) !== "true") throw new Error("這個 Google 帳號的信箱未經驗證，不能使用");
   if (!(info.hd === domain || email.endsWith("@" + domain))) {
     throw new Error("請用公司 Google 帳號（@" + domain + "）登入");
   }
@@ -191,7 +195,14 @@ function submit_(body) {
   const rowId = "REQ-" + Date.now().toString(36).toUpperCase() + "-" + Utilities.getUuid().slice(0, 4).toUpperCase();
   const status = DIRECT_REVIEW.indexOf(p.action) !== -1 ? "pending" : "kiku_pending";
   const lock = LockService.getScriptLock(); lock.waitLock(10000);
-  try { sh.appendRow([
+  try {
+  // 🔴 第四輪稽核 N-G：同一報名＋同一動作已有未結案的申請（理由打錯重按、Kiku 公版重生），
+  //    回同一個 REQ、不新增；否則兩張都核准會 +2。
+  const open = ["pending", "kiku_pending", "approved", "executing"];
+  const dup = rows_().items.find(x => String(x.admission_id) === String(p.admission_id)
+                                  && x.action === p.action && open.indexOf(x.status) !== -1);
+  if (dup) return { ok: true, row_id: dup.row_id, status: dup.status, email: who.email, duplicate: true };
+  sh.appendRow([
     new Date().toISOString(), rowId, who.email, who.name,
     String(p.admission_id), p.student || "", p.check || "", p.action,
     p.target_value != null ? String(p.target_value) : "", p.reason || "",

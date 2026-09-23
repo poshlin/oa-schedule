@@ -9,7 +9,7 @@
 <style>
 :root {
   color-scheme: light only;
-  --orange: #FFA300; --orange-dk: #D48500; --orange-lt: #FFF4DD;
+  --orange: #FFA300; --orange-lt: #FFF4DD;   /* 紅線：亮橘不變暗，本頁不定義暗橘 token */
   --red: #FF5859;    --red-dk: #CC3344;    --red-lt: #FFEBEB;
   --teal: #00C4B3;   --teal-dk: #008F83;   --teal-lt: #DFFAF6;
   --green: #4CAF50;  --green-lt: #E8F5E9;
@@ -32,7 +32,7 @@ header .spacer { flex: 1; }
 .banner.err { background: var(--red-lt); border-color: var(--red); }
 .card { background: var(--white); border-radius: 10px; box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 12px; display: grid; grid-template-columns: 1fr 260px; gap: 10px 16px; }
 .card .head { font-weight: 700; font-size: 15px; }
-.card .head a { color: var(--teal-dk); text-decoration: none; font-size: 12px; margin-left: 8px; }
+.card .head a { color: #00695C; text-decoration: none; font-size: 12px; margin-left: 8px; }
 .card .meta { color: var(--gray); font-size: 12.5px; margin-top: 2px; }
 .card .reason { background: var(--orange-lt); border-radius: 6px; padding: 8px 10px; margin-top: 8px; font-size: 13.5px; }
 .card .reason b { display: block; font-size: 12px; color: var(--gray); margin-bottom: 2px; }
@@ -47,7 +47,7 @@ button.no { border-color: var(--red); color: var(--red-dk); }
 button:disabled { opacity: .5; cursor: default; }
 .status { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #EEE; }
 .status.approved { background: var(--green-lt); color: #1B5E20; } .status.done { background: var(--teal-lt); color: #00564F; }
-.status.failed, .status.rejected { background: var(--red-lt); color: var(--red-dk); } .status.manual { background: var(--orange-lt); color: var(--dark); } .status.kiku_pending { background: var(--orange-lt); color: var(--dark); } .status.executing { background: #EEE; color: var(--dark); }
+.status.failed, .status.rejected { background: var(--red-lt); color: #9B1C2E; } .status.manual { background: var(--orange-lt); color: var(--dark); } .status.kiku_pending { background: var(--orange-lt); color: var(--dark); } .status.executing { background: #EEE; color: var(--dark); }
 .empty { color: var(--gray); padding: 16px; text-align: center; }
 .evi { grid-column: 1 / -1; font-size: 12px; color: var(--gray); white-space: pre-wrap; }
 @media (max-width: 720px) { .card { grid-template-columns: 1fr; } }
@@ -68,7 +68,7 @@ button:disabled { opacity: .5; cursor: default; }
     <button data-s="rejected">已退回 <span id="n-rejected">0</span></button>
   </div>
   <div class="spacer"></div>
-  <button class="act" onclick="load()">重新整理</button>
+  <button class="act" data-do="reload">重新整理</button>
 </header>
 <div class="wrap">
   <div class="banner" id="banner">載入中…</div>
@@ -86,8 +86,10 @@ function setSecret(s) { localStorage.setItem("oa_admin_secret", s); }
 
 let items = [], todo = {}, cur = "pending";
 
+let todoLoaded = false;
 async function loadTodo(secret) {
   // 讀「今日待辦」改走 Apps Script（帶密鑰），不再用公開 CSV
+  if (todoLoaded) return;          // N-L：核准／退回後只重抓判斷區，不重抓 700KB 的今日待辦
   todo = {};
   const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
     body: JSON.stringify({ action: "todo_admin", secret }) });
@@ -95,6 +97,7 @@ async function loadTodo(secret) {
   if (d.error) throw new Error(d.error);
   (d.items || []).forEach(o => { const x = {}; for (const k in o) x[k] = String(o[k] ?? "").trim(); todo[x.admission_id + "|" + x.check] = x; if (x.kind === "roster") todo["roster|" + x.admission_id] = x; });
   todoCount = (d.items || []).length;
+  todoLoaded = true;
 }
 let todoCount = 0;
 
@@ -104,7 +107,12 @@ async function load() {
   if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { banner("▸ APPS_SCRIPT_URL 尚未設定。", "err"); return; }
   banner("載入中…");
   try {
-    await loadTodo(s);
+    try { await loadTodo(s); }
+    catch (e) {
+      // N-C：密鑰錯在這一步就會被丟出來，自我修復（清掉、重問）必須在這裡也接得住
+      if (String(e.message) === "unauthorized") { localStorage.removeItem("oa_admin_secret"); alert("密鑰錯誤，請重新輸入"); return load(); }
+      throw e;
+    }
     const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action: "list", status: "all", secret: s }) });   // 密鑰不放網址
     const d = await r.json();
@@ -158,7 +166,8 @@ function render() {
     // kiku_pending：CEO 的 API 節點建好前，保旭在 Kiku 核准後可以在這裡手動放行
     // failed：看過原因後可重新核准（執行器有本地帳本，已寫過的不會重做）
     // executing：執行器當掉、或列卡住時，保旭可退回或重新核准（執行器有本地帳本＋Corp 標記，不會重做）
-    const canAct = ["pending", "review", "kiku_pending", "failed", "executing", "manual"].includes(cur);   // manual：你在 Corp 做完後按「核准」不會再執行（執行器帳本擋），按「退回」結案
+    // manual 分頁沒有「核准」：按了只會變成一筆假的「已完成」（第四輪 N-H），只給「已手動完成，結案」
+    const canAct = ["pending", "review", "kiku_pending", "failed", "executing"].includes(cur);
     return `<div class="card">
       <div>
         <div class="head">${esc(x.student)}<a href="${link}" target="_blank">開 Corp ↗</a> <span class="status ${esc(x.status)}">${esc(x.status)}</span></div>
@@ -167,15 +176,22 @@ function render() {
         ${x.posh_note ? `<div class="meta">你的備註：${esc(x.posh_note)}</div>` : ""}
       </div>
       <div class="lights">${L.map(l => `<div class="light"><span class="dot ${l.c}"></span><span>${esc(l.m)}</span></div>`).join("")}</div>
-      ${canAct ? `<div class="btns"><button class="act ok" onclick="decide('approve','${esc(x.row_id)}')">核准</button><button class="act no" onclick="decide('reject','${esc(x.row_id)}')">退回</button></div>` : ""}
+      ${cur === "manual"
+        ? `<div class="btns"><button class="act ok" data-do="reject" data-id="${esc(x.row_id)}" data-note="已手動完成（保旭）">已手動完成，結案</button></div>`
+        : canAct ? `<div class="btns"><button class="act ok" data-do="approve" data-id="${esc(x.row_id)}">核准</button><button class="act no" data-do="reject" data-id="${esc(x.row_id)}">退回</button></div>` : ""}
       ${(x.evidence || x.error) ? `<div class="evi">${esc(x.error ? "✕ " + x.error : "✓ " + x.evidence)}</div>` : ""}
     </div>`;
   }).join("");
 }
 
-async function decide(action, rowId) {
-  let note = "";
-  if (action === "reject") { note = prompt("退回原因（業務看得到）："); if (note === null) return; }
+document.addEventListener("click", e => {
+  const b = e.target.closest("button[data-do]"); if (!b) return;
+  if (b.dataset.do === "reload") { todoLoaded = false; load(); return; }
+  decide(b.dataset.do, b.dataset.id, b.dataset.note);
+});
+async function decide(action, rowId, presetNote) {
+  let note = presetNote || "";
+  if (action === "reject" && !presetNote) { note = prompt("退回原因（業務看得到）："); if (note === null) return; }
   const btns = document.querySelectorAll("button.act"); btns.forEach(b => b.disabled = true);
   try {
     const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" },

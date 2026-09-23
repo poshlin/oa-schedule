@@ -11,7 +11,7 @@
 <style>
 :root {
   color-scheme: light only;
-  --orange: #FFA300; --orange-dk: #D48500; --orange-lt: #FFF4DD;
+  --orange: #FFA300; --orange-lt: #FFF4DD;   /* 紅線：亮橘不變暗，本頁不定義暗橘 token */
   --red: #FF5859;    --red-dk: #CC3344;    --red-lt: #FFEBEB;
   --teal: #00C4B3;   --teal-dk: #008F83;   --teal-lt: #DFFAF6;
   --green: #4CAF50;  --green-lt: #E8F5E9;
@@ -110,7 +110,7 @@ footer { color: var(--gray); font-size: 12px; text-align: center; padding: 20px;
       <div class="full btns" style="justify-content:flex-start"><button class="pri" id="k-gen">產生公版並留紀錄</button></div>
     </div>
     <pre class="tpl" id="k-out" style="display:none"></pre>
-    <div class="btns" id="k-copy-row" style="display:none;justify-content:flex-start;margin-top:8px"><button class="sec" id="k-copy">一鍵複製</button><a id="k-link" href="#" target="_blank" style="align-self:center;font-size:13px;color:var(--teal-dk)">開 Kiku</a></div>
+    <div class="btns" id="k-copy-row" style="display:none;justify-content:flex-start;margin-top:8px"><button class="sec" id="k-copy">一鍵複製</button><a id="k-link" href="#" target="_blank" style="align-self:center;font-size:13px;color:#00695C;font-weight:700">開 Kiku</a></div>
   </section>
   <section id="sec-rest">
     <h2>⑤ 其他未分類 <span class="cnt" id="cnt-rest">0</span></h2>
@@ -193,8 +193,23 @@ function afterLogin() {
   // 🔴 對不到就是對不到，不預設成第一位（會用別人的名字寫進 Corp）。加一個「請選擇」逼他選一次。
   const ph = document.createElement("option"); ph.value = ""; ph.textContent = "— 請選你是誰 —"; sel.insertBefore(ph, sel.firstChild);
   sel.value = idx === -1 ? "" : String(idx); me = idx === -1 ? null : STAFF[idx];
-  sel.addEventListener("change", () => { me = sel.value === "" ? null : STAFF[parseInt(sel.value, 10)]; if (me) localStorage.setItem("oa_admin_me_" + meEmail, me.zh); render(); });
+  // 🔴 N-N：afterLogin 可能被呼叫多次（重新登入），listener 只掛一次
+  if (!sel.dataset.bound) {
+    sel.dataset.bound = "1";
+    sel.addEventListener("change", () => { me = sel.value === "" ? null : STAFF[parseInt(sel.value, 10)]; if (me) localStorage.setItem("oa_admin_me_" + meEmail, me.zh); render(); updateBanner(); });
+  }
   loadTodo();
+}
+function updateBanner() {
+  const todayTW = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+  if (!idToken) { setBanner("請先用公司 Google 帳號登入。"); return; }
+  if (!todo.length) { setBanner("⚠ 今日待辦是空的——今天的掃描沒有發布資料，不是「沒事」。請先告知保旭。", "err"); return; }
+  if (mixedDates) { setBanner("⚠ 資料裡混到不同日期（可能正在發布中），這份清單不可信，請一分鐘後重新整理。", "err"); return; }
+  if (todoDate !== todayTW) { setBanner(`⚠ 這份待辦是 ${todoDate} 的（不是今天）——今天的掃描可能沒完成，請先告知保旭。`, "err"); return; }
+  if (!me) { setBanner("已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", "err"); return; }
+  const warn = notices.map(n => n.message).join("；");
+  if (warn) { setBanner(`已登入 ${meEmail}｜今日待辦：${todoDate}｜⚠ ${warn}（那些班的學生今天不在清單裡）`, ""); return; }
+  setBanner(`已登入 ${meEmail}｜今日待辦：${todoDate}｜清單只顯示掛在你名下的項目。`, "ok");
 }
 function relogin() {
   idToken = ""; sessionStorage.removeItem("oa_admin_token");
@@ -204,6 +219,8 @@ function relogin() {
 function setBanner(msg, cls) { const b = document.getElementById("banner"); b.textContent = msg; b.className = "banner " + (cls || ""); }
 
 let todo = [];      // 今日待辦（含 roster）
+let notices = [];   // 掃描器附的提醒（例如今天有 N 班沒掃到）
+let mixedDates = false;
 let submitted = {}; // 已送出的 admission_id|check → row_id（存 localStorage，保留 7 天：保旭隔天才核准時該列會再出現，不能再送一次）
 let todoDate = "";
 const SUBMITTED_KEY = "oa_admin_submitted_v2";
@@ -228,15 +245,16 @@ async function loadTodo() {
       body: JSON.stringify({ action: "todo", id_token: idToken }) });
     const d = await r.json();
     if (d.error) { if (/登入|憑證/.test(d.error)) relogin(); else setBanner("載入今日待辦失敗：" + d.error, "err"); return; }
-    todo = (d.items || []).map(o => { const x = {}; for (const k in o) x[k] = String(o[k] ?? "").trim(); return x; });
-    todoDate = (todo[0] && todo[0].date) || "";
+    const all = (d.items || []).map(o => { const x = {}; for (const k in o) x[k] = String(o[k] ?? "").trim(); return x; });
+    notices = all.filter(x => x.kind === "notice");
+    const dates = [...new Set(all.filter(x => x.kind !== "notice" && x.date).map(x => x.date))].sort();
+    todoDate = dates[dates.length - 1] || "";
+    // 🔴 第四輪 N-E：只保留最新那一天的列；混到別天的資料代表發布寫到一半，整份不可信
+    mixedDates = dates.length > 1;
+    todo = all.filter(x => x.kind !== "notice" && x.date === todoDate);
     loadSubmitted();
     render();
-    // 🔴 空清單／過期清單都要紅：掃描或發布掛掉時，畫面絕不能長得像「今天沒事」
-    const todayTW = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
-    if (!todo.length) setBanner("⚠ 今日待辦是空的——今天的掃描沒有發布資料，不是「沒事」。請先告知保旭。", "err");
-    else if (todoDate !== todayTW) setBanner(`⚠ 這份待辦是 ${todoDate} 的（不是今天）——今天的掃描可能沒完成，請先告知保旭。`, "err");
-    else if (me) setBanner(`已登入 ${meEmail}｜今日待辦：${todoDate}｜清單只顯示掛在你名下的項目。`, "ok");
+    updateBanner();
   } catch (e) { setBanner("載入今日待辦失敗：" + e.message, "err"); }
 }
 
@@ -275,7 +293,7 @@ const CHECK_START = "起始堂次";
 const CHECK_OTHER = ["退費未刪除", "停課備註", "檢定班前置"];
 
 function render() {
-  if (!me) { if (todo.length) setBanner("已登入 " + meEmail + "，但對不到業務名單——請在右上角選你是誰。", "err"); return; }
+  if (!me) return;
   const rows = todo.filter(x => x.kind !== "roster");
   const mineRows = rows.filter(mine);
   // 系統預建（todo）與已設定但小綠點空白（review）都是「要寫小綠點」，一起列
