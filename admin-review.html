@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>核准台 — 行政執行台</title>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-lt: #FFF4DD;   /* 紅線：亮橘不變暗，本頁不定義暗橘 token */
+  --red: #FF5859;    --red-dk: #CC3344;    --red-lt: #FFEBEB;
+  --teal: #00C4B3;   --teal-dk: #008F83;   --teal-lt: #DFFAF6;
+  --green: #4CAF50;  --green-lt: #E8F5E9;
+  --gray: #646569;   --dark: #2D2D2D;
+  --bg: #F5F5F5;     --white: #FFFFFF;
+  --border: #E5E5E5;
+  --shadow: 0 1px 3px rgba(45,45,45,.06);
+  --font-zh: "微軟正黑體", "Microsoft JhengHei", "PingFang TC", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-zh); background: var(--bg); color: var(--dark); font-size: 14px; line-height: 1.55; }
+header { background: var(--white); border-bottom: 3px solid var(--orange); padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+header h1 { font-size: 17px; }
+header .spacer { flex: 1; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { font-family: inherit; font-size: 13px; padding: 6px 12px; border-radius: 16px; border: 2px solid var(--border); background: var(--white); cursor: pointer; }
+.tabs button.on { background: var(--dark); color: #fff; border-color: var(--dark); }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.banner { background: var(--orange-lt); border: 1px solid var(--orange); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; }
+.banner.err { background: var(--red-lt); border-color: var(--red); }
+.card { background: var(--white); border-radius: 10px; box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 12px; display: grid; grid-template-columns: 1fr 260px; gap: 10px 16px; }
+.card .head { font-weight: 700; font-size: 15px; }
+.card .head a { color: #00695C; text-decoration: none; font-size: 12px; margin-left: 8px; }
+.card .meta { color: var(--gray); font-size: 12.5px; margin-top: 2px; }
+.card .reason { background: var(--orange-lt); border-radius: 6px; padding: 8px 10px; margin-top: 8px; font-size: 13.5px; }
+.card .reason b { display: block; font-size: 12px; color: var(--gray); margin-bottom: 2px; }
+.lights { display: flex; flex-direction: column; gap: 6px; }
+.light { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; }
+.light .dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.dot.g { background: var(--green); } .dot.y { background: var(--orange); } .dot.r { background: var(--red); } .dot.x { background: #BBB; }
+.btns { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button.act { font-family: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px; border: 2px solid var(--border); background: var(--white); cursor: pointer; }
+button.ok { background: var(--green-lt); border-color: var(--green); color: var(--dark); font-weight: 700; }
+button.no { border-color: var(--red); color: var(--red-dk); }
+button:disabled { opacity: .5; cursor: default; }
+.status { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #EEE; }
+.status.approved { background: var(--green-lt); color: #1B5E20; } .status.done { background: var(--teal-lt); color: #00564F; }
+.status.closed { background: #EEE; color: var(--dark); }
+.status.failed, .status.rejected { background: var(--red-lt); color: #9B1C2E; } .status.manual { background: var(--orange-lt); color: var(--dark); } .status.kiku_pending { background: var(--orange-lt); color: var(--dark); } .status.executing { background: #EEE; color: var(--dark); }
+.empty { color: var(--gray); padding: 16px; text-align: center; }
+.evi { grid-column: 1 / -1; font-size: 12px; color: var(--gray); white-space: pre-wrap; }
+@media (max-width: 720px) { .card { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>核准台</h1>
+  <div class="tabs" id="tabs">
+    <button data-s="pending" class="on">待核准 <span id="n-pending">0</span></button>
+    <button data-s="kiku_pending">Kiku 待核 <span id="n-kiku_pending">0</span></button>
+    <button data-s="approved">已核准待執行 <span id="n-approved">0</span></button>
+    <button data-s="executing">執行中 <span id="n-executing">0</span></button>
+    <button data-s="manual">需你手動 <span id="n-manual">0</span></button>
+    <button data-s="failed">執行失敗 <span id="n-failed">0</span></button>
+    <button data-s="review">待複核 <span id="n-review">0</span></button>
+    <button data-s="done">已完成 <span id="n-done">0</span></button>
+    <button data-s="rejected">已退回 <span id="n-rejected">0</span></button>
+    <button data-s="closed">已結案 <span id="n-closed">0</span></button>
+  </div>
+  <div class="spacer"></div>
+  <button class="act" data-do="reload">重新整理</button>
+</header>
+<div class="wrap">
+  <div class="banner err" id="trial" style="display:none">▸ <b>試行期：執行器只預演、不會改 Corp。</b>你核准之後 Corp 不會被改——補課 +1 要你自己到 Corp 設。
+    核准的單會留在「已核准待執行」，隔天早上的報告會列出執行器「本來會做什麼」（[dry-run] 行）；看過沒問題、你也手動處理完，就按「試行期已手動處理，結案」。
+    不結案的話，同一學生同一項的下一張申請會被當成重複擋下。</div>
+  <div class="banner" id="banner">載入中…</div>
+  <div id="list"></div>
+</div>
+
+<script>
+// ─── 配置（部署後修改） ───────────────────────────────────────────────────────
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQmG8FN0wfD-KzOLcJFNndEeQjwMjMGkyjOojobXw0OEdkYGGNxmOi35FRsjZ6YOiN/exec";
+const CORP = "https://corp.orangeapple.co";
+// 🔴 試行期開關：跟 admin.html 的 TRIAL_MODE 同一天、同一次 push 改成 false
+const TRIAL_MODE = true;
+
+// 密鑰：?key=XXX 或 localStorage（跟 review.html 一樣）
+function getSecret() { return new URLSearchParams(location.search).get("key") || localStorage.getItem("oa_admin_secret") || ""; }
+// 🔴 第五輪 A-3：密鑰錯時 localStorage 與網址上的 ?key= 都要清掉，否則 getSecret() 又拿到同一把錯的，無窮迴圈
+function forgetSecret() {
+  localStorage.removeItem("oa_admin_secret");
+  const u = new URL(location.href);
+  if (u.searchParams.has("key")) { u.searchParams.delete("key"); history.replaceState(null, "", u.toString()); }
+}
+function setSecret(s) { localStorage.setItem("oa_admin_secret", s); }
+
+let items = [], todo = {}, cur = "pending";
+
+let todoLoaded = false;
+async function loadTodo(secret) {
+  // 讀「今日待辦」改走 Apps Script（帶密鑰），不再用公開 CSV
+  if (todoLoaded) return;          // N-L：核准／退回後只重抓判斷區，不重抓 700KB 的今日待辦
+  todo = {};
+  const d = await callApi({ action: "todo_admin", secret }, d => Array.isArray(d.items), 2);
+  if (d.error) throw new Error(d.error);
+  todoDate = ""; todoNotices = [];
+  (d.items || []).forEach(o => {
+    const x = {}; for (const k in o) x[k] = String(o[k] ?? "").trim();
+    if (x.kind === "notice") { todoNotices.push(x.message); return; }   // 第十輪：「今天有 N 班沒掃到」要留著，燈號會用
+    if (!x.admission_id) return;
+    if (x.date > todoDate) todoDate = x.date;   // 第五輪 A-8：notice 列的 key 是 "|"，會被 Kiku 稽核列誤撞
+    // 名冊列沒有檢查項，只放在 roster|編號——放進「編號|」會被補課卡片誤當成「今天仍列此項」（教學截圖時發現）
+    if (x.kind === "roster") { todo["roster|" + x.admission_id] = x; return; }
+    todo[x.admission_id + "|" + x.check] = x;
+  });
+  todoCount = (d.items || []).length;
+  todoLoaded = true;
+}
+let todoCount = 0, todoDate = "", todoNotices = [];
+function todayTW() { return new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10); }
+
+async function load() {
+  let s = getSecret();
+  if (!s) { s = prompt("請輸入核准台密鑰（之後會記住）："); if (!s) return; setSecret(s); }
+  if (APPS_SCRIPT_URL.startsWith("REPLACE_")) { banner("▸ APPS_SCRIPT_URL 尚未設定。", "err"); return; }
+  banner("載入中…");
+  try {
+    try { await loadTodo(s); }
+    catch (e) {
+      // N-C：密鑰錯在這一步就會被丟出來，自我修復（清掉、重問）必須在這裡也接得住
+      if (String(e.message) === "unauthorized") { forgetSecret(); alert("密鑰錯誤，請重新輸入"); return load(); }
+      throw e;
+    }
+    const d = await callApi({ action: "list", status: "all", secret: s }, d => Array.isArray(d.items), 2);   // 密鑰不放網址
+    if (d.error) { if (d.error === "unauthorized") { forgetSecret(); alert("密鑰錯誤，請重新輸入"); return load(); } throw new Error(d.error); }
+    items = d.items || [];
+    items.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
+    counts(); render();
+    // 第十輪：橫幅要講清楚燈號拿哪一天的掃描算、那天有沒有班沒掃到
+    if (!todoCount) banner(`共 ${items.length} 筆紀錄。今日待辦是空的！掃描沒發布，業務端會看到紅字，燈號不可用。`, "err");
+    else if (todoDate !== todayTW()) banner(`共 ${items.length} 筆紀錄。今日待辦是 ${todoDate} 的（不是今天）——今天的掃描可能沒完成，燈號用的是舊資料。`, "err");
+    else banner(`共 ${items.length} 筆紀錄。燈號依 ${todoDate} 的掃描（${todoCount} 列）${todoNotices.length ? "。⚠ " + todoNotices.join("；") + "——那些班的學生今天沒被檢查，「驗收通過」燈會降成黃燈" : "，燈號可用"}。`);
+  } catch (e) { banner("載入失敗：" + e.message, "err"); }
+}
+// 🔴 第十輪實測：約一成的 POST 會拿到 Google 的 HTML 錯誤頁，或被轉成 GET、回 {"ok":true,"service":…}——
+//    後者看起來像成功，其實內容根本沒被處理（業務會看到「已送出」，Sheet 卻沒有那一列）。
+//    check＝這個動作的正常回應一定長什麼樣；不符就當沒送到。retries 只給重送安全的動作。
+async function callApi(body, check, retries) {
+  let last;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const r = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(body) });
+      let d; try { d = JSON.parse(await r.text()); } catch (e) { throw new Error("伺服器暫時沒有回正常資料"); }
+      if (d.error) return d;                                   // 真正的錯誤訊息交給呼叫端
+      if (d.service || !check(d)) throw new Error("伺服器回應異常，這次的內容沒有被處理");
+      return d;
+    } catch (e) { last = e; if (i < retries) await new Promise(ok => setTimeout(ok, 1500 * (i + 1))); }
+  }
+  throw last;
+}
+const STATUS_LABEL = { pending: "待核准", kiku_pending: "Kiku 待核", approved: "已核准待執行", executing: "執行中", manual: "需你手動",
+  failed: "執行失敗", review: "待複核", done: "已完成", rejected: "已退回", closed: "已結案" };
+function banner(m, c) { const b = document.getElementById("banner"); b.textContent = m; b.className = "banner " + (c || ""); }
+function counts() { ["pending", "kiku_pending", "approved", "executing", "manual", "failed", "review", "done", "rejected", "closed"].forEach(s => document.getElementById("n-" + s).textContent = items.filter(x => x.status === s).length); }
+document.getElementById("tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; cur = b.dataset.s; [...e.currentTarget.children].forEach(x => x.classList.toggle("on", x === b)); render(); });
+
+// 第八輪 N6：判斷區存的是 UTC，顯示一律換成台灣時間，免得 00–08 點送出的單看起來是前一天
+// 第九輪 P2-a：不用 slice 截字串（「2026/9/27 10:30:」會多一個冒號），改成指定欄位
+function twTime(v) { const d = new Date(v); return isNaN(d) ? String(v || "") : d.toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }); }
+function twDate(v) { const d = new Date(v); return isNaN(d) ? "" : new Date(d.getTime() + 8 * 3600000).toISOString().slice(0, 10); }
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function raw(x) { try { return JSON.parse(x.raw_json || "{}"); } catch (e) { return {}; } }
+
+// ─── 驗算燈號：把今日待辦（掃描器算的）跟業務送的東西擺在一起看 ─────────────────
+function lights(x) {
+  const p = raw(x); const t = todo[x.admission_id + "|" + x.check] || (p.check ? todo[x.admission_id + "|" + p.check] : undefined);
+  const ro = todo["roster|" + x.admission_id];
+  const ex = t && t.extra_json ? (() => { try { return JSON.parse(t.extra_json); } catch (e) { return {}; } })() : {};
+  const L = [];
+  const add = (c, m) => L.push({ c, m });
+  // 第十輪：今日待辦讀不到時只跳過「跟掃描比對」的燈，操作提醒（試行期手動 +1、暫停要手動設）照樣要顯示
+  const noTodo = !Object.keys(todo).length;
+  if (noTodo) add("x", "今日待辦讀不到，無法跟掃描比對");
+  // 第十二輪 P3-2：業務送來的學生姓名要跟掃描器依報名編號查到的姓名一致——
+  //    否則你看到的是 B 的名字、Kiku 也因為有 B 的名字而放行，執行器卻替報名編號 A 動手
+  const scanned = (t && t.student) || (ro && ro.student) || "";
+  if (scanned && x.student && scanned !== x.student)
+    add("r", `姓名對不上：業務送的是「${x.student}」，報名編號 ${x.admission_id} 在掃描裡是「${scanned}」——不要核准，先問業務`);
+  // 🔴 第九輪 P1-c：送出之後的掃描還列著這一項＝業務說處理了、Corp 其實沒改好
+  const sent = twDate(x.timestamp), after = todoDate && sent && todoDate > sent;
+  const needsCorpFix = x.action === "mark_done" || (TRIAL_MODE && x.action === "write_teacher_note");
+  if (noTodo) { /* 沒有掃描資料可比 */ }
+  else if (t && after && needsCorpFix) add("r", `業務 ${sent} 送出，但 ${todoDate} 的掃描仍列此項——Corp 還沒改好，建議退回請他再處理：${t.message.slice(0, 60)}`);
+  else if (t && needsCorpFix) add("y", `今天的掃描早於送出時間，明天 07:00 之後才能驗收：${t.message.slice(0, 60)}`);
+  else if (t) add("g", `掃描器今天仍列此項：${t.message.slice(0, 60)}`);
+  else if (needsCorpFix && after) add(todoNotices.length ? "y" : "g", todoNotices.length
+      ? `${todoDate} 的掃描沒列這項，但當天有班沒掃到，不能確定是驗收通過`
+      : `${todoDate} 的掃描已不列這項＝驗收通過`);
+  else if (["mark_confirmed", "write_teacher_note", "mark_done"].includes(x.action)) add("y", "掃描器今天沒列這項（可能已處理、或值被改過）");
+  if (x.action === "mark_confirmed") {
+    add(t && String(ex.value) === String(x.target_value) ? "g" : "r", `要標記的值 ${x.target_value}｜Corp 現值 ${ex.value ?? "?"}｜系統推算 ${ex.expected ?? "?"}`);
+    // 第九輪 P2-d：署名來自業務在頁面選的「我是誰」，不是驗證過的信箱——讓你看得到會寫成誰
+    add(p.display_name ? "g" : "y", `小紅點署名：【系統確認 ${p.display_name || "（空，會改用信箱帳號）"}】｜Google 帳號名稱：${x.name}`);
+    add(x.reason && x.reason.length >= 4 ? "g" : "r", `理由：${x.reason || "（空）"}`);
+  }
+  // 🔴 第九輪 N-P0：燈號要比對內容，不是只看有沒有——業務送出後又改了起始堂次，擬好的「L18」就錯了
+  if (x.action === "write_teacher_note") {
+    if (!ex.teacher_note) add("y", `將寫入小綠點：「${x.target_value}」（今天的掃描沒有擬稿可比對）`);
+    else if (ex.teacher_note === String(x.target_value)) add("g", `將寫入小綠點：「${x.target_value}」（與今天掃描擬的一致）`);
+    else add("r", `業務送的是「${x.target_value}」，但今天的掃描擬的是「${ex.teacher_note}」——起始堂次可能改過，建議退回`);
+    if (!TRIAL_MODE) add("g", "執行器寫入前會再讀一次 Corp 的起始堂次，對不上就不寫、標失敗");
+  }
+  if (x.action === "request_makeup") {
+    const rx = ro && ro.extra_json ? (() => { try { return JSON.parse(ro.extra_json); } catch (e) { return {}; } })() : {};
+    if (TRIAL_MODE) add("r", `試行期：執行器不會 +1——請你自己到 Corp 把可補課次數 ${rx.rest_times ?? "?"} 改成 +1 並備註，再按「試行期已手動處理，結案」`);
+    else add(ro ? "g" : "y", `可補課次數現值 ${rx.rest_times ?? "?"} → 執行後 +1（執行器會在備註留「（執行台 ${x.row_id}）」，同一張申請不會 +1 兩次）`);
+    add("g", `Kiku 主旨：${x.kiku_subject}`);
+    if (x.status === "kiku_pending") add("y", "等 Kiku 核准（API 節點）；若你已在 Kiku 核准，可在此直接放行");
+    // 第十一輪 N2／N3：執行中或失敗的補課單，Corp 可能已經 +1——退回會讓業務重送、拿到新編號，冪等鍵擋不住
+    if (["executing", "failed"].includes(x.status))
+      add("r", `動它之前先到 Corp 看報名備註有沒有「（執行台 ${x.row_id}）」：有＝已經 +1，按結案、不要退回、不要手動 +1；${x.status === "failed"
+        ? "沒有才重新核准或退回"
+        // 第十二輪：漏清的試行期單會停在執行中、每天被 ⏸ 略過，執行器永遠不會做——不能叫你「等明天」
+        : "沒有的話先看今天報告的 ⏸ 段：列在那裡的是試行期的單，執行器不會做，照 ⏸ 的指示處理後結案；不在那裡才等明天執行器接手"}`);
+  }
+  if (x.action === "request_suspend") add("y", TRIAL_MODE
+    ? "暫停（試行期）：核准後單會停在「已核准待執行」，不會進「需你手動」——請你直接到班級頁設定長期停課，做完按「試行期已手動處理，結案」"
+    : "暫停：第一版執行器不動 Corp；核准後會進「需你手動」分頁，請你到班級頁設定長期停課，做完在該分頁按「已手動完成，結案」");
+  if (x.action === "mark_done") add("g", "不寫 Corp；靠送出隔天的掃描驗收（見上一顆燈）");
+  if (x.action === "kiku_unmatched") add("r", "Kiku 核准了一張單但對不到 REQ 編號，請人工比對；要放行原單請到「Kiku 待核」分頁按核准");
+  if (x.action === "kiku_mismatch") add("r", "Kiku 核准的單帶著某個 REQ 編號，但內容裡沒有該學生——可能貼錯編號，未自動放行；確認無誤請到「Kiku 待核」分頁放行原單");
+  return L;
+}
+
+function closeBtn(x, cls) {
+  const label = TRIAL_MODE ? "試行期已手動處理，結案" : "我已手動處理，結案";
+  return `<button class="${cls}" data-do="close" data-id="${esc(x.row_id)}" data-note="${label.replace("，結案", "")}（保旭）">${label}</button>`;
+}
+function render() {
+  const list = items.filter(x => x.status === cur);
+  const el = document.getElementById("list");
+  if (!list.length) { el.innerHTML = '<div class="empty">這個分類目前沒有。</div>'; return; }
+  el.innerHTML = list.map(x => {
+    const p = raw(x); const link = p.kind === "cert" && p.stage_id ? `${CORP}/stages/${p.stage_id}` : `${CORP}/dt_admissions/${x.admission_id}`;
+    const L = lights(x);
+    // kiku_pending：CEO 的 API 節點建好前，保旭在 Kiku 核准後可以在這裡手動放行
+    // failed：看過原因後可重新核准（執行器有本地帳本，已寫過的不會重做）
+    // manual 分頁沒有「核准」：按了只會變成一筆假的「已完成」（第四輪 N-H），只給「已手動完成，結案」
+    const canAct = ["pending", "review", "kiku_pending", "failed", "manual"].includes(cur);
+    // 第六輪：Kiku 稽核列（對不到／對錯 REQ）不是可執行的申請，按「核准」只會讓執行器標失敗、原單照樣卡住
+    const isKikuAudit = x.action === "kiku_mismatch" || x.action === "kiku_unmatched";
+    return `<div class="card">
+      <div>
+        <div class="head">${esc(x.student)}<a href="${esc(link)}" target="_blank" rel="noopener">開 Corp ↗</a> <span class="status ${esc(x.status)}">${esc(STATUS_LABEL[x.status] || x.status)}</span></div>
+        <div class="meta">${esc(x.row_id)}　${esc(x.check)}／${esc(x.action)}　由 ${esc(x.name)}（${esc(x.email)}）於 ${esc(twTime(x.timestamp))}</div>
+        <div class="reason"><b>業務寫的理由</b>${esc(x.reason) || "（無）"}</div>
+        ${x.posh_note ? `<div class="meta">你的備註：${esc(x.posh_note)}</div>` : ""}
+      </div>
+      <div class="lights">${L.map(l => `<div class="light"><span class="dot ${l.c}"></span><span>${esc(l.m)}</span></div>`).join("")}</div>
+      ${!canAct && !["approved", "executing"].includes(cur) ? ""
+        // 第九輪：「結案」改用 close（狀態＝已結案）——業務現在看得到狀態，用「退回」會讓他以為被打槍
+        : cur === "manual"
+        ? `<div class="btns"><button class="act ok" data-do="close" data-id="${esc(x.row_id)}" data-note="已手動完成（保旭）">已手動完成，結案</button></div>`
+        : isKikuAudit
+        ? `<div class="btns"><button class="act ok" data-do="close" data-id="${esc(x.row_id)}" data-note="已比對處理（保旭）">已比對處理，結案</button></div>`
+        : ["approved", "executing"].includes(cur)
+        // 第七輪：已核准／執行中只給「退回」——不給「核准」，因為重按核准沒有意義（執行器會自己接手 executing 的列）
+        // 第九輪 P1-d：試行期多一顆「結案」——看過隔天的 [dry-run] 行、自己也手動處理完，就結掉，免得擋住下一張申請
+        // 第十輪 P2-7：切換上線後這顆也要在——漏清的試行期單（已手動 +1 的補課）只能退回的話，業務看到「被退回」會重送，變 +2
+        ? `<div class="btns">${closeBtn(x, "act ok")}<button class="act no" data-do="reject" data-id="${esc(x.row_id)}">退回</button></div>`
+        : `<div class="btns"><button class="act ok" data-do="approve" data-id="${esc(x.row_id)}">核准</button><button class="act no" data-do="reject" data-id="${esc(x.row_id)}">退回</button>${closeBtn(x, "act")}</div>`}
+      ${(x.evidence || x.error) ? `<div class="evi">${esc(x.error ? "✕ " + x.error : "✓ " + x.evidence)}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("button[data-do]"); if (!b) return;
+  if (b.dataset.do === "reload") { todoLoaded = false; load(); return; }
+  decide(b.dataset.do, b.dataset.id, b.dataset.note);
+});
+async function decide(action, rowId, presetNote) {
+  let note = presetNote || "";
+  if (action === "reject" && !presetNote) { note = prompt("退回原因（業務會在執行台「我最近的申請」看到）："); if (note === null) return; }
+  // 第十輪 P2-5：結案不能反悔（沒有從「已結案」出發的轉換），而且就在「核准」旁邊——一定要再問一次
+  if (action === "close") {
+    const x = items.find(y => y.row_id === rowId) || {};
+    // 第十一輪 N3：先看 Corp 備註有沒有執行台標記——執行器寫入後驗證失敗的單，Corp 其實已經 +1 了
+    const warn = x.action === "request_makeup"
+      ? `\n\n這是補課申請，結案後系統不會再處理。\n先到 Corp 看報名備註有沒有「（執行台 ${rowId}）」：\n・有＝系統已經 +1，不要再手動 +1\n・沒有＝請你手動 +1 之後再結案` : "";
+    if (!confirm(`確定結案 ${rowId}（${x.student || ""}）？\n結案後不能再核准或退回，業務會看到「已結案」。${warn}`)) return;
+  }
+  const btns = document.querySelectorAll("button.act"); btns.forEach(b => b.disabled = true);
+  try {
+    // 核准／退回／結案不自動重送：第一次其實成功時，重送會被狀態檢查擋下、反而跳錯誤
+    const d = await callApi({ action, secret: getSecret(), row_id: rowId, note }, d => d.ok && d.status, 0);
+    if (d.error) { alert("失敗：" + d.error); return; }
+    await load();
+  } catch (e) { alert("錯誤：" + e.message + "\n請按「重新整理」看這一筆現在的狀態，再決定要不要重按。"); await load(); }
+  finally { btns.forEach(b => b.disabled = false); }
+}
+if (TRIAL_MODE) document.getElementById("trial").style.display = "";
+load();
+</script>
+</body>
+</html>

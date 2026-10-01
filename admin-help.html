@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="robots" content="noindex,nofollow">
+<title>使用說明｜行政執行台</title>
+<style>
+:root {
+  color-scheme: light only;
+  --orange: #FFA300; --orange-lt: #FFF4DD; --ink: #2D2E32;
+  --red: #E0484A; --red-lt: #FFEBEB; --green: #2E7D32; --green-lt: #E8F5E9;
+  --amber-lt: #FFF8E6; --gray: #5F6166; --line: #E6E2DA;
+  --bg: #FAF7F2; --card: #FFFFFF;
+  --font: "Noto Sans TC", "PingFang TC", "微軟正黑體", "Microsoft JhengHei", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.75; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
+header.top { border-bottom: 4px solid var(--orange); padding-bottom: 18px; margin-bottom: 28px; }
+header.top .kicker { display: inline-block; background: var(--orange); color: var(--ink); font-weight: 800; font-size: 13px; padding: 2px 10px; border-radius: 999px; letter-spacing: .5px; }
+header.top h1 { font-size: 32px; line-height: 1.3; margin: 10px 0 6px; }
+header.top p { color: var(--gray); }
+nav.toc { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-bottom: 32px; }
+nav.toc b { display: block; margin-bottom: 6px; }
+nav.toc ol { padding-left: 22px; columns: 2; column-gap: 32px; }
+nav.toc a { color: var(--ink); }
+section { margin: 44px 0; }
+h2 { font-size: 24px; line-height: 1.35; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+h2 .n { background: var(--orange); color: var(--ink); font-size: 15px; font-weight: 800; min-width: 30px; height: 30px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+h3 { font-size: 18px; margin: 22px 0 8px; }
+p + p { margin-top: 10px; }
+ul, ol { padding-left: 24px; }
+li + li { margin-top: 4px; }
+code, .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 14px; background: #F1ECE3; padding: 1px 6px; border-radius: 4px; word-break: break-all; }
+.callout { border-radius: 10px; padding: 14px 18px; margin: 16px 0; border: 1px solid var(--line); background: var(--card); }
+.callout.warn { background: var(--red-lt); border-color: #F3B6B6; }
+.callout.tip { background: var(--green-lt); border-color: #B9DDBB; }
+.callout.note { background: var(--amber-lt); border-color: #F2D9A6; }
+.callout b:first-child { display: block; margin-bottom: 4px; }
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+.flow .step { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; position: relative; }
+.flow .step .t { font-size: 13px; font-weight: 800; background: var(--orange-lt); border-radius: 6px; padding: 1px 8px; display: inline-block; margin-bottom: 6px; }
+.flow .step b { display: block; font-size: 16px; margin-bottom: 4px; }
+.flow .step span { font-size: 14px; color: var(--gray); line-height: 1.6; display: block; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; margin: 12px 0; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: #F3EEE5; font-size: 14px; }
+tr:last-child td { border-bottom: none; }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; }
+.dot.g { background: #4CAF50; } .dot.y { background: var(--orange); } .dot.r { background: #FF5859; } .dot.x { background: #BBB; }
+.btnlike { display: inline-block; font-size: 14px; font-weight: 700; padding: 1px 10px; border-radius: 6px; border: 2px solid var(--line); background: var(--card); white-space: nowrap; }
+.btnlike.ok { background: #E8F5E9; border-color: #4CAF50; }
+.btnlike.no { border-color: #FF5859; color: #B3262A; }
+figure { margin: 18px 0; }
+figure img { width: 100%; border: 1px solid var(--line); border-radius: 10px; display: block; background: var(--card); }
+figcaption { font-size: 14px; color: var(--gray); margin-top: 6px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.kind { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin: 18px 0; }
+.kind h3 { margin-top: 0; }
+.kind .when { font-size: 14px; color: var(--gray); }
+.label { display: inline-block; font-size: 13px; font-weight: 800; padding: 0 8px; border-radius: 4px; margin-right: 6px; }
+.label.trial { background: var(--orange); color: var(--ink); }
+.label.live { background: #E3E7EE; color: var(--ink); }
+pre { background: #2D2E32; color: #F4F1EA; border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.6; margin: 12px 0; font-family: "SF Mono", Menlo, Consolas, monospace; }
+footer { margin-top: 56px; color: var(--gray); font-size: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+@media (max-width: 760px) {
+  header.top h1 { font-size: 26px; }
+  .flow { grid-template-columns: 1fr 1fr; }
+  .two { grid-template-columns: 1fr; }
+  nav.toc ol { columns: 1; }
+  th, td { padding: 8px; font-size: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <span class="kicker">試行期版｜2026-09-28</span> <a href="admin.html" style="margin-left:10px;color:var(--ink);font-size:14px">← 回行政執行台</a>
+  <h1>行政執行台｜業務使用手冊</h1>
+  <p>每天早上系統會把你名下所有報名掃過一遍，把「該處理的事」列給你。你在執行台按一下留紀錄，保旭核准。這份手冊講你那一端怎麼用。</p>
+</header>
+
+<figure style="margin:0 0 28px">
+  <video src="admin-help/video.mp4" controls preload="metadata" playsinline style="width:100%;border-radius:12px;border:1px solid var(--line);background:#000"></video>
+  <figcaption>先看這支 2 分鐘的影片，再用下面的說明查細節。畫面裡的學生和「示範業務」帳號都是假資料。</figcaption>
+</figure>
+
+<nav class="toc">
+  <b>目錄</b>
+  <ol>
+    <li><a href="#s1">30 秒看懂</a></li>
+    <li><a href="#s2">第一次使用：登入</a></li>
+    <li><a href="#s3">每天怎麼用（約 5–10 分鐘）</a></li>
+    <li><a href="#s4">六個區塊各怎麼做</a></li>
+    <li><a href="#s5">按完之後會看到什麼</a></li>
+    <li><a href="#s6">最上面的橫幅是什麼意思</a></li>
+    <li><a href="#s7">常見問題</a></li>
+    <li><a href="#s8">正式上線後有什麼不同</a></li>
+    <li><a href="#s9">不要做的事</a></li>
+  </ol>
+</nav>
+
+<section id="s1">
+  <h2><span class="n">1</span>30 秒看懂</h2>
+  <div class="flow">
+    <div class="step"><span class="t">每天 07:00</span><b>系統掃描你名下的報名</b><span>起始堂次、小綠點、退費、停課、檢定班，有問題的列到你的清單。</span></div>
+    <div class="step"><span class="t">上班後</span><b>你打開執行台</b><span>照清單處理，每一筆按一下按鈕、寫理由。</span></div>
+    <div class="step"><span class="t">當天</span><b>保旭核准</b><span>核准或退回，退回原因你看得到。</span></div>
+    <div class="step"><span class="t">隔天 07:00</span><b>系統寫進 Corp</b><span>正式上線後才會自動寫。<b style="display:inline">試行期不會。</b></span></div>
+  </div>
+  <div class="callout note">
+    <b>現在是試行期</b>
+    你在執行台按的每一個按鈕，都只會留紀錄給保旭看，<b>Corp 不會被自動改</b>。該改的設定請照舊自己去 Corp 改。正式上線時保旭會通知你。
+  </div>
+</section>
+
+<section id="s2">
+  <h2><span class="n">2</span>第一次使用：登入</h2>
+  <ol>
+    <li>打開 <code>https://poshlin.github.io/oa-schedule/admin.html</code>，建議加入書籤。</li>
+    <li>右上角按「用 Google 帳戶登入」，<b>一定要用公司帳號</b>（@orangeapple.co）。</li>
+    <li>右上角會出現你的名字。如果顯示「— 請選你是誰 —」，選你自己一次，之後會記住。</li>
+  </ol>
+  <figure>
+    <img src="admin-help/img/top.png" alt="登入後的上方畫面">
+    <figcaption>登入成功：右上角是你的信箱與名字；綠色橫幅寫「今日待辦」是今天的日期。畫面裡的學生都是假資料。</figcaption>
+  </figure>
+</section>
+
+<section id="s3">
+  <h2><span class="n">3</span>每天怎麼用（約 5–10 分鐘）</h2>
+  <ol>
+    <li><b>上班後打開執行台</b>，先看最上面的綠色橫幅：日期是今天就正常。</li>
+    <li><b>由上到下處理</b> ①②③ 三區有數字的項目。</li>
+    <li>有家長要<b>補課或暫停</b>，用 ④ 產生 Kiku 公版。</li>
+    <li>最後看 ⑥ <b>我最近 30 天的申請</b>，有沒有被退回的。</li>
+  </ol>
+  <div class="callout tip">
+    <b>清單只會出現你名下的學生</b>
+    別人名下的不會出現。如果最下面出現「另有 N 筆掛在名單外的業務名下」，告訴保旭。
+  </div>
+</section>
+
+<section id="s4">
+  <h2><span class="n">4</span>六個區塊各怎麼做</h2>
+
+  <div class="kind">
+    <h3>① 可一鍵完成（小綠點）</h3>
+    <p class="when">起始堂次不是第 1 堂，但小綠點還沒告訴老師從第幾堂開始上。系統已經擬好那一行。</p>
+    <figure><img src="admin-help/img/sec-quick.png" alt="可一鍵完成區塊"></figure>
+    <ul>
+      <li>看「→ 小綠點備註：首堂從 L16 開始上」這行對不對，對就按<b>「確認寫入」</b>。</li>
+      <li>如果起始堂次是空白、系統擬不出內容，會改成「已處理」按鈕：先到 Corp 處理好再按。</li>
+      <li><span class="label trial">試行期</span>按了只留紀錄，<b>小綠點還是要你自己去 Corp 寫</b>。寫好之後，隔天這一項就不會再出現。</li>
+    </ul>
+  </div>
+
+  <div class="kind">
+    <h3>② 要你判斷（起始堂次）</h3>
+    <p class="when">起始堂次跟前一筆訂單接不起來。可能是設錯，也可能有正當理由（預先加購、跳級）。</p>
+    <figure><img src="admin-help/img/sec-judge.png" alt="要你判斷區塊"></figure>
+    <table>
+      <tr><th style="width:30%">情況</th><th>你按什麼</th></tr>
+      <tr><td>值是對的（有正當理由）</td><td><span class="btnlike" style="background:var(--orange)">確認無誤</span> 寫理由，例如「家長預先加購第二期」</td></tr>
+      <tr><td>值是錯的</td><td>點「開 Corp」改成建議的值，再按 <span class="btnlike">已照建議修正</span></td></tr>
+      <tr><td>系統預建、還沒設定</td><td>到 Corp 把起始堂次設好，再按 <span class="btnlike">已處理</span></td></tr>
+    </table>
+    <figure><img src="admin-help/img/modal-confirm.png" alt="確認無誤的輸入視窗" style="max-width:560px"><figcaption>按「確認無誤」會跳出這個視窗，理由必填。上面那行告訴你，正式上線後系統會在小紅點寫什麼。</figcaption></figure>
+    <ul><li><span class="label trial">試行期</span>「確認無誤」只會留紀錄，這一項明天還會再出現，屬正常，不用再按。值本來就對的話，<b>不用改 Corp</b>。</li></ul>
+  </div>
+
+  <div class="kind">
+    <h3>③ 其他待辦（退費未刪除／停課備註／檢定班前置）</h3>
+    <p class="when">這些事系統沒辦法幫你做，要你到 Corp 處理。</p>
+    <figure><img src="admin-help/img/sec-todo.png" alt="其他待辦區塊"></figure>
+    <ol>
+      <li>看每一項的說明，和下面「→」那一行建議怎麼做。</li>
+      <li>點「開 Corp」處理（檢定班會開梯次頁）。</li>
+      <li>回來按 <span class="btnlike">已處理</span>，寫你做了什麼。</li>
+    </ol>
+    <p>隔天早上的掃描如果不再列出這一項，就完成了。<b>還列著的話會變成紅字</b>，代表 Corp 還沒改好，要再去看一次。</p>
+  </div>
+
+  <div class="kind">
+    <h3>④ 補課／暫停申請（一鍵產生 Kiku 公版）</h3>
+    <p class="when">不用再自己一格一格填 Kiku。選學生、寫理由，其他欄位系統從 Corp 帶。</p>
+    <div class="two">
+      <figure><img src="admin-help/img/kiku-fill.png" alt="填寫補課申請"><figcaption>1. 選學生（只會出現你名下的）、選項目、寫理由。暫停要多填起訖與復課日。</figcaption></figure>
+      <figure><img src="admin-help/img/kiku-template.png" alt="產生的 Kiku 公版"><figcaption>2. 按「產生公版並留紀錄」，再按「一鍵複製」，點「開 Kiku」貼上送出。</figcaption></figure>
+    </div>
+    <ul>
+      <li><b>Kiku 的送件人必須是你本人。</b></li>
+      <li>公版最後一行「<b>執行台編號：REQ-…</b>」<b>一定要保留</b>，系統靠它把 Kiku 的核准對回這張申請。</li>
+      <li><span class="label trial">試行期</span><b>你不要自己去改可補課次數。</b>保旭在 Kiku 核准後會手動 +1，兩邊都做就變 +2。</li>
+    </ul>
+  </div>
+
+  <div class="kind">
+    <h3>⑤ 其他未分類</h3>
+    <p>系統新加的檢查項目會先出現在這裡。照說明到 Corp 處理，再按「已處理」。</p>
+  </div>
+
+  <div class="kind">
+    <h3>⑥ 我最近 30 天的申請</h3>
+    <figure><img src="admin-help/img/sec-mine.png" alt="我最近 30 天的申請"></figure>
+    <table>
+      <tr><th style="width:30%">狀態</th><th>意思</th></tr>
+      <tr><td>等保旭核准／等 Kiku 核准</td><td>送到了，還沒審</td></tr>
+      <tr><td>保旭已核准</td><td>同意了（試行期 Corp 仍要照舊自己改）</td></tr>
+      <tr><td>已完成</td><td>系統已經寫進 Corp（正式上線後才會有）</td></tr>
+      <tr><td style="color:#B3262A;font-weight:700">被退回</td><td>看右邊「保旭的備註」，改好之後可以重新送出</td></tr>
+      <tr><td>已結案</td><td>保旭自己處理完了（例如他已經手動 +1）</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="s5">
+  <h2><span class="n">5</span>按完之後會看到什麼</h2>
+  <table>
+    <tr><th style="width:44%">項目下面出現</th><th>意思與下一步</th></tr>
+    <tr><td style="color:#2E7D32">✓ 已送出（REQ-…）：等保旭核准</td><td>送到了。按鈕會收起來，不用再按</td></tr>
+    <tr><td style="color:#B3262A;font-weight:700">✕ 被保旭退回：原因</td><td>看原因、改好，按鈕會重新出現，可以再送一次</td></tr>
+    <tr><td style="color:#B3262A;font-weight:700">⚠ 你已經按過，但今天的掃描仍列出這一項</td><td>Corp 其實還沒改好，回 Corp 再確認</td></tr>
+    <tr><td>▸ 保旭已結案，但今天的掃描仍列出這一項</td><td>如果還需要處理，重新送出</td></tr>
+    <tr><td>跳出「這一項之前已經有人送過」</td><td>同一項已經有一張單在處理，這次不會重複建立。內容要改，請保旭先把舊單退回</td></tr>
+    <tr><td>跳出「送出失敗：伺服器暫時沒有回正常資料」</td><td>再按一次就好，重按不會重複建立</td></tr>
+  </table>
+</section>
+
+<section id="s6">
+  <h2><span class="n">6</span>最上面的橫幅是什麼意思</h2>
+  <table>
+    <tr><th style="width:44%">橫幅</th><th>怎麼辦</th></tr>
+    <tr><td style="background:#E8F5E9">綠色：已登入…今日待辦：今天日期</td><td>正常，開始處理</td></tr>
+    <tr><td style="background:#FFEBEB">紅色：今日待辦是空的／是某天的（不是今天）</td><td>今天早上的掃描沒完成。這天照舊自己到 Corp 處理，並告訴保旭</td></tr>
+    <tr><td style="background:#FFEBEB">紅色：對不到業務名單，請在右上角選你是誰</td><td>右上角選你自己</td></tr>
+    <tr><td style="background:#FFEBEB">紅色：資料裡混到不同日期</td><td>系統正在更新，一分鐘後按 Cmd+Shift+R 重新整理</td></tr>
+    <tr><td style="background:#FFF4DD">黃色：…N 班沒掃到</td><td>那幾班的學生今天不在清單上，照舊自己留意</td></tr>
+  </table>
+</section>
+
+<section id="s7">
+  <h2><span class="n">7</span>常見問題</h2>
+  <table>
+    <tr><th style="width:36%">問題</th><th>回答</th></tr>
+    <tr><td>看不到自己的清單</td><td>確認用公司帳號登入、右上角選對人，再按 Cmd+Shift+R 重新整理</td></tr>
+    <tr><td>按錯了</td><td>請保旭退回那一張，再重新處理</td></tr>
+    <tr><td>為什麼試行期還要自己改 Corp？</td><td>系統在「預演」：它會先讀 Corp、算出本來要怎麼改，確認都正確後才開自動寫入</td></tr>
+    <tr><td>理由要寫多詳細？</td><td>一句話講清楚原因就好，例如「家長預先加購第二期」。保旭看的是這一句</td></tr>
+  </table>
+</section>
+
+<section id="s8">
+  <h2><span class="n">8</span>正式上線後有什麼不同</h2>
+  <p>保旭會通知你「明天起」開始。從那天起：</p>
+  <ul>
+    <li>① 確認寫入、② 確認無誤：保旭核准後，<b>隔天早上系統自動寫進 Corp</b>，你不用再自己改。</li>
+    <li>④ 補課：保旭在 Kiku 核准後，<b>系統自動 +1</b> 並備註。你一樣不要自己動可補課次數。</li>
+    <li>③ 退費、停課、檢定班：<b>還是你到 Corp 處理</b>，系統只負責隔天驗收。</li>
+    <li>暫停：保旭核准後由保旭手動設定。</li>
+  </ul>
+  <p>切換那天請先按 Cmd+Shift+R 重新整理，試行期的黃色橫幅會消失。</p>
+</section>
+
+<section id="s9">
+  <h2><span class="n">9</span>不要做的事</h2>
+  <ul>
+    <li>不要自己去改<b>可補課次數</b>：試行期是保旭做，上線後是系統做，兩邊都做就是 +2。</li>
+    <li>Kiku 公版的「執行台編號」那一行不要刪。</li>
+    <li>不要用私人 Gmail 登入。</li>
+    <li>不要把執行台網址傳給家長或公司外的人。</li>
+  </ul>
+</section>
+
+<footer>
+  行政執行台（業務用）：<code>https://poshlin.github.io/oa-schedule/admin.html</code>。本說明的截圖全部是假資料，學生與「示範業務」帳號都是虛構的。有問題請找保旭。
+</footer>
+
+</div>
+</body>
+</html>
